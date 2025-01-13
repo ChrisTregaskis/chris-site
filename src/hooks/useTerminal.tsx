@@ -2,7 +2,7 @@ import React from "react";
 
 // Would be good to extract this out of terminal commands.
 // Essential total command lines - 2. As starts on 0 and last command is clear.
-const countOfExecutionLimit = 4;
+const countOfExecutionLimit = 5;
 
 export enum ActiveKeysEnum {
   ENTER = "enter",
@@ -21,11 +21,8 @@ const useTerminal = ({
 }: { 
   openCVCallback: () => void; 
 }) => {
-  const [ hintCount, setHintCount ] = React.useState<number>(0);
-  const [ completedSetOnce, setCompletedSetOnce ] = React.useState<boolean>(false);
   const [ countOfExecution, setCountOfExecution ] = React.useState<number>(0);
   
-
   const [ activeKeys, setActiveKeys ] = React.useState<ActiveKeys>(() => ({
     [ ActiveKeysEnum.ENTER ]: false,
     [ ActiveKeysEnum.C ]: false,
@@ -43,12 +40,7 @@ const useTerminal = ({
   // Increment execution on Enter
   const handleEnterPressClick = React.useCallback(() => {
     if (countOfExecution <= countOfExecutionLimit) {
-      console.log("Enter key pressed or clicked");
       setCountOfExecution(prev => prev + 1);
-
-      if (countOfExecution === countOfExecutionLimit) {
-        setCompletedSetOnce(true);
-      }
     } else {
       setCountOfExecution(0);
     }
@@ -81,37 +73,12 @@ const useTerminal = ({
     }
   }, [ countOfExecution, activeKeys ]);
 
-
-  // If the user hasn't clicked or pressed Enter yet - give'em a hint to do so!
-  const triggerHint = React.useCallback(() => {
-    // make button flash twice utilising active keys state
-    const flashIntervals = [ 250, 250, 450, 450 ];
-    let isActive = true;
-  
-    flashIntervals.forEach((_interval, index) => {
-      setTimeout(() => {
-        updateActiveKeys(ActiveKeysEnum.ENTER, isActive);
-        isActive = !isActive;
-      }, flashIntervals.slice(0, index + 1).reduce((a, b) => a + b, 0));
-    });
-
-    setHintCount(prev => prev + 1);
-  }, [ countOfExecution ]);
-
-
-  React.useEffect(() => {
-    // todoCT: if page loaded and !completedSetOnce for more than 15 seonds, automate count upto curl cmd
-  }, [ countOfExecution ]);
-
   return {
-    hintCount,
-    completedSetOnce,
     countOfExecution,
     activeKeys,
     countOfExecutionLimit,
     handleKeyDown,
     handleKeyUp,
-    triggerHint,
     setCountOfExecution,
     handleEnterPressClick
   }

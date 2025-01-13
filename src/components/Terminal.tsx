@@ -3,26 +3,17 @@ import TerminalLine from "./TerminalLine";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
 
-// const originalWords = [
-//   { text: "Vite", className: "text-[#a95eff]" },
-//   { text: " + " },
-//   { text: "React", className: "text-[#d2691e]" },
-//   { text: " + " },
-//   { text: "Tailwindcss", className: "text-[#0ea5e9]" },
-//   { text: " + " },
-//   { text: "Framer Motion", className: "text-[#ff57c8]" },
-// ];
-
 /**
  * 
  * Original commands:
- * 
+ * https://drive.usercontent.google.com/u/0/uc?id=1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN&export=download
+ *
  * cd ~/Downloads/
  * filename="ChrisTregaskisResume.pdf"
- * fileId="1ugcAx_yF1za0aWs3Rw7DZm82Lj"
+ * fileId="1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN"
  * curl -L "https://drive.usercontent.google.com/download?id=${fileId}&export=download" --output "${filename}"
- * 
- * 
+ * open "${filename}"
+ * clear
  */
 const changeDir = [
   { text: "cd ", className: "text-[#FE4450]" },
@@ -38,7 +29,7 @@ const filename = [
 const fileId = [
   { text: "fileId", className: "text-[#ff57c8]" },
   { text: "=", className: "text-[#fff]" },
-  { text: "1ugcAx_yF1za0aWs3Rw7DZm82Lj", className: "text-[#d2691e]" }
+  { text: "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN", className: "text-[#d2691e]" }
 ];
 
 const url = [
@@ -58,6 +49,13 @@ const curlCommand = [
   { text: `${"}"}"`, className: "text-[#d2691e]" },
   { text: " --", className: "text-[#fff]" },
   { text: "output ", className: "text-[#ff57c8]" },
+  { text: `"${"${"}`, className: "text-[#d2691e]" },
+  { text: "filename", className: "text-[#ff57c8]" },
+  { text: `${"}"}"`, className: "text-[#d2691e]" }
+];
+
+const openResume = [
+  { text: "open ", className: "text-[#FE4450]" },
   { text: `"${"${"}`, className: "text-[#d2691e]" },
   { text: "filename", className: "text-[#ff57c8]" },
   { text: `${"}"}"`, className: "text-[#d2691e]" }
@@ -183,8 +181,8 @@ const Terminal: React.FC<TerminalProps> = ({
               yourcomputer={yourcomputer}
               typedWords={url}
               animationSpeed={{
-                duration: 0.2,
-                stagger: 0.075
+                duration: 0.1,
+                stagger: 0.050
               }}
             />
           </>
@@ -228,7 +226,7 @@ const Terminal: React.FC<TerminalProps> = ({
         )
       }
 
-      // Clear terminal
+      // Open resume
       case 5: {
         return (
           <>
@@ -259,50 +257,53 @@ const Terminal: React.FC<TerminalProps> = ({
             />
             <TerminalLine 
               yourcomputer={yourcomputer}
-              typedWords={clearTerminal}
+              typedWords={openResume}
             />
           </>
         )
       }
 
-      // Hold full commands
-      // default: {
-      //   return (
-      //     <>
-      //       <TerminalLine
-      //         yourcomputer={yourcomputer}
-      //         typedWords={changeDir}
-      //         skipAnimation
-      //       />
-      //       <TerminalLine
-      //         yourcomputer={yourcomputer}
-      //         typedWords={filename}
-      //         skipAnimation
-      //       />
-      //       <TerminalLine 
-      //         yourcomputer={yourcomputer}
-      //         typedWords={fileId}
-      //         skipAnimation
-      //       />
-      //       <TerminalLine 
-      //         yourcomputer={yourcomputer}
-      //         typedWords={url}
-      //         skipAnimation
-      //       />
-      //       <TerminalLine 
-      //         yourcomputer={yourcomputer}
-      //         typedWords={curlCommand}
-      //         skipAnimation
-      //       />
-      //       <TerminalLine 
-      //         yourcomputer={yourcomputer}
-      //         typedWords={clearTerminal}
-      //         skipAnimation
-      //         holdCursor
-      //       />
-      //     </>
-      //   )
-      // }
+      // Clear terminal
+      case 6: {
+        return (
+          <>
+            <TerminalLine
+              yourcomputer={yourcomputer}
+              typedWords={changeDir}
+              skipAnimation
+            />
+            <TerminalLine
+              yourcomputer={yourcomputer}
+              typedWords={filename}
+              skipAnimation
+            />
+            <TerminalLine 
+              yourcomputer={yourcomputer}
+              typedWords={fileId}
+              skipAnimation
+            />
+            <TerminalLine 
+              yourcomputer={yourcomputer}
+              typedWords={url}
+              skipAnimation
+            />
+            <TerminalLine 
+              yourcomputer={yourcomputer}
+              typedWords={curlCommand}
+              skipAnimation
+            />
+            <TerminalLine 
+              yourcomputer={yourcomputer}
+              typedWords={openResume}
+              skipAnimation
+            />
+            <TerminalLine 
+              yourcomputer={yourcomputer}
+              typedWords={clearTerminal}
+            />
+          </>
+        )
+      }
     }
   }, [
     yourcomputer, 

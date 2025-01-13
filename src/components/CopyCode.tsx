@@ -1,12 +1,11 @@
-import { showToast } from "@/utils/toast";
+import useToast from "@/hooks/useToast";
 
 interface CopyCodeProps {
   text: string[];
 }
 
-const CopyCode: React.FC<CopyCodeProps> = ({
-  text
-}) => {
+const CopyCode: React.FC<CopyCodeProps> = ({ text }) => {
+  const { showToast } = useToast();
   if (!text.length) {
     return null;
   }

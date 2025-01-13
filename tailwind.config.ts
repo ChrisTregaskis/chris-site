@@ -6,6 +6,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        dark: '#2b3335',
         bgColor: 'var(--bgColor)',
         textColorPrimary: 'var(--textColorPrimary)',
         textColorSecondary: 'var(--textColorSecondary)'

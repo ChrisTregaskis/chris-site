@@ -2,7 +2,7 @@ import { ThemeContext, ThemeMode, ThemeProviderProps } from "@/context/ThemeCont
 import { useEffect, useState } from "react";
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [ themeMode, setThemeMode ] = useState<ThemeMode>(ThemeMode.LIGHT);
+  const [ themeMode, setThemeMode ] = useState<ThemeMode>(ThemeMode.DARK);
 
   useEffect(() => {
     document.documentElement.className = themeMode;

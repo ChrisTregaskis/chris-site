@@ -11,9 +11,6 @@ import { ThemeMode } from "./context/ThemeContext";
 /**
  * todoLIST:
  * 
- * - Get onto github
- * - REFACTOR: Instead of a hint, count down and trigger enter every 3 seconds until its complete
- *    - This makes it cleaner and don't have to worry
  * - Add link for Medium Article Medium
  * - Setup deployment on AWS and deploy
  * 
@@ -33,21 +30,17 @@ function App() {
   }, []);
 
   const {
-    hintCount,
-    completedSetOnce,
     countOfExecution,
     activeKeys,
     countOfExecutionLimit,
     handleKeyDown,
     handleKeyUp,
-    triggerHint,
     setCountOfExecution,
     handleEnterPressClick
   } = useTerminal({ openCVCallback: handleOpenCV });
 
   const wrapperDivRef = React.useRef<HTMLDivElement>(null);
   const countOfExecutionRef = React.useRef(countOfExecution);
-  const hintCountRef = React.useRef(hintCount);
 
   // Handle the light bulb toggle button click
   const handleLightSwitchClick = React.useCallback(() => {
@@ -59,11 +52,6 @@ function App() {
     wrapperDivRef.current?.focus();
   }, [])
   
-  // Hacky work around due to triggerHint useCallback not taking current hintCount value...
-  React.useEffect(() => {
-    hintCountRef.current = hintCount;
-  }, [ hintCount ]);
-
   // Focus on wrapper to listen for key events
   React.useEffect(() => {
     if (wrapperDivRef.current) {
@@ -71,24 +59,18 @@ function App() {
     }
   }, [ wrapperDivRef.current ]);
 
-  // Timeouts to assist visitor by indicating to press the button!
   React.useEffect(() => {
-    if (completedSetOnce) {
-      return;
-    }
-
     countOfExecutionRef.current = countOfExecution;
-
+    
+    // If the user hasn't clicked or pressed Enter yet - load the next line..
     const interval = setInterval(() => {
-      if (completedSetOnce || hintCountRef.current > 5) {
-        // todoCT: Lock the enter trigger and automate the text in the terminal!
-        // todoCT: Unlock when done
-        setCountOfExecution(countOfExecutionLimit);
-        clearInterval(interval);
-      } else if (countOfExecutionRef.current === countOfExecution) {
-        triggerHint();
+      if (
+        countOfExecutionRef.current === countOfExecution && 
+        countOfExecution < countOfExecutionLimit
+      ) {
+        setCountOfExecution(prevCount => prevCount + 1);
       }
-    }, 10000);
+    }, 5000);
   
     return () => {
       interval && clearInterval(interval);
@@ -127,6 +109,15 @@ function App() {
             isActive={activeKeys[ ActiveKeysEnum.ENTER ]}
           />
         </div>
+
+      <p 
+        className={`
+        text-dark fixed bottom-0 left-0 p-2 
+          after:absolute after:top-0 after:right-0 after:w-3/4 after:h-full after:bg-gradient-to-l after:from-bgColor after:to-transparent after:content-['']
+        `}
+      >
+        Lets be honest, light mode can be pretty wild...
+      </p>
       </div>
       <ToastContainer />
     </>
