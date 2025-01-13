@@ -15,8 +15,6 @@ import { ThemeMode } from "./context/ThemeContext";
  * - Setup deployment on AWS and deploy
  * 
  * STRETCH
- * - Move state and relevant terminal actions into a useTerminal hook to clean up App.tsx?
- * - Animate the autofill terminal. If enter clicked, just populate whole thing
  * - Make responsive! Figure out what that means... minimum set min width on terminal?
  * 
  * @description App is root level for rendering chris-tregaskis.uk
