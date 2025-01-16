@@ -3,6 +3,8 @@ import TerminalLine from "./TerminalLine";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
 
+export const googleDocId = "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN";
+
 /**
  * 
  * Original commands:
@@ -29,7 +31,7 @@ const filename = [
 const fileId = [
   { text: "fileId", className: "text-[#ff57c8]" },
   { text: "=", className: "text-[#fff]" },
-  { text: "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN", className: "text-[#d2691e]" }
+  { text: googleDocId, className: "text-[#d2691e]" }
 ];
 
 const url = [

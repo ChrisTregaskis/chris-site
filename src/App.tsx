@@ -1,7 +1,7 @@
 import React from "react";
 import { ToastContainer } from "react-toastify";
 
-import Terminal from "./components/Terminal";
+import Terminal, { googleDocId } from "./components/Terminal";
 import KeyboardButton from "./components/KeyboardButton";
 import useTerminal, { ActiveKeysEnum } from "./hooks/useTerminal";
 import { useTheme } from "./hooks/useTheme";
@@ -11,11 +11,22 @@ import { ThemeMode } from "./context/ThemeContext";
 /**
  * todoLIST:
  * 
+ * - Add an about me button, copy info inc picture from Medium
+ * - Refactor cv button to open a model or fly in from the side?
+ * - Refactor cv to present a form with an email input. 
+ * - Have a think about what would be cool to replace in terminal? Maybe an easter egg of sorts? 
+ * 
  * - Add link for Medium Article Medium
- * - Setup deployment on AWS and deploy
+ * - Terreform practice: Setup deployment on AWS 
+ * - Setup CircleCI for automated deployments when updates to master
+ * 
+ * Create chris-api
+ * - To handle the CV to be emailed
+ * - Notify me to please!
+ * - Setup CircleCI for automated deployments when updates to master
  * 
  * STRETCH
- * - Make responsive! Figure out what that means... minimum set min width on terminal?
+ * - Make responsive? Figure out what that means... minimum set min width on terminal?
  * 
  * @description App is root level for rendering chris-tregaskis.uk
  */
@@ -24,7 +35,7 @@ function App() {
   
   // Handler for opening CV in new window
   const handleOpenCV = React.useCallback(() => {
-    window.open("https://drive.google.com/file/d/1dwaBdQymxkluBzD_F5aj1kqcqO6sg-A-/view");
+    window.open(`https://drive.google.com/file/d/${googleDocId}/view`);
   }, []);
 
   const {
