@@ -25,7 +25,10 @@ const Button: React.FC<ButtonProps> = ({
         w-full 
         mx-4
         hover:brightness-125 hover:shadow-inner
-        flex justify-center items-center
+        active:translate-y-1
+        flex 
+        justify-center 
+        items-center
       `}
       onClick={handleClick}
       disabled={loading}

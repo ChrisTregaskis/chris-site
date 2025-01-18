@@ -5,10 +5,12 @@ import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
 import { useRequestCV } from "@/hooks/useRequestCV";
 import { toast } from "react-toastify";
+import { useActiveContent } from "@/hooks/useActiveContent";
 
 const RequestResumeForm: React.FC = () => {
   const { themeMode } = useTheme();
   const { status: requestCVStatus, setStatus } = useRequestCV();
+  const { setActiveContent } = useActiveContent();
   const [ formSubmitted, setFormSubmitted ] = useState(false);
 
   const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
@@ -100,9 +102,7 @@ const RequestResumeForm: React.FC = () => {
               <Button
                 text="Back To Terminal"
                 type="secondary"
-                handleClick={() => {
-                  // todoCT: handle back to terminal!
-                }}
+                handleClick={() => setActiveContent("terminal")}
               />
               <Button
                 text="View CV"

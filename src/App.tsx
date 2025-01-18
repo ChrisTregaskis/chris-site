@@ -9,17 +9,16 @@ import { ThemeMode } from "./context/ThemeContext";
 import About from "./components/About";
 import RequestResumeForm from "./components/RequestResumeForm/RequestResumeForm";
 import { useRequestCV } from "./hooks/useRequestCV";
+import { useActiveContent } from "./hooks/useActiveContent";
 
 
 /**
  * todoLIST:
  * 
  * - Handle form submission
- *    - Add loading animation
  *    - Wait for valid email check or email sent success on lambda, only present id for example if valid email
- * - Handle getting back to terminal content
- * - Update hasSubmittedEmail state - if true, just show a new text saying "Looks like you've already requested the CV to be emailed..." and leave buttons
- * - Once hasSubmittedEmail true, render the full file id in terminal
+ * - Add .env for api url
+ * - Run lint. Then add lint to trigger on save.
  * 
  * - Add link for Medium Article Medium
  * - Terreform practice: Setup deployment on AWS 
@@ -38,7 +37,7 @@ import { useRequestCV } from "./hooks/useRequestCV";
 function App() {
   const { setThemeMode } = useTheme();
   const { status: cvRequestStatus } = useRequestCV();
-  const [ activeContent, setActiveContent ] = React.useState<"terminal" | "about" | "resume">("terminal");
+  const { activeContent, setActiveContent } = useActiveContent()
 
   const {
     countOfExecution,
