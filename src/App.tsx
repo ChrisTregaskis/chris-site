@@ -6,15 +6,17 @@ import KeyboardButton from "./components/KeyboardButton";
 import useTerminal, { ActiveKeysEnum } from "./hooks/useTerminal";
 import { useTheme } from "./hooks/useTheme";
 import { ThemeMode } from "./context/ThemeContext";
+import About from "./components/About";
+import RequestResumeForm from "./components/RequestResumeForm";
 
 
 /**
  * todoLIST:
  * 
- * - Add an about me button, copy info inc picture from Medium
- * - Refactor cv button to open a model or fly in from the side?
- * - Refactor cv to present a form with an email input. 
- * - Have a think about what would be cool to replace in terminal? Maybe an easter egg of sorts? 
+ * - Handle form submission
+ * - Handle getting back to terminal content
+ * - Update hasSubmittedEmail state - if true, just show a new text saying "Looks like you've already requested the CV to be emailed..." and leave buttons
+ * - Once hasSubmittedEmail true, render the full file id in terminal
  * 
  * - Add link for Medium Article Medium
  * - Terreform practice: Setup deployment on AWS 
@@ -32,11 +34,8 @@ import { ThemeMode } from "./context/ThemeContext";
  */
 function App() {
   const { setThemeMode } = useTheme();
-  
-  // Handler for opening CV in new window
-  const handleOpenCV = React.useCallback(() => {
-    window.open(`https://drive.google.com/file/d/${googleDocId}/view`);
-  }, []);
+  const [ hasSubmittedEmail, setHasSubmittedEmail ] = React.useState(false);
+  const [ activeContent, setActiveContent ] = React.useState<"terminal" | "about" | "resume">("terminal");
 
   const {
     countOfExecution,
@@ -46,10 +45,19 @@ function App() {
     handleKeyUp,
     setCountOfExecution,
     handleEnterPressClick
-  } = useTerminal({ openCVCallback: handleOpenCV });
+  } = useTerminal();
 
   const wrapperDivRef = React.useRef<HTMLDivElement>(null);
   const countOfExecutionRef = React.useRef(countOfExecution);
+
+    // Handler for opening CV in new window
+    const handleOpenCV = React.useCallback(() => {
+      if (hasSubmittedEmail) {
+        window.open(`https://drive.google.com/file/d/${googleDocId}/view`);
+      } else {
+        setActiveContent("resume");
+      }
+    }, [ hasSubmittedEmail ]);
 
   // Handle the light bulb toggle button click
   const handleLightSwitchClick = React.useCallback(() => {
@@ -86,6 +94,30 @@ function App() {
     };
   }, [ countOfExecution ]);
 
+  const renderContent = React.useMemo(() => {
+    switch (activeContent) {
+      case "about":
+        return (
+          <About />
+        );
+      case "terminal":
+        return (
+          <Terminal 
+            countOfExecution={countOfExecution} 
+            hasSubmittedEmail={hasSubmittedEmail}
+          />
+        );
+        case "resume":
+          return (
+            <RequestResumeForm />
+          );
+    }
+  }, [
+    countOfExecution, 
+    hasSubmittedEmail,
+    activeContent
+  ])
+
   
   return (
     <>
@@ -96,37 +128,48 @@ function App() {
         onKeyUp={handleKeyUp}
         tabIndex={0}
       >
-        <div className="flex justify-end w-3/4 pr-4 gap-2 text-white">
-          <KeyboardButton 
-            keyType="pdf-cv" 
-            handleClick={handleOpenCV} 
-            leftActive={activeKeys[ ActiveKeysEnum.C ]}
-            rightActive={activeKeys[ ActiveKeysEnum.V ]}
-          />
-          <KeyboardButton 
-            keyType="lightbulb" 
-            handleClick={handleLightSwitchClick}
-          />
+        <div className="fixed top-0 right-0 p-4">
+          <div className="flex justify-end w-full pr-4 gap-2 text-white">
+            <KeyboardButton 
+              keyType="terminal" 
+              handleClick={() => setActiveContent("terminal")}
+            />
+            <KeyboardButton 
+              keyType="about" 
+              handleClick={() => setActiveContent("about")}
+            />
+            <KeyboardButton 
+              keyType="resume" 
+              handleClick={handleOpenCV} 
+            />
+            <KeyboardButton 
+              keyType="lightbulb" 
+              handleClick={handleLightSwitchClick}
+            />
+          </div>
         </div>
 
-        <Terminal countOfExecution={countOfExecution} />
+        {renderContent}
 
-        <div className="flex justify-end w-3/4 pr-4 gap-2 text-white">
-          <KeyboardButton 
-            keyType="enter" 
-            handleClick={handleEnterPressClick}
-            isActive={activeKeys[ ActiveKeysEnum.ENTER ]}
-          />
-        </div>
-
-      <p 
-        className={`
-        text-dark fixed bottom-0 left-0 p-2 
-          after:absolute after:top-0 after:right-0 after:w-3/4 after:h-full after:bg-gradient-to-l after:from-bgColor after:to-transparent after:content-['']
-        `}
-      >
-        Lets be honest, light mode can be pretty wild...
-      </p>
+        {activeContent === "terminal" && (
+          <>
+            <div className="flex justify-end w-3/4 pr-4 gap-2 text-white max-w-7xl">
+              <KeyboardButton 
+                keyType="enter" 
+                handleClick={handleEnterPressClick}
+                isActive={activeKeys[ ActiveKeysEnum.ENTER ]}
+              />
+            </div>
+            <p 
+              className={`
+              text-dark fixed bottom-0 left-0 p-2 
+                after:absolute after:top-0 after:right-0 after:w-3/4 after:h-full after:bg-gradient-to-l after:from-bgColor after:to-transparent after:content-['']
+              `}
+            >
+              Hot take, light mode can be pretty wild...
+            </p>
+          </>
+        )}
       </div>
       <ToastContainer />
     </>

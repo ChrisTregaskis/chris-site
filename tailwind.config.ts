@@ -6,10 +6,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: '#2b3335',
+        dark: '#141414',
+        light: '#f0f8ff',
         bgColor: 'var(--bgColor)',
         textColorPrimary: 'var(--textColorPrimary)',
-        textColorSecondary: 'var(--textColorSecondary)'
+        textColorSecondary: 'var(--textColorSecondary)',
+        buttonPrimary: 'var(--buttonPrimary)',
+        buttonSecondary: 'var(--buttonSecondary)'
       }
     },
   },

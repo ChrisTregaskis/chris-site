@@ -4,29 +4,21 @@ import React from "react";
 // Essential total command lines - 2. As starts on 0 and last command is clear.
 const countOfExecutionLimit = 5;
 
+// Did have c and v here but striped out as no longer using them. 
+// Leaving this pattern incase I would like to add key state, eg. "l" for toggling theme
 export enum ActiveKeysEnum {
-  ENTER = "enter",
-  C = "c",
-  V = "v"
+  ENTER = "enter"
 }
 
 export interface ActiveKeys {
   [ ActiveKeysEnum.ENTER ]: boolean;
-  [ ActiveKeysEnum.C ]: boolean;
-  [ ActiveKeysEnum.V ]: boolean;
 }
 
-const useTerminal = ({
-  openCVCallback
-}: { 
-  openCVCallback: () => void; 
-}) => {
+const useTerminal = () => {
   const [ countOfExecution, setCountOfExecution ] = React.useState<number>(0);
   
   const [ activeKeys, setActiveKeys ] = React.useState<ActiveKeys>(() => ({
-    [ ActiveKeysEnum.ENTER ]: false,
-    [ ActiveKeysEnum.C ]: false,
-    [ ActiveKeysEnum.V ]: false
+    [ ActiveKeysEnum.ENTER ]: false
   }));
 
   // Could be put into a reducer... update relevant key active state
@@ -50,8 +42,6 @@ const useTerminal = ({
   // Activate relevant keys
   const handleKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter") updateActiveKeys(ActiveKeysEnum.ENTER, true);
-    if (event.key === "c") updateActiveKeys(ActiveKeysEnum.C, true);
-    if (event.key === "v") updateActiveKeys(ActiveKeysEnum.V, true);
   }, [ countOfExecution, updateActiveKeys ]);
 
   // Resent relevant keys active state and perform either Enter or CV actions
@@ -59,17 +49,6 @@ const useTerminal = ({
     if (event.key === "Enter") {
       updateActiveKeys(ActiveKeysEnum.ENTER, false);
       handleEnterPressClick();
-    }
-    
-    // if the keys C is being held down and the key up is V, trigger handleOpenCV func
-    if (activeKeys[ ActiveKeysEnum.C ] && activeKeys[ ActiveKeysEnum.V ]) {
-      updateActiveKeys(ActiveKeysEnum.C, false);
-      updateActiveKeys(ActiveKeysEnum.V, false);
-      openCVCallback();
-    } else {
-      // Update states of other keys
-      if (event.key === "c") updateActiveKeys(ActiveKeysEnum.C, false);
-      if (event.key === "v") updateActiveKeys(ActiveKeysEnum.V, false);
     }
   }, [ countOfExecution, activeKeys ]);
 

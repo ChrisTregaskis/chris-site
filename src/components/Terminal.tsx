@@ -31,7 +31,7 @@ const filename = [
 const fileId = [
   { text: "fileId", className: "text-[#ff57c8]" },
   { text: "=", className: "text-[#fff]" },
-  { text: googleDocId, className: "text-[#d2691e]" }
+  { text: " [ To access file id, please first click PDF icon and complete form request. ]", className: "text-[#fff]" }
 ];
 
 const url = [
@@ -71,10 +71,12 @@ const yourcomputer = "yourcomputer ~/ $ ";
 
 interface TerminalProps {
   countOfExecution: number;
+  hasSubmittedEmail: boolean;
 }
 
 const Terminal: React.FC<TerminalProps> = ({
-  countOfExecution
+  countOfExecution,
+  hasSubmittedEmail
 }) => {
   const { themeMode } = useTheme();
 
@@ -154,6 +156,8 @@ const Terminal: React.FC<TerminalProps> = ({
             <TerminalLine 
               yourcomputer={yourcomputer}
               typedWords={fileId}
+              skipAnimation={!hasSubmittedEmail}
+              holdCursor={!hasSubmittedEmail}
             />
           </>
         )
@@ -316,29 +320,29 @@ const Terminal: React.FC<TerminalProps> = ({
   ]);
 
   return (
-      <div className="h-full w-full flex items-center justify-center p-2">
+    <div className="h-full w-full flex items-center justify-center p-2">
+      <div className={`
+          ${themeMode === ThemeMode.DARK ? "bg-gray-950 " : "bg-gray-900"} 
+          text-light rounded-lg shadow-lg h-[250px] w-3/4 max-w-7xl 
+        `}>
         <div className={`
-            ${themeMode === ThemeMode.DARK ? "bg-gray-900 " : "bg-gray-700"} 
-            text-white rounded-lg shadow-lg h-[250px] w-3/4 min-w-2xl
+            ${themeMode === ThemeMode.DARK ? "bg-gray-800" : "bg-gray-700"} 
+            p-2 rounded-t-lg flex items-center justify-between
           `}>
-          <div className={`
-              ${themeMode === ThemeMode.DARK ? "bg-gray-800" : "bg-gray-600"} 
-              p-2 rounded-t-lg flex items-center justify-between
-            `}>
-            <div className="flex space-x-2">
-              <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-              <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-              <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-            </div>
-            <p className="text-center flex-1">Terminal</p>
+          <div className="flex space-x-2">
+            <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+            <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+            <span className="w-3 h-3 bg-green-500 rounded-full"></span>
           </div>
-
-          <div className="pb-[50px] pl-[15px] h-full w-full flex flex-col justify-end">
-            {renderTerminal}
-          </div>
-
+          <p className="text-center flex-1">Terminal</p>
         </div>
+
+        <div className="pb-[50px] pl-[15px] h-full w-full flex flex-col justify-end">
+          {renderTerminal}
+        </div>
+
       </div>
+    </div>
   )
 }
 

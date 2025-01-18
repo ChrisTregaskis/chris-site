@@ -26,7 +26,7 @@ const TerminalLine: React.FC<TerminalLineProps> = ({
   return (
     <div className="relative group">
       <div className="flex items-center gap-2">
-        <p className="text-white text-1xl">
+        <p className="text-light text-1xl">
           {yourcomputer}
         </p>
         {skipAnimation ? 

@@ -12,13 +12,17 @@
 
 .light {
   --bgColor: #f0f8ff;
-  --textColorPrimary: #000;
+  --textColorPrimary: #141414;
+  --buttonPrimary: #320064;
+  --buttonSecondary: #7D3C98;
 }
 
 .dark {
-  --bgColor: #2b3335;
+  --bgColor: #141414;
   --textColorPrimary: #f0f8ff;
   --textColorSecondary: hsl(0, 83.87%, 63.53%);
+  --buttonPrimary: #320064;
+  --buttonSecondary: #7D3C98;
 }
 
 /* Maybe have more themed options to toggle? */
