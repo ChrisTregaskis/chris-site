@@ -7,13 +7,16 @@ import useTerminal, { ActiveKeysEnum } from "./hooks/useTerminal";
 import { useTheme } from "./hooks/useTheme";
 import { ThemeMode } from "./context/ThemeContext";
 import About from "./components/About";
-import RequestResumeForm from "./components/RequestResumeForm";
+import RequestResumeForm from "./components/RequestResumeForm/RequestResumeForm";
+import { useRequestCV } from "./hooks/useRequestCV";
 
 
 /**
  * todoLIST:
  * 
  * - Handle form submission
+ *    - Add loading animation
+ *    - Wait for valid email check or email sent success on lambda, only present id for example if valid email
  * - Handle getting back to terminal content
  * - Update hasSubmittedEmail state - if true, just show a new text saying "Looks like you've already requested the CV to be emailed..." and leave buttons
  * - Once hasSubmittedEmail true, render the full file id in terminal
@@ -34,7 +37,7 @@ import RequestResumeForm from "./components/RequestResumeForm";
  */
 function App() {
   const { setThemeMode } = useTheme();
-  const [ hasSubmittedEmail, setHasSubmittedEmail ] = React.useState(false);
+  const { status: cvRequestStatus } = useRequestCV();
   const [ activeContent, setActiveContent ] = React.useState<"terminal" | "about" | "resume">("terminal");
 
   const {
@@ -52,12 +55,12 @@ function App() {
 
     // Handler for opening CV in new window
     const handleOpenCV = React.useCallback(() => {
-      if (hasSubmittedEmail) {
+      if (cvRequestStatus === "success") {
         window.open(`https://drive.google.com/file/d/${googleDocId}/view`);
       } else {
         setActiveContent("resume");
       }
-    }, [ hasSubmittedEmail ]);
+    }, [ cvRequestStatus ]);
 
   // Handle the light bulb toggle button click
   const handleLightSwitchClick = React.useCallback(() => {
@@ -102,10 +105,7 @@ function App() {
         );
       case "terminal":
         return (
-          <Terminal 
-            countOfExecution={countOfExecution} 
-            hasSubmittedEmail={hasSubmittedEmail}
-          />
+          <Terminal countOfExecution={countOfExecution} />
         );
         case "resume":
           return (
@@ -114,7 +114,6 @@ function App() {
     }
   }, [
     countOfExecution, 
-    hasSubmittedEmail,
     activeContent
   ])
 

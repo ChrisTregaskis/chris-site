@@ -1,18 +1,50 @@
 import React, { useState } from "react";
-import { googleDocId } from "./Terminal";
-import Button from "./Button";
+import { googleDocId } from "../Terminal";
+import Button from "../Button";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
+import { useRequestCV } from "@/hooks/useRequestCV";
+import { toast } from "react-toastify";
 
 const RequestResumeForm: React.FC = () => {
   const { themeMode } = useTheme();
+  const { status: requestCVStatus, setStatus } = useRequestCV();
   const [ formSubmitted, setFormSubmitted ] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
-    // Handle form submission logic here
-    setFormSubmitted(true);
-  };
+    const formData = new FormData(event.target as HTMLFormElement);
+    const values = Object.fromEntries(formData.entries());
+    console.log("TEST_RUN: Form values:", values);
+    setStatus("loading");
+
+    try {
+      // todoCT: Setup endpoint url in a .env file
+      const apiUrl = "https://12345.execute-api.eu-west-2.amazonaws.com/test"; 
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (response.ok) {
+        // Request successful, do something here
+        toast.success("Email sent successfully! The CV should be arriving in your inbox any moment.");
+        setStatus("success");
+        setFormSubmitted(true);
+      } else {
+        // Request failed, handle errors here
+        toast.error("Oh no! Couldn't send the email.");
+        setStatus("error");
+      } 
+    } catch (error) {
+      toast.error("Oh no! request failed.");
+      console.error('An error occurred:', error);
+    }
+  }, []);
 
   return (
     <div className="h-full w-full flex items-center justify-center p-2">
@@ -20,7 +52,7 @@ const RequestResumeForm: React.FC = () => {
           ${themeMode === ThemeMode.DARK && "bg-gray-950"} 
           rounded-lg shadow-lg h-full w-3/4 max-w-7xl flex flex-col p-4 text-textColorPrimary
         `}>
-        {!formSubmitted ? (
+        {!formSubmitted && requestCVStatus !== "success" ? (
           <>
             <h1 className="text-4xl font-serif mb-4">Request Chris's CV</h1>
             <p className="mb-4">
@@ -50,6 +82,7 @@ const RequestResumeForm: React.FC = () => {
                   <Button
                     htmlType="submit"
                     text="Submit"
+                    loading={requestCVStatus === "loading"}
                   />
                 </div>
               </div>
@@ -68,7 +101,7 @@ const RequestResumeForm: React.FC = () => {
                 text="Back To Terminal"
                 type="secondary"
                 handleClick={() => {
-                  //
+                  // todoCT: handle back to terminal!
                 }}
               />
               <Button

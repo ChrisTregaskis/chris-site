@@ -2,6 +2,7 @@ import React from "react";
 import TerminalLine from "./TerminalLine";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
+import { useRequestCV } from "@/hooks/useRequestCV";
 
 export const googleDocId = "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN";
 
@@ -71,13 +72,10 @@ const yourcomputer = "yourcomputer ~/ $ ";
 
 interface TerminalProps {
   countOfExecution: number;
-  hasSubmittedEmail: boolean;
 }
 
-const Terminal: React.FC<TerminalProps> = ({
-  countOfExecution,
-  hasSubmittedEmail
-}) => {
+const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
+  const { status: requestCVStatus } = useRequestCV();
   const { themeMode } = useTheme();
 
   // todoCT: Make work? Stops animating on line 3
@@ -156,8 +154,8 @@ const Terminal: React.FC<TerminalProps> = ({
             <TerminalLine 
               yourcomputer={yourcomputer}
               typedWords={fileId}
-              skipAnimation={!hasSubmittedEmail}
-              holdCursor={!hasSubmittedEmail}
+              skipAnimation={requestCVStatus !== "success"}
+              holdCursor={requestCVStatus !== "success"}
             />
           </>
         )

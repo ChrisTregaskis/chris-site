@@ -13,7 +13,10 @@ export default {
         textColorSecondary: 'var(--textColorSecondary)',
         buttonPrimary: 'var(--buttonPrimary)',
         buttonSecondary: 'var(--buttonSecondary)'
-      }
+      },
+      animation: {
+        'spin-fast': 'spin 0.5s linear infinite',
+      },
     },
   },
   plugins: [],
