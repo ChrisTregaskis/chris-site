@@ -28,7 +28,7 @@ const Pin: FC<PropsWithChildren<{ text: string }>> = ({ children, text }) => {
         className="absolute left-1/2 top-1/2 mt-4 -translate-x-1/2 -translate-y-1/2"
       >
         <div
-          style={{ transform: transform }}
+          style={{ transform }}
           className="shadow-[0_8px_16px_rgb(0_0_0/0.4)]border absolute left-1/2 top-1/2 flex items-start justify-center overflow-hidden rounded-2xl border-white/[0.1] p-4 transition duration-700 group-hover/pin:border-white/[0.2]"
         >
           <div className="relative z-50">{children}</div>

@@ -13,9 +13,9 @@ const CopyCode: React.FC<CopyCodeProps> = ({ text }) => {
   return (
     <button 
       className="flex items-center space-x-2 text-gray-500 hover:text-gray-700"
-      onClick={() => {
+      onClick={async () => {
         if (text.length === 1) {
-          navigator.clipboard.writeText(text[ 0 ]);
+          await navigator.clipboard.writeText(text[ 0 ]);
           showToast("Copied to clipboard!", { scheme: "SUCCESS" })
         }
       }}

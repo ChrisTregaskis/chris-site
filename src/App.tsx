@@ -1,5 +1,5 @@
 import React from "react";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 import Terminal, { googleDocId } from "./components/Terminal";
 import KeyboardButton from "./components/KeyboardButton";
@@ -18,7 +18,8 @@ import { useActiveContent } from "./hooks/useActiveContent";
  * - Handle form submission
  *    - Wait for valid email check or email sent success on lambda, only present id for example if valid email
  * - Add .env for api url
- * - Run lint. Then add lint to trigger on save.
+ * - Run lint, sort issues, set up husky to run lint before every push
+ * - Run prettier to sort all existing inconsistencies, set up prettier to run every save
  * 
  * - Add link for Medium Article Medium
  * - Terreform practice: Setup deployment on AWS 
@@ -92,7 +93,7 @@ function App() {
     }, 5000);
   
     return () => {
-      interval && clearInterval(interval);
+      clearInterval(interval);
     };
   }, [ countOfExecution ]);
 
@@ -106,10 +107,12 @@ function App() {
         return (
           <Terminal countOfExecution={countOfExecution} />
         );
-        case "resume":
-          return (
-            <RequestResumeForm />
-          );
+      case "resume":
+        return (
+          <RequestResumeForm />
+        );
+      default:
+        toast.error("Unhandled content renderer");
     }
   }, [
     countOfExecution, 

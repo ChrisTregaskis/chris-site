@@ -1,8 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
+import CopyCode from "./CopyCode";
 import Typewriter, { TypewriterProps, Words } from "./Typewriter";
 import { cn } from "@/utils";
-import CopyCode from "./CopyCode";
 
 interface TerminalLineProps {
   typedWords: Words;

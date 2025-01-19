@@ -1,7 +1,7 @@
-import { ThemeMode } from '@/context/ThemeContext';
-import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import ToolTip from './ToolTip';
+import { ThemeMode } from '@/context/ThemeContext';
+import { useTheme } from '@/hooks/useTheme';
 
 interface KeyboardButtonProps {
   keyType: "enter" | "lightbulb" | "resume" | "about" | "terminal";
@@ -183,7 +183,7 @@ const KeyboardButton: React.FC<KeyboardButtonProps> = ({
         ${isActive ? "brightness-125" : "hover:brightness-125"}
         ${isActive ? "translate-y-1" : "active:translate-y-1"}
         ${isActive ? "shadow-inner" : "active:shadow-inner"}
-        ${isActive || (leftActive && rightActive) ? "brightness-125 translate-y-1 shadow-inner" : ""}
+        ${isActive ?? (leftActive && rightActive) ? "brightness-125 translate-y-1 shadow-inner" : ""}
         ${!isActive && leftActive ? "hover:brightness-125 hover:translate-y-1 hover:shadow-inner" : ""}
         ${!isActive && rightActive ? "hover:brightness-125 hover:translate-y-1 hover:shadow-inner" : ""}
         ${leftActive && !rightActive ? "transform -skew-y-3 relative before:absolute before:top-0 before:left-0 before:w-3/4 before:h-full before:bg-gradient-to-r before:from-gray-700 before:to-transparent before:brightness-125 before:content-['']" : ""}

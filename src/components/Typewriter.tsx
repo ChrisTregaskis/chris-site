@@ -23,7 +23,7 @@ const Typewriter: React.FC<TypewriterProps> = ({
   const [scope, animate] = useAnimate();
 
   useEffect(() => {
-    animate(
+    void animate(
       "span",
       { display: "inline-block", opacity: 1 },
       { 

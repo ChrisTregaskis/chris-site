@@ -1,8 +1,8 @@
-import { ThemeMode } from "@/context/ThemeContext";
-import { useTheme } from "@/hooks/useTheme";
-import type { ToastOptions as ToastifyToastOptions } from "react-toastify";
+import  { type ToastOptions as ToastifyToastOptions } from "react-toastify";
 import { toast } from "react-toastify";
 import { useCallback } from "react";
+import { ThemeMode } from "@/context/ThemeContext";
+import { useTheme } from "@/hooks/useTheme";
 
 /** Different values for configuring the toast scheme */
 type ToastScheme = "SUCCESS" | "WARN" | "ERROR" | "INFO";
@@ -50,7 +50,7 @@ const useToast = () => {
         });
         break;
       }
-      default:
+      
       case "INFO": {
         toast.info(message, {
           className: toastClassName,
@@ -58,6 +58,10 @@ const useToast = () => {
           ...options
         });
         break;
+      }
+
+      default: {
+        toast.error("Unhandled toast type");
       }
     }
   }, [themeMode]);

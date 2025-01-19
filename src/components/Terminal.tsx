@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "react-toastify";
 import TerminalLine from "./TerminalLine";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
@@ -307,6 +308,10 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
             />
           </>
         )
+      }
+
+      default: {
+        toast.error("Unhandled terminal sequence");
       }
     }
   }, [
