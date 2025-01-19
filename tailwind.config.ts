@@ -6,16 +6,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: '#141414',
-        light: '#f0f8ff',
-        bgColor: 'var(--bgColor)',
-        textColorPrimary: 'var(--textColorPrimary)',
-        textColorSecondary: 'var(--textColorSecondary)',
-        buttonPrimary: 'var(--buttonPrimary)',
-        buttonSecondary: 'var(--buttonSecondary)'
+        dark: "#141414",
+        light: "#f0f8ff",
+        bgColor: "var(--bgColor)",
+        textColorPrimary: "var(--textColorPrimary)",
+        textColorSecondary: "var(--textColorSecondary)",
+        buttonPrimary: "var(--buttonPrimary)",
+        buttonSecondary: "var(--buttonSecondary)",
       },
       animation: {
-        'spin-fast': 'spin 0.5s linear infinite',
+        "spin-fast": "spin 0.5s linear infinite",
       },
     },
   },

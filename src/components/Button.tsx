@@ -11,10 +11,10 @@ const Button: React.FC<ButtonProps> = ({
   htmlType,
   handleClick,
   type = "primary",
-  loading = false
- }) => {
+  loading = false,
+}) => {
   return (
-    <button 
+    <button
       type={htmlType}
       className={`
         px-6 
@@ -33,22 +33,24 @@ const Button: React.FC<ButtonProps> = ({
       onClick={handleClick}
       disabled={loading}
     >
-{loading ? (
-  <div className="
-    w-6 
-    h-6 
-    border-4 
-    border-t-4 
-    border-transparent 
-    rounded-full 
-    animate-spin-fast
-    border-t-white
-  "/>
-) : (
-  text
-)}
+      {loading ? (
+        <div
+          className="
+            w-6 
+            h-6 
+            border-4 
+            border-t-4 
+            border-transparent 
+            rounded-full 
+            animate-spin-fast
+            border-t-white
+          "
+        />
+      ) : (
+        text
+      )}
     </button>
-  )
-}
+  );
+};
 
 export default Button;

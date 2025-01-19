@@ -4,7 +4,8 @@ interface ToolTipProps {
 
 const ToolTip: React.FC<ToolTipProps> = ({ tip }) => {
   return (
-    <span className="
+    <span
+      className="
       absolute 
       w-[85px] 
       brightness-75 
@@ -21,10 +22,11 @@ const ToolTip: React.FC<ToolTipProps> = ({ tip }) => {
       duration-300 
       opacity-0 
       group-hover:opacity-100
-    ">
+    "
+    >
       {tip}
     </span>
-  )
-}
+  );
+};
 
 export default ToolTip;

@@ -1,7 +1,4 @@
-import { 
-  createContext,
-  ReactNode
-} from "react";
+import { createContext, ReactNode } from "react";
 import { ApiStatus } from ".";
 
 export interface RequestCVContextProps {
@@ -9,7 +6,9 @@ export interface RequestCVContextProps {
   setStatus: React.Dispatch<React.SetStateAction<ApiStatus>>;
 }
 
-export const RequestCVContext = createContext<RequestCVContextProps | undefined>(undefined);
+export const RequestCVContext = createContext<
+  RequestCVContextProps | undefined
+>(undefined);
 
 export interface RequestCVProviderProps {
   children: ReactNode;

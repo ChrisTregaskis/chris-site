@@ -11,34 +11,35 @@ import RequestResumeForm from "./components/RequestResumeForm/RequestResumeForm"
 import { useRequestCV } from "./hooks/useRequestCV";
 import { useActiveContent } from "./hooks/useActiveContent";
 
-
 /**
  * todoLIST:
- * 
+ *
  * - Handle form submission
  *    - Wait for valid email check or email sent success on lambda, only present id for example if valid email
- * - Add .env for api url
- * - Run lint, sort issues, set up husky to run lint before every push
  * - Run prettier to sort all existing inconsistencies, set up prettier to run every save
- * 
+ *
+ *
  * - Add link for Medium Article Medium
- * - Terreform practice: Setup deployment on AWS 
+ * - Terreform practice: Setup deployment on AWS
  * - Setup CircleCI for automated deployments when updates to master
- * 
+ *
  * Create chris-api
  * - To handle the CV to be emailed
  * - Notify me to please!
  * - Setup CircleCI for automated deployments when updates to master
- * 
+ *
  * STRETCH
  * - Make responsive? Figure out what that means... minimum set min width on terminal?
- * 
+ * - Setup husky
+ * - Add .env for api url
+ *
+ *
  * @description App is root level for rendering chris-tregaskis.uk
  */
 function App() {
   const { setThemeMode } = useTheme();
   const { status: cvRequestStatus } = useRequestCV();
-  const { activeContent, setActiveContent } = useActiveContent()
+  const { activeContent, setActiveContent } = useActiveContent();
 
   const {
     countOfExecution,
@@ -47,104 +48,91 @@ function App() {
     handleKeyDown,
     handleKeyUp,
     setCountOfExecution,
-    handleEnterPressClick
+    handleEnterPressClick,
   } = useTerminal();
 
   const wrapperDivRef = React.useRef<HTMLDivElement>(null);
   const countOfExecutionRef = React.useRef(countOfExecution);
 
-    // Handler for opening CV in new window
-    const handleOpenCV = React.useCallback(() => {
-      if (cvRequestStatus === "success") {
-        window.open(`https://drive.google.com/file/d/${googleDocId}/view`);
-      } else {
-        setActiveContent("resume");
-      }
-    }, [ cvRequestStatus ]);
+  // Handler for opening CV in new window
+  const handleOpenCV = React.useCallback(() => {
+    if (cvRequestStatus === "success") {
+      window.open(`https://drive.google.com/file/d/${googleDocId}/view`);
+    } else {
+      setActiveContent("resume");
+    }
+  }, [cvRequestStatus]);
 
   // Handle the light bulb toggle button click
   const handleLightSwitchClick = React.useCallback(() => {
-    setThemeMode(prevThemeMode => 
-      prevThemeMode === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK
+    setThemeMode((prevThemeMode) =>
+      prevThemeMode === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK,
     );
 
     // Refocus as to not toggle light by enter key
     wrapperDivRef.current?.focus();
-  }, [])
-  
+  }, []);
+
   // Focus on wrapper to listen for key events
   React.useEffect(() => {
     if (wrapperDivRef.current) {
       wrapperDivRef.current.focus();
     }
-  }, [ wrapperDivRef.current ]);
+  }, [wrapperDivRef.current]);
 
   React.useEffect(() => {
     countOfExecutionRef.current = countOfExecution;
-    
+
     // If the user hasn't clicked or pressed Enter yet - load the next line..
     const interval = setInterval(() => {
       if (
-        countOfExecutionRef.current === countOfExecution && 
+        countOfExecutionRef.current === countOfExecution &&
         countOfExecution < countOfExecutionLimit
       ) {
-        setCountOfExecution(prevCount => prevCount + 1);
+        setCountOfExecution((prevCount) => prevCount + 1);
       }
     }, 5000);
-  
+
     return () => {
       clearInterval(interval);
     };
-  }, [ countOfExecution ]);
+  }, [countOfExecution]);
 
   const renderContent = React.useMemo(() => {
     switch (activeContent) {
       case "about":
-        return (
-          <About />
-        );
+        return <About />;
       case "terminal":
-        return (
-          <Terminal countOfExecution={countOfExecution} />
-        );
+        return <Terminal countOfExecution={countOfExecution} />;
       case "resume":
-        return (
-          <RequestResumeForm />
-        );
+        return <RequestResumeForm />;
       default:
         toast.error("Unhandled content renderer");
     }
-  }, [
-    countOfExecution, 
-    activeContent
-  ])
+  }, [countOfExecution, activeContent]);
 
-  
   return (
     <>
-      <div 
+      <div
         ref={wrapperDivRef}
-        className="p-1 min-h-screen bg-bgColor flex flex-col justify-center items-center" 
-        onKeyDown={handleKeyDown} 
+        className="p-1 min-h-screen bg-bgColor flex flex-col justify-center items-center"
+        onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         tabIndex={0}
       >
         <div className="fixed top-0 right-0 p-4">
           <div className="flex justify-end w-full pr-4 gap-2 text-white">
-            <KeyboardButton 
-              keyType="terminal" 
+            <KeyboardButton
+              keyType="terminal"
               handleClick={() => setActiveContent("terminal")}
             />
-            <KeyboardButton 
-              keyType="about" 
+            <KeyboardButton
+              keyType="about"
               handleClick={() => setActiveContent("about")}
             />
-            <KeyboardButton 
-              keyType="resume" 
-              handleClick={handleOpenCV} 
-            />
-            <KeyboardButton 
-              keyType="lightbulb" 
+            <KeyboardButton keyType="resume" handleClick={handleOpenCV} />
+            <KeyboardButton
+              keyType="lightbulb"
               handleClick={handleLightSwitchClick}
             />
           </div>
@@ -155,13 +143,13 @@ function App() {
         {activeContent === "terminal" && (
           <>
             <div className="flex justify-end w-3/4 pr-4 gap-2 text-white max-w-7xl">
-              <KeyboardButton 
-                keyType="enter" 
+              <KeyboardButton
+                keyType="enter"
                 handleClick={handleEnterPressClick}
-                isActive={activeKeys[ ActiveKeysEnum.ENTER ]}
+                isActive={activeKeys[ActiveKeysEnum.ENTER]}
               />
             </div>
-            <p 
+            <p
               className={`
               text-dark fixed bottom-0 left-0 p-2 
                 after:absolute after:top-0 after:right-0 after:w-3/4 after:h-full after:bg-gradient-to-l after:from-bgColor after:to-transparent after:content-['']

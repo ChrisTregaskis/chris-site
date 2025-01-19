@@ -14,7 +14,7 @@
   --bgColor: #f0f8ff;
   --textColorPrimary: #141414;
   --buttonPrimary: #320064;
-  --buttonSecondary: #7D3C98;
+  --buttonSecondary: #7d3c98;
 }
 
 .dark {
@@ -22,7 +22,7 @@
   --textColorPrimary: #f0f8ff;
   --textColorSecondary: hsl(0, 83.87%, 63.53%);
   --buttonPrimary: #320064;
-  --buttonSecondary: #7D3C98;
+  --buttonSecondary: #7d3c98;
 }
 
 /* Maybe have more themed options to toggle? */

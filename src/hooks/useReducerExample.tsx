@@ -6,7 +6,7 @@ interface State {
 }
 
 // Define the action types
-type Action = { type: "increment" | "decrement" }
+type Action = { type: "increment" | "decrement" };
 
 // Define the initial state
 const initialState: State = { count: 0 };
@@ -19,7 +19,7 @@ function reducerExample(state: State, action: Action): State {
     case "decrement":
       return { count: state.count - 1 };
     default:
-      throw new Error('Unhandled action type');
+      throw new Error("Unhandled action type");
   }
 }
 

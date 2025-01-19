@@ -1,19 +1,24 @@
 import { useEffect, useState } from "react";
-import { ThemeContext, ThemeMode, ThemeProviderProps } from "@/context/ThemeContext";
+import {
+  ThemeContext,
+  ThemeMode,
+  ThemeProviderProps,
+} from "@/context/ThemeContext";
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [ themeMode, setThemeMode ] = useState<ThemeMode>(ThemeMode.DARK);
+  const [themeMode, setThemeMode] = useState<ThemeMode>(ThemeMode.DARK);
 
   useEffect(() => {
     document.documentElement.className = themeMode;
-  }, [ themeMode ]);
+  }, [themeMode]);
 
   return (
-    <ThemeContext.Provider 
-      value={{ 
+    <ThemeContext.Provider
+      value={{
         themeMode,
-        setThemeMode
-      }}>
+        setThemeMode,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

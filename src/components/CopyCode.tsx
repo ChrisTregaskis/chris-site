@@ -11,22 +11,22 @@ const CopyCode: React.FC<CopyCodeProps> = ({ text }) => {
   }
 
   return (
-    <button 
+    <button
       className="flex items-center space-x-2 text-gray-500 hover:text-gray-700"
       onClick={async () => {
         if (text.length === 1) {
-          await navigator.clipboard.writeText(text[ 0 ]);
-          showToast("Copied to clipboard!", { scheme: "SUCCESS" })
+          await navigator.clipboard.writeText(text[0]);
+          showToast("Copied to clipboard!", { scheme: "SUCCESS" });
         }
       }}
     >
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill="currentColor" 
-        stroke="currentColor" 
-        strokeWidth="0.3" 
-        strokeLinecap="round" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.3"
+        strokeLinecap="round"
         strokeLinejoin="round"
         className="w-7 h-7 text-gray-400 hover:text-white transition-colors duration-300"
       >
@@ -34,7 +34,7 @@ const CopyCode: React.FC<CopyCodeProps> = ({ text }) => {
       </svg>
       <span>{text.length === 1 ? "" : "Copy block of code"}</span>
     </button>
-  )
-}
+  );
+};
 
 export default CopyCode;

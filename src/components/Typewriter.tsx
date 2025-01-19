@@ -11,25 +11,22 @@ export interface TypewriterProps {
   };
 }
 
-export type Words = { 
-  text: string; 
-  className?: string 
+export type Words = {
+  text: string;
+  className?: string;
 }[];
 
-const Typewriter: React.FC<TypewriterProps> = ({ 
-  words, 
-  animationSpeed
-}) => {
+const Typewriter: React.FC<TypewriterProps> = ({ words, animationSpeed }) => {
   const [scope, animate] = useAnimate();
 
   useEffect(() => {
     void animate(
       "span",
       { display: "inline-block", opacity: 1 },
-      { 
-        duration: animationSpeed?.duration ?? 0.3, 
-        delay: stagger(animationSpeed?.stagger ?? 0.1), 
-        ease: "easeInOut" 
+      {
+        duration: animationSpeed?.duration ?? 0.3,
+        delay: stagger(animationSpeed?.stagger ?? 0.1),
+        ease: "easeInOut",
       },
     );
   }, []);
@@ -61,7 +58,9 @@ const Typewriter: React.FC<TypewriterProps> = ({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
         className="ml-1 h-6 inline-block w-2 rounded-sm bg-white"
-      >&nbsp;</motion.span>
+      >
+        &nbsp;
+      </motion.span>
     </div>
   );
 };

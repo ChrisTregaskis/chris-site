@@ -1,9 +1,9 @@
 module.exports = {
-  extends: 'kentcdodds',
+  extends: "kentcdodds",
   parserOptions: {
-    project: './tsconfig.json',
+    project: "./tsconfig.json",
   },
   rules: {
     // your overrides
   },
-}
+};
