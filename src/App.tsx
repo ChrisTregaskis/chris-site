@@ -1,5 +1,5 @@
 import React from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 import Terminal, { googleDocId } from "./components/Terminal";
 import KeyboardButton from "./components/KeyboardButton";
@@ -10,13 +10,11 @@ import About from "./components/About";
 import RequestResumeForm from "./components/RequestResumeForm/RequestResumeForm";
 import { useRequestCV } from "./hooks/useRequestCV";
 import { useActiveContent } from "./hooks/useActiveContent";
+import useToast from "./hooks/useToast";
 
 /**
  * todoLIST:
  *
- * - Handle form submission
- *    - Wait for valid email check or email sent success on lambda, only present id for example if valid email
- * - Run prettier to sort all existing inconsistencies, set up prettier to run every save
  *
  *
  * - Add link for Medium Article Medium
@@ -24,8 +22,7 @@ import { useActiveContent } from "./hooks/useActiveContent";
  * - Setup CircleCI for automated deployments when updates to master
  *
  * Create chris-api
- * - To handle the CV to be emailed
- * - Notify me to please!
+ * - Notify me to please! - is it working? Shows success but i dont see anything in my inbox...
  * - Setup CircleCI for automated deployments when updates to master
  *
  * STRETCH
@@ -40,6 +37,7 @@ function App() {
   const { setThemeMode } = useTheme();
   const { status: cvRequestStatus } = useRequestCV();
   const { activeContent, setActiveContent } = useActiveContent();
+  const { showToast } = useToast();
 
   const {
     countOfExecution,
@@ -107,7 +105,7 @@ function App() {
       case "resume":
         return <RequestResumeForm />;
       default:
-        toast.error("Unhandled content renderer");
+        showToast("Unhandled content renderer", { scheme: "ERROR" });
     }
   }, [countOfExecution, activeContent]);
 

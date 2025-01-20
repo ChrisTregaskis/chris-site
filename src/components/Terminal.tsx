@@ -1,9 +1,9 @@
 import React from "react";
-import { toast } from "react-toastify";
 import TerminalLine from "./TerminalLine";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
 import { useRequestCV } from "@/hooks/useRequestCV";
+import useToast from "@/hooks/useToast";
 
 export const googleDocId = "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN";
 
@@ -28,15 +28,6 @@ const filename = [
   { text: "filename", className: "text-[#ff57c8]" },
   { text: "=", className: "text-[#fff]" },
   { text: "ChrisTregaskisResume.pdf", className: "text-[#d2691e]" },
-];
-
-const fileId = [
-  { text: "fileId", className: "text-[#ff57c8]" },
-  { text: "=", className: "text-[#fff]" },
-  {
-    text: " [ To access file id, please first click PDF icon and complete form request. ]",
-    className: "text-[#fff]",
-  },
 ];
 
 const url = [
@@ -82,34 +73,27 @@ interface TerminalProps {
 const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   const { status: requestCVStatus } = useRequestCV();
   const { themeMode } = useTheme();
+  const { showToast } = useToast();
 
-  // todoCT: Make work? Stops animating on line 3
-  // Example usage <>{generateStaticLine([ "changeDir", "filename" ])}</>
-  // const generateStaticLine = React.useCallback((
-  //   lines: Array<"changeDir" | "filename" | "fileId" | "url">
-  // ) => {
-  //   return lines.map(line => {
-  //     const relevantWords: Words =
-  //       line === "changeDir" ? changeDir :
-  //       line === "filename" ? filename :
-  //       line === "fileId" ? fileId :
-  //       line === "url" ? url : [];
+  React.useEffect(() => {
+    console.log("TEST_RUN: requestCVStatus", requestCVStatus);
+  }, [requestCVStatus]);
 
-  //     return (
-  //       <TerminalLine
-  //         yourcomputer={yourcomputer}
-  //         typedWords={relevantWords}
-  //         skipAnimation
-  //       />
-  //     )
-  //   })
-  // }, [
-  //   yourcomputer,
-  //   changeDir,
-  //   filename,
-  //   fileId,
-  //   url
-  // ])
+  const fileId = React.useMemo(
+    () => [
+      { text: "fileId", className: "text-[#ff57c8]" },
+      { text: "=", className: "text-[#fff]" },
+      {
+        text:
+          requestCVStatus === "success"
+            ? googleDocId
+            : " [ To access file id, please first click PDF icon and complete form request. ]",
+        className:
+          requestCVStatus === "success" ? "text-[#d2691e]" : "text-[#fff]",
+      },
+    ],
+    [],
+  );
 
   const renderTerminal = React.useMemo(() => {
     switch (countOfExecution) {
@@ -306,7 +290,7 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
       }
 
       default: {
-        toast.error("Unhandled terminal sequence");
+        showToast("Unhandled terminal sequence", { scheme: "ERROR" });
       }
     }
   }, [yourcomputer, filename, fileId, curlCommand, countOfExecution]);

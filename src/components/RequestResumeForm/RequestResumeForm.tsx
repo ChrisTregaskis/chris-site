@@ -1,30 +1,27 @@
 import React, { useState } from "react";
-import { toast } from "react-toastify";
 import { googleDocId } from "../Terminal";
 import Button from "../Button";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
 import { useRequestCV } from "@/hooks/useRequestCV";
 import { useActiveContent } from "@/hooks/useActiveContent";
+import useToast from "@/hooks/useToast";
 
 const RequestResumeForm: React.FC = () => {
   const { themeMode } = useTheme();
   const { status: requestCVStatus, setStatus } = useRequestCV();
   const { setActiveContent } = useActiveContent();
+  const { showToast } = useToast();
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement);
     const values = Object.fromEntries(formData.entries());
-    console.log("TEST_RUN: Form values:", values);
     setStatus("loading");
 
     try {
-      // todoCT: Setup endpoint url in a .env file
-      const apiUrl = "https://12345.execute-api.eu-west-2.amazonaws.com/test";
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${import.meta.env.VITE_CHRIS_API}/resume`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,18 +31,16 @@ const RequestResumeForm: React.FC = () => {
 
       if (response.ok) {
         // Request successful, do something here
-        toast.success(
-          "Email sent successfully! The CV should be arriving in your inbox any moment.",
-        );
+        showToast("Chris's CV unlocked.", { scheme: "SUCCESS" });
         setStatus("success");
         setFormSubmitted(true);
       } else {
         // Request failed, handle errors here
-        toast.error("Oh no! Couldn't send the email.");
+        showToast("Oh no! Couldn't send the email.", { scheme: "ERROR" });
         setStatus("error");
       }
     } catch (error) {
-      toast.error("Oh no! request failed.");
+      showToast("Oh no! request failed.", { scheme: "ERROR" });
       console.error("An error occurred:", error);
     }
   }, []);
@@ -60,14 +55,17 @@ const RequestResumeForm: React.FC = () => {
       >
         {!formSubmitted && requestCVStatus !== "success" ? (
           <>
-            <h1 className="text-4xl font-serif mb-4">Request Chris's CV</h1>
-            <p className="mb-4">
-              Simply fill in your name and email and my CV will be sent to you.
-              If you fancy a bit of fun; once you've done this, head back to the
-              terminal and the file id will be accessible - you can download my
-              CV now directly from the terminal. Alternatively, a button will
-              appear and you can view/download directly from here.
-            </p>
+            <div className="flex flex-col items-center">
+              <h1 className="text-4xl font-serif mb-4">Unlock Chris's CV</h1>
+              <p className="mb-4">
+                Simply fill in your name and email and my CV will be unlocked
+                for download. If you fancy a bit of fun; once you've done this,
+                head back to the terminal and the file id will be accessible -
+                you can download my CV now directly from the terminal.
+                Alternatively, a button will appear and you can view/download
+                directly from here.
+              </p>
+            </div>
             <form
               onSubmit={handleSubmit}
               className="flex flex-col gap-4 text-dark"
@@ -117,7 +115,7 @@ const RequestResumeForm: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <label htmlFor="message" className="mb-2 text-textColorPrimary">
-                  Additional Message
+                  Additional Message (optional)
                 </label>
                 <textarea
                   id="message"
@@ -139,13 +137,14 @@ const RequestResumeForm: React.FC = () => {
           </>
         ) : (
           <>
-            <p className="mb-4">
-              Thanks for requesting my CV. It's on its way to your inbox.
-            </p>
-            <p className="mb-8">
-              Alternatively, follow the commands on the terminal to download
-              directly via your terminal.
-            </p>
+            <div className="flex flex-col items-center">
+              <h1 className="text-4xl font-serif mb-4">CV Unlocked!</h1>
+              <p className="mb-8">
+                Thanks for unlocking my CV. You can now click "View CV" below
+                or, if you fancy it... can follow the commands back on the
+                terminal as the fileId will now be showing.
+              </p>
+            </div>
             <div className="flex w-full">
               <Button
                 text="Back To Terminal"
