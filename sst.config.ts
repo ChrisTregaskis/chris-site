@@ -30,7 +30,7 @@ export default $config({
       environment: {
         BUCKET_NAME: bucket.name,
         VITE_CHRIS_API:
-          "https://vqgeoqavcnpupyoia5orhpfwfu0ziksm.lambda-url.eu-west-2.on.aws/",
+          "https://vqgeoqavcnpupyoia5orhpfwfu0ziksm.lambda-url.eu-west-2.on.aws",
       },
     });
 
