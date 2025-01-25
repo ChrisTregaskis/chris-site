@@ -1,2 +1,5 @@
 sst.config.ts
 vite.config.ts
+dist/*
+sst-env.d.ts
+tailwind.config.ts
