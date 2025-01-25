@@ -48,7 +48,7 @@ const About: React.FC = () => {
         </div>
         <div className="md:w-1/3 p-4 flex justify-center items-center">
           <img
-            src="../../public/Screenshot 2024-10-07 at 21.38.26.png"
+            src="/Screenshot 2024-10-07 at 21.38.26.png"
             alt="Chris Tregaskis"
             className="rounded-lg shadow-lg"
           />

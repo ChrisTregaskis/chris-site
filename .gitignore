@@ -22,6 +22,9 @@ yarn-error.log*
 .pnpm-debug.log
 .pnpm-store/
 
+# sst
+.sst
+
 # dotenv environment variables file
 .env
 .env.local
