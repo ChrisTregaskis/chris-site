@@ -32,13 +32,17 @@ const RequestResumeForm: React.FC = () => {
       if (response.ok) {
         // Request successful, do something here
         showToast("Chris's CV unlocked.", { scheme: "SUCCESS" });
-        setStatus("success");
-        setFormSubmitted(true);
       } else {
         // Request failed, handle errors here
-        showToast("Oh no! Couldn't send the email.", { scheme: "ERROR" });
-        setStatus("error");
+        showToast(
+          "Oh no! Couldn't send the email... don't worry, CV now available.",
+          { scheme: "WARN" },
+        );
       }
+
+      // What ever happens, allow user to have access to CV
+      setStatus("success");
+      setFormSubmitted(true);
     } catch (error) {
       showToast("Oh no! request failed.", { scheme: "ERROR" });
       console.error("An error occurred:", error);

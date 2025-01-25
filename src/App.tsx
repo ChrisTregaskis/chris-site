@@ -15,21 +15,9 @@ import useToast from "./hooks/useToast";
 /**
  * todoLIST:
  *
- *
- *
  * - Add link for Medium Article Medium
- * - Terreform practice: Setup deployment on AWS
- * - Setup CircleCI for automated deployments when updates to master
- *
- * Create chris-api
- * - Notify me to please! - is it working? Shows success but i dont see anything in my inbox...
- * - Setup CircleCI for automated deployments when updates to master
- *
- * STRETCH
- * - Make responsive? Figure out what that means... minimum set min width on terminal?
+ * - Make responsive? Make terminal scrollable on mobile and smaller screens
  * - Setup husky
- * - Add .env for api url
- *
  *
  * @description App is root level for rendering chris-tregaskis.uk
  */
