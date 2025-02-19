@@ -4,6 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
 import { useRequestCV } from "@/hooks/useRequestCV";
 import useToast from "@/hooks/useToast";
+import { ScreenSizeBreakPoint } from "@/utils";
 
 export const googleDocId = "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN";
 
@@ -64,8 +65,6 @@ const openResume = [
 
 const clearTerminal = [{ text: "clear", className: "text-[#FE4450]" }];
 
-const yourcomputer = "yourcomputer ~/ $ ";
-
 interface TerminalProps {
   countOfExecution: number;
 }
@@ -75,9 +74,11 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   const { themeMode } = useTheme();
   const { showToast } = useToast();
 
-  React.useEffect(() => {
-    console.log("TEST_RUN: requestCVStatus", requestCVStatus);
-  }, [requestCVStatus]);
+  const yourcomputer = React.useMemo(() => {
+    return window.innerWidth < ScreenSizeBreakPoint.Smaller
+      ? "~/ $ "
+      : "yourcomputer ~/ $ ";
+  }, [window.innerWidth]);
 
   const fileId = React.useMemo(
     () => [
@@ -296,28 +297,16 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   }, [yourcomputer, filename, fileId, curlCommand, countOfExecution]);
 
   return (
-    <div className="h-full w-full flex items-center justify-center p-2">
+    <div className="h-full w-full flex p-2 overflow-x-auto scrollbar-hide scrollbar-custom">
       <div
         className={`
-          ${themeMode === ThemeMode.DARK ? "bg-gray-950 " : "bg-gray-900"} 
-          text-light rounded-lg shadow-lg h-[250px] w-3/4 max-w-7xl 
+          ${themeMode === ThemeMode.DARK ? "bg-gray-950" : "bg-gray-900"} 
+          text-light rounded-lg shadow-lg h-[250px] min-w-max
         `}
       >
         <div
-          className={`
-            ${themeMode === ThemeMode.DARK ? "bg-gray-800" : "bg-gray-700"} 
-            p-2 rounded-t-lg flex items-center justify-between
-          `}
+          className={`pb-[15px] ${window.innerWidth < ScreenSizeBreakPoint.Smaller ? "" : "pl-[15px]"} h-full w-full flex flex-col`}
         >
-          <div className="flex space-x-2">
-            <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-            <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-            <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-          </div>
-          <p className="text-center flex-1">Terminal</p>
-        </div>
-
-        <div className="pb-[50px] pl-[15px] h-full w-full flex flex-col justify-end">
           {renderTerminal}
         </div>
       </div>

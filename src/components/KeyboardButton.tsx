@@ -4,7 +4,13 @@ import { ThemeMode } from "@/context/ThemeContext";
 import { useTheme } from "@/hooks/useTheme";
 
 interface KeyboardButtonProps {
-  keyType: "enter" | "lightbulb" | "resume" | "about" | "terminal";
+  keyType:
+    | "enter-lg"
+    | "enter-sm"
+    | "lightbulb"
+    | "resume"
+    | "about"
+    | "terminal";
   handleClick: () => void;
   isActive?: boolean;
   leftActive?: boolean;
@@ -27,7 +33,7 @@ const KeyboardButton: React.FC<KeyboardButtonProps> = ({
       "w-[125px] h-[35px] flex justify-center items-center";
 
     switch (keyType) {
-      case "enter": {
+      case "enter-lg": {
         return (
           <div className={largeButtonClass}>
             <svg
@@ -44,6 +50,32 @@ const KeyboardButton: React.FC<KeyboardButtonProps> = ({
               <polyline points="9 10 4 15 9 20" />
               <path d="M20 4v7a4 4 0 0 1-4 4H4" />
             </svg>
+          </div>
+        );
+      }
+
+      case "enter-sm": {
+        return (
+          <div className={smallButtonClass}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-6 h-6"
+              style={{ margin: "auto" }}
+            >
+              <polyline points="9 10 4 15 9 20" />
+              <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+            </svg>
+
+            <ToolTip tip="Press enter to toggle commands" />
+            <span></span>
           </div>
         );
       }
