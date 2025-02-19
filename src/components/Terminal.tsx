@@ -75,11 +75,6 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   const { showToast } = useToast();
 
   const yourcomputer = React.useMemo(() => {
-    console.log(
-      "TEST_RUN: window.innerWidth",
-      window.innerWidth,
-      ScreenSizeBreakPoint.Smaller,
-    );
     return window.innerWidth < ScreenSizeBreakPoint.Smaller
       ? "~/ $ "
       : "yourcomputer ~/ $ ";
