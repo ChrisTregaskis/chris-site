@@ -104,7 +104,7 @@ function App() {
         tabIndex={0}
       >
         <div className="fixed top-0 right-0 p-4">
-          <div className="flex justify-end w-full pr-4 gap-2 text-white">
+          <div className="flex justify-end w-full gap-2 text-white">
             <KeyboardButton
               keyType="terminal"
               handleClick={() => setActiveContent("terminal")}

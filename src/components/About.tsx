@@ -16,13 +16,26 @@ const About: React.FC = () => {
         <div className="lg:w-2/3 p-4 md:p-2">
           <h1 className="text-4xl font-serif mb-2">Chris Tregaskis</h1>
           <h2 className="text-2xl font-serif mb-4">Software Developer</h2>
+          <p className="mb-4">
+            View articles I've written here:{" "}
+            <a
+              href="https://medium.com/@c.tregaskis"
+              className="text-blue-300"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Chris's Medium Articles
+            </a>
+          </p>
           {/* // todo: If form completed, update the initial line to suggest clicking the pdf button for formal overview */}
           <p className="mb-4">
             For the formal overview, you can fill out the form requesting my
-            resume by clicking the pdf button or see the ol'LinkedIn here...{" "}
+            resume by clicking the pdf button or see the ol'LinkedIn here:{" "}
             <a
               href="https://www.linkedin.com/in/christophertregaskis"
-              className="text-blue-500"
+              className="text-blue-300"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               LinkedIn
             </a>
