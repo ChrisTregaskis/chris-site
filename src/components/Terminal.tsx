@@ -4,6 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { ThemeMode } from "@/context/ThemeContext";
 import { useRequestCV } from "@/hooks/useRequestCV";
 import useToast from "@/hooks/useToast";
+import { ScreenSizeBreakPoint } from "@/utils";
 
 export const googleDocId = "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN";
 
@@ -64,8 +65,6 @@ const openResume = [
 
 const clearTerminal = [{ text: "clear", className: "text-[#FE4450]" }];
 
-const yourcomputer = "yourcomputer ~/ $ ";
-
 interface TerminalProps {
   countOfExecution: number;
 }
@@ -75,9 +74,16 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   const { themeMode } = useTheme();
   const { showToast } = useToast();
 
-  React.useEffect(() => {
-    console.log("TEST_RUN: requestCVStatus", requestCVStatus);
-  }, [requestCVStatus]);
+  const yourcomputer = React.useMemo(() => {
+    console.log(
+      "TEST_RUN: window.innerWidth",
+      window.innerWidth,
+      ScreenSizeBreakPoint.Smaller,
+    );
+    return window.innerWidth < ScreenSizeBreakPoint.Smaller
+      ? "~/ $ "
+      : "yourcomputer ~/ $ ";
+  }, [window.innerWidth]);
 
   const fileId = React.useMemo(
     () => [
@@ -296,14 +302,16 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   }, [yourcomputer, filename, fileId, curlCommand, countOfExecution]);
 
   return (
-    <div className="h-full w-full flex p-2">
+    <div className="h-full w-full flex p-2 overflow-x-auto scrollbar-hide scrollbar-custom">
       <div
         className={`
           ${themeMode === ThemeMode.DARK ? "bg-gray-950" : "bg-gray-900"} 
-          text-light rounded-lg shadow-lg h-[250px] w-full
+          text-light rounded-lg shadow-lg h-[250px] min-w-max
         `}
       >
-        <div className="pb-[15px] pl-[15px] h-full w-full min-w-max flex flex-col">
+        <div
+          className={`pb-[15px] ${window.innerWidth < ScreenSizeBreakPoint.Smaller ? "" : "pl-[15px]"} h-full w-full flex flex-col`}
+        >
           {renderTerminal}
         </div>
       </div>
