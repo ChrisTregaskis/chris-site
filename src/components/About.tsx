@@ -6,14 +6,14 @@ const About: React.FC = () => {
   const { themeMode } = useTheme();
 
   return (
-    <div className="h-full w-full flex items-center justify-center p-2">
+    <div className="h-full w-full flex items-center justify-center p-2 mt-[70px] md:mt-0">
       <div
         className={`
         ${themeMode === ThemeMode.DARK && "bg-gray-950"} 
-        text-textColorPrimary rounded-lg shadow-lg h-full w-3/4 max-w-7xl flex flex-col md:flex-row
+        text-textColorPrimary rounded-lg shadow-lg h-full md:w-3/4 w-full p-4 max-w-7xl flex flex-col lg:flex-row
       `}
       >
-        <div className="md:w-2/3 p-4">
+        <div className="lg:w-2/3 p-4 md:p-2">
           <h1 className="text-4xl font-serif mb-2">Chris Tregaskis</h1>
           <h2 className="text-2xl font-serif mb-4">Software Developer</h2>
           {/* // todo: If form completed, update the initial line to suggest clicking the pdf button for formal overview */}
@@ -46,7 +46,7 @@ const About: React.FC = () => {
             drumming cobwebs and the odd steam sale ha.
           </p>
         </div>
-        <div className="md:w-1/3 p-4 flex justify-center items-center">
+        <div className="lg:w-1/3 p-4 md:p-2 flex justify-center items-center">
           <img
             src="/Screenshot 2024-10-07 at 21.38.26.png"
             alt="Chris Tregaskis"

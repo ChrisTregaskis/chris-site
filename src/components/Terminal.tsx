@@ -296,28 +296,14 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   }, [yourcomputer, filename, fileId, curlCommand, countOfExecution]);
 
   return (
-    <div className="h-full w-full flex items-center justify-center p-2">
+    <div className="h-full w-full flex p-2">
       <div
         className={`
-          ${themeMode === ThemeMode.DARK ? "bg-gray-950 " : "bg-gray-900"} 
-          text-light rounded-lg shadow-lg h-[250px] w-3/4 max-w-7xl 
+          ${themeMode === ThemeMode.DARK ? "bg-gray-950" : "bg-gray-900"} 
+          text-light rounded-lg shadow-lg h-[250px] w-full
         `}
       >
-        <div
-          className={`
-            ${themeMode === ThemeMode.DARK ? "bg-gray-800" : "bg-gray-700"} 
-            p-2 rounded-t-lg flex items-center justify-between
-          `}
-        >
-          <div className="flex space-x-2">
-            <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-            <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-            <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-          </div>
-          <p className="text-center flex-1">Terminal</p>
-        </div>
-
-        <div className="pb-[50px] pl-[15px] h-full w-full flex flex-col justify-end">
+        <div className="pb-[15px] pl-[15px] h-full w-full min-w-max flex flex-col">
           {renderTerminal}
         </div>
       </div>

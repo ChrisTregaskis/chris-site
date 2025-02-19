@@ -18,7 +18,8 @@
 }
 
 .dark {
-  --bgColor: #141414;
+  --bgColor: #030712;
+  --bgColorORIGINAL: #141414;
   --textColorPrimary: #f0f8ff;
   --textColorSecondary: hsl(0, 83.87%, 63.53%);
   --buttonPrimary: #320064;
