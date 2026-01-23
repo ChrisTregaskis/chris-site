@@ -6,12 +6,12 @@ import { useRequestCV } from "@/hooks/useRequestCV";
 import useToast from "@/hooks/useToast";
 import { ScreenSizeBreakPoint } from "@/utils";
 
-export const googleDocId = "1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN";
+export const googleDocId = "1AZSv0lZslUnKFXBZXfNR6NeZ1FUkLonj";
 
 /**
  *
  * Original commands:
- * https://drive.usercontent.google.com/u/0/uc?id=1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN&export=download
+ * https://drive.usercontent.google.com/u/0/uc?id=1AZSv0lZslUnKFXBZXfNR6NeZ1FUkLonj&export=download
  *
  * cd ~/Downloads/
  * filename="ChrisTregaskisResume.pdf"
