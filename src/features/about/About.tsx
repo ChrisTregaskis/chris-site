@@ -1,14 +1,11 @@
 import React from "react";
-import { ThemeMode, useTheme } from "@/features/theme";
 
 export const About: React.FC = () => {
-  const { themeMode } = useTheme();
-
   return (
     <div className="h-full w-full flex items-center justify-center p-2 mt-[70px] md:mt-0">
       <div
         className={`
-        ${themeMode === ThemeMode.DARK && "bg-gray-950"} 
+        bg-gray-950 
         text-textColorPrimary rounded-lg shadow-lg h-full md:w-3/4 w-full p-4 max-w-7xl flex flex-col lg:flex-row
       `}
       >

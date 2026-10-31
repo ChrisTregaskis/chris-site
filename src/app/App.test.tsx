@@ -17,7 +17,7 @@ const keyFor = (tip: string) => {
 
 describe("App", () => {
   it("auto-advances the terminal to the hidden file id", async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.useFakeTimers();
     renderWithProviders(<App />);
 
     expect(screen.getByText("yourcomputer ~/ $")).toBeInTheDocument();

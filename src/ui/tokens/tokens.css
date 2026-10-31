@@ -1,0 +1,68 @@
+/*
+ * Design tokens, extracted from the locked b3 look. The only place raw values
+ * live: components use the Tailwind utilities mapped in tailwind.config.ts.
+ * Colours are RGB channel triplets so Tailwind opacity modifiers work.
+ */
+:root {
+  /* Colour */
+  --color-surface: 19 20 46; /* #13142E */
+  --color-panel: 28 30 66; /* #1C1E42 */
+  --color-raised: 37 40 90; /* #25285A */
+  --color-line: 54 58 114; /* #363A72 */
+  --color-line-strong: 90 95 168; /* #5A5FA8 */
+  --color-line-hover: 76 81 154; /* #4C519A */
+  --color-ink: 236 235 250; /* #ECEBFA */
+  --color-muted: 164 166 207; /* #A4A6CF */
+  --color-accent: 184 166 255; /* #B8A6FF */
+  --color-accent-strong: 110 91 214; /* #6E5BD6 */
+  --color-on-accent: 20 18 46; /* #14122E */
+  --color-signal: 255 193 94; /* #FFC15E */
+  --color-danger: 255 138 138; /* #FF8A8A */
+  --color-danger-ink: 255 176 176; /* #FFB0B0 */
+  --color-scrim: 8 9 24; /* #080918, used at 66% */
+
+  /* Type */
+  --font-display:
+    "Bricolage Grotesque Variable", "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "Figtree Variable", "Figtree", system-ui, sans-serif;
+  --font-code: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Spacing and measure */
+  --space-gutter: clamp(16px, 4vw, 56px);
+  --space-section: clamp(40px, 7vw, 90px);
+  --space-section-lg: clamp(48px, 7vw, 100px);
+  --size-container: 1200px;
+  --measure: 33em;
+  --measure-narrow: 30em;
+
+  /* Radii */
+  --radius-badge: 8px;
+  --radius-row: 10px;
+  --radius-input: 12px;
+  --radius-control: 14px;
+  --radius-card: 18px;
+  --radius-sheet: 22px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-popover: 0 24px 60px -16px rgb(0 0 0);
+  --shadow-raised: 0 20px 50px -20px rgb(0 0 0);
+  --shadow-drawer: -30px 0 80px -30px rgb(0 0 0);
+  --shadow-focus-glow: 0 0 0 3px rgb(var(--color-accent) / 0.22);
+  --shadow-ring-line: inset 0 0 0 1.5px rgb(var(--color-line));
+  --shadow-ring-accent: inset 0 0 0 1.5px rgb(var(--color-accent));
+
+  /* Motion */
+  --duration-fast: 200ms;
+  --duration-base: 250ms;
+  --duration-enter: 320ms;
+  --duration-state: 450ms;
+  --duration-slow: 550ms;
+  --duration-flash: 750ms;
+  --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-lift: cubic-bezier(0.3, 0.7, 0.2, 1);
+  --ease-tick: cubic-bezier(0.3, 0.6, 0.3, 1);
+  --stagger-tight: 50ms;
+  --stagger-base: 150ms;
+  --stagger-loose: 300ms;
+}

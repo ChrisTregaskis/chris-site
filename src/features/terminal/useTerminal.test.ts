@@ -16,6 +16,8 @@ describe("useTerminal", () => {
   it("wraps back to the first command after the last", () => {
     const { result } = renderHook(() => useTerminal());
     expect(result.current.countOfExecutionLimit).toBe(5);
+    // Six presses against a limit of 5 is deliberate: it characterises the
+    // current wrap-around behaviour, where the count reaches 6 before resetting.
     for (let i = 0; i < 6; i++) {
       act(() => result.current.handleEnterPressClick());
     }
