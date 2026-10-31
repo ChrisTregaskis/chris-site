@@ -50,3 +50,5 @@ yarn-error.log*
 
 # Windows
 Thumbs.db
+# Claude Code local working files (symlinked into HQ)
+.claude/local
