@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+sst-env.d.ts
+src/sst-env.d.ts
+dist
+coverage
+.sst
+.claude/local
