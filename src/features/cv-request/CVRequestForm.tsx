@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { CV_VIEW_URL } from "./cvLink";
 import { useCVRequest } from "./CVRequestContext";
-import { Button } from "@/ui/Button";
-import { ThemeMode, useTheme } from "@/features/theme";
+import { Button } from "@/ui/legacy/Button";
 import { useActiveContent } from "@/app/ActiveContentContext";
 import { useToast } from "@/hooks/useToast";
 
 export const CVRequestForm: React.FC = () => {
-  const { themeMode } = useTheme();
   const { status: requestCVStatus, setStatus } = useCVRequest();
   const { setActiveContent } = useActiveContent();
   const { showToast } = useToast();
@@ -52,7 +50,7 @@ export const CVRequestForm: React.FC = () => {
     <div className="h-full w-full flex items-center justify-center p-2 mt-[70px] md:mt-0">
       <div
         className={`
-          ${themeMode === ThemeMode.DARK && "bg-gray-950"} 
+          bg-gray-950 
           rounded-lg shadow-lg h-full md:w-3/4 w-full max-w-7xl flex flex-col p-4 text-textColorPrimary
         `}
       >

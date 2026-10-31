@@ -9,7 +9,7 @@ import {
   CVRequestForm,
   useCVRequest,
 } from "@/features/cv-request";
-import { KeyboardButton } from "@/ui/KeyboardButton";
+import { KeyboardButton } from "@/ui/legacy/KeyboardButton";
 import { useToast } from "@/hooks/useToast";
 
 /** App is root level for rendering chris-tregaskis.uk */
@@ -39,16 +39,6 @@ export function App() {
       setActiveContent("resume");
     }
   }, [cvRequestStatus]);
-
-  // Handle the light bulb toggle button click - removed ability to toggle theme for now
-  // const handleLightSwitchClick = React.useCallback(() => {
-  //   setThemeMode((prevThemeMode) =>
-  //     prevThemeMode === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK,
-  //   );
-
-  //   // Refocus as to not toggle light by enter key
-  //   wrapperDivRef.current?.focus();
-  // }, []);
 
   // Focus on wrapper to listen for key events
   React.useEffect(() => {
@@ -108,11 +98,6 @@ export function App() {
               handleClick={() => setActiveContent("about")}
             />
             <KeyboardButton keyType="resume" handleClick={handleOpenCV} />
-            {/** Removed the ability to switch theme for now */}
-            {/* <KeyboardButton
-              keyType="lightbulb"
-              handleClick={handleLightSwitchClick}
-            /> */}
 
             {activeContent === "terminal" && (
               <KeyboardButton

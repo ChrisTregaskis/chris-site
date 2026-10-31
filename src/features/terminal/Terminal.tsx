@@ -8,10 +8,9 @@ import {
   openResume,
   url,
 } from "./terminalCommands";
-import { ThemeMode, useTheme } from "@/features/theme";
 import { GOOGLE_DOC_ID, useCVRequest } from "@/features/cv-request";
 import { useToast } from "@/hooks/useToast";
-import { ScreenSizeBreakPoint } from "@/lib/breakpoints";
+import { SCREEN_SIZE_BREAKPOINT } from "@/lib/breakpoints";
 
 interface TerminalProps {
   countOfExecution: number;
@@ -19,11 +18,10 @@ interface TerminalProps {
 
 export const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   const { status: requestCVStatus } = useCVRequest();
-  const { themeMode } = useTheme();
   const { showToast } = useToast();
 
   const yourcomputer = React.useMemo(() => {
-    return window.innerWidth < ScreenSizeBreakPoint.Smaller
+    return window.innerWidth < SCREEN_SIZE_BREAKPOINT.smaller
       ? "~/ $ "
       : "yourcomputer ~/ $ ";
   }, [window.innerWidth]);
@@ -245,15 +243,15 @@ export const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   }, [yourcomputer, filename, fileId, curlCommand, countOfExecution]);
 
   return (
-    <div className="h-full w-full flex p-2 overflow-x-auto scrollbar-hide scrollbar-custom">
+    <div className="h-full w-full flex p-2 overflow-x-auto">
       <div
         className={`
-          ${themeMode === ThemeMode.DARK ? "bg-gray-950" : "bg-gray-900"} 
+          bg-gray-950 
           text-light rounded-lg shadow-lg h-[250px] min-w-max
         `}
       >
         <div
-          className={`pb-[15px] ${window.innerWidth < ScreenSizeBreakPoint.Smaller ? "" : "pl-[15px]"} h-full w-full flex flex-col`}
+          className={`pb-[15px] ${window.innerWidth < SCREEN_SIZE_BREAKPOINT.smaller ? "" : "pl-[15px]"} h-full w-full flex flex-col`}
         >
           {renderTerminal}
         </div>

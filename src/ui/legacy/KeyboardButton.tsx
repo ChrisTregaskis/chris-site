@@ -1,8 +1,5 @@
 import React from "react";
 import { ToolTip } from "./ToolTip";
-// Documented exception to the layer rules: reads the theme until 3b moves it
-// into design tokens.
-import { ThemeMode, useTheme } from "@/features/theme";
 
 interface KeyboardButtonProps {
   keyType:
@@ -25,8 +22,6 @@ export const KeyboardButton: React.FC<KeyboardButtonProps> = ({
   leftActive,
   rightActive,
 }) => {
-  const { themeMode } = useTheme();
-
   const renderKeyContent = () => {
     const smallButtonClass =
       "w-[55px] h-[35px] flex justify-center items-center";
@@ -199,7 +194,7 @@ export const KeyboardButton: React.FC<KeyboardButtonProps> = ({
       className={`
         key 
         key--medium
-        ${themeMode === ThemeMode.DARK ? "key--darker" : "key--lighter"}
+        key--darker
         bg-gray-700 
         border 
         border-gray-600
@@ -213,7 +208,7 @@ export const KeyboardButton: React.FC<KeyboardButtonProps> = ({
         duration-400 
         ease-out 
         shadow-md 
-        ${themeMode === ThemeMode.DARK ? "shadow-gray-950" : "shadow-gray-800"}
+        shadow-gray-950
         ${isActive ? "brightness-125" : "hover:brightness-125"}
         ${isActive ? "translate-y-1" : "active:translate-y-1"}
         ${isActive ? "shadow-inner" : "active:shadow-inner"}
