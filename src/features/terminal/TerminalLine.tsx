@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import CopyCode from "./CopyCode";
-import Typewriter, { TypewriterProps, Words } from "./Typewriter";
+import { CopyCode } from "./CopyCode";
+import { Typewriter, type TypewriterProps, type Words } from "./Typewriter";
 import { cn } from "@/lib/cn";
 
 interface TerminalLineProps {
@@ -12,7 +12,7 @@ interface TerminalLineProps {
   animationSpeed?: TypewriterProps["animationSpeed"];
 }
 
-const TerminalLine: React.FC<TerminalLineProps> = ({
+export const TerminalLine: React.FC<TerminalLineProps> = ({
   typedWords,
   yourcomputer,
   skipAnimation,
@@ -62,5 +62,3 @@ const TerminalLine: React.FC<TerminalLineProps> = ({
     </div>
   );
 };
-
-export default TerminalLine;

@@ -1,7 +1,7 @@
 import React from "react";
 import { ThemeMode, useTheme } from "@/features/theme";
 
-const About: React.FC = () => {
+export const About: React.FC = () => {
   const { themeMode } = useTheme();
 
   return (
@@ -69,5 +69,3 @@ const About: React.FC = () => {
     </div>
   );
 };
-
-export default About;

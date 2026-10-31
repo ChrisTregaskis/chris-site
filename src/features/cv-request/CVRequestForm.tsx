@@ -3,7 +3,7 @@ import { CV_VIEW_URL } from "./cvLink";
 import { useCVRequest } from "./CVRequestContext";
 import { Button } from "@/ui/Button";
 import { ThemeMode, useTheme } from "@/features/theme";
-import { useActiveContent } from "@/hooks/useActiveContent";
+import { useActiveContent } from "@/app/ActiveContentContext";
 import { useToast } from "@/hooks/useToast";
 
 export const CVRequestForm: React.FC = () => {

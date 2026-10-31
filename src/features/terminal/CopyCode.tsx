@@ -4,7 +4,7 @@ interface CopyCodeProps {
   text: string[];
 }
 
-const CopyCode: React.FC<CopyCodeProps> = ({ text }) => {
+export const CopyCode: React.FC<CopyCodeProps> = ({ text }) => {
   const { showToast } = useToast();
   if (!text.length) {
     return null;
@@ -36,5 +36,3 @@ const CopyCode: React.FC<CopyCodeProps> = ({ text }) => {
     </button>
   );
 };
-
-export default CopyCode;

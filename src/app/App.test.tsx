@@ -1,7 +1,7 @@
 import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import App from "./App";
+import { App } from "./App";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 const CV_URL =

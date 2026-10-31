@@ -1,7 +1,7 @@
 import type React from "react";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import useTerminal, { ActiveKeysEnum } from "./useTerminal";
+import { ActiveKeysEnum, useTerminal } from "./useTerminal";
 
 const enterEvent = { key: "Enter" } as React.KeyboardEvent<HTMLDivElement>;
 

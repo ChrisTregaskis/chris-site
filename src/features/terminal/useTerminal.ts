@@ -14,7 +14,7 @@ export interface ActiveKeys {
   [ActiveKeysEnum.ENTER]: boolean;
 }
 
-const useTerminal = () => {
+export const useTerminal = () => {
   const [countOfExecution, setCountOfExecution] = React.useState<number>(0);
 
   const [activeKeys, setActiveKeys] = React.useState<ActiveKeys>(() => ({
@@ -70,5 +70,3 @@ const useTerminal = () => {
     handleEnterPressClick,
   };
 };
-
-export default useTerminal;

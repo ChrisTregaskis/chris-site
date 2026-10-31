@@ -1,72 +1,23 @@
 import React from "react";
-import TerminalLine from "./TerminalLine";
+import { TerminalLine } from "./TerminalLine";
+import {
+  changeDir,
+  clearTerminal,
+  curlCommand,
+  filename,
+  openResume,
+  url,
+} from "./terminalCommands";
 import { ThemeMode, useTheme } from "@/features/theme";
 import { GOOGLE_DOC_ID, useCVRequest } from "@/features/cv-request";
 import { useToast } from "@/hooks/useToast";
 import { ScreenSizeBreakPoint } from "@/lib/breakpoints";
 
-/**
- *
- * Original commands:
- * https://drive.usercontent.google.com/u/0/uc?id=1AZSv0lZslUnKFXBZXfNR6NeZ1FUkLonj&export=download
- *
- * cd ~/Downloads/
- * filename="ChrisTregaskisResume.pdf"
- * fileId="1IorDwgu09TA9pEM94Rdzo2-y1qFiMQaN"
- * curl -L "https://drive.usercontent.google.com/download?id=${fileId}&export=download" --output "${filename}"
- * open "${filename}"
- * clear
- */
-const changeDir = [
-  { text: "cd ", className: "text-[#FE4450]" },
-  { text: "~/Downloads/", className: "text-[#BBBBBB]" },
-];
-
-const filename = [
-  { text: "filename", className: "text-[#ff57c8]" },
-  { text: "=", className: "text-[#fff]" },
-  { text: "ChrisTregaskisResume.pdf", className: "text-[#d2691e]" },
-];
-
-const url = [
-  { text: "url", className: "text-[#ff57c8]" },
-  { text: "=", className: "text-[#fff]" },
-  {
-    text: `"${"https://drive.usercontent.google.com/download?id=${"}`,
-    className: "text-[#d2691e]",
-  },
-  { text: "fileId", className: "text-[#ff57c8]" },
-  { text: `}&export=download"`, className: "text-[#d2691e]" },
-];
-
-const curlCommand = [
-  { text: "curl", className: "text-[#FE4450]" },
-  { text: " -", className: "text-[#fff]" },
-  { text: "L ", className: "text-[#ff57c8]" },
-  { text: `"${"${"}`, className: "text-[#d2691e]" },
-  { text: "url", className: "text-[#ff57c8]" },
-  { text: `${"}"}"`, className: "text-[#d2691e]" },
-  { text: " --", className: "text-[#fff]" },
-  { text: "output ", className: "text-[#ff57c8]" },
-  { text: `"${"${"}`, className: "text-[#d2691e]" },
-  { text: "filename", className: "text-[#ff57c8]" },
-  { text: `${"}"}"`, className: "text-[#d2691e]" },
-];
-
-const openResume = [
-  { text: "open ", className: "text-[#FE4450]" },
-  { text: `"${"${"}`, className: "text-[#d2691e]" },
-  { text: "filename", className: "text-[#ff57c8]" },
-  { text: `${"}"}"`, className: "text-[#d2691e]" },
-];
-
-const clearTerminal = [{ text: "clear", className: "text-[#FE4450]" }];
-
 interface TerminalProps {
   countOfExecution: number;
 }
 
-const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
+export const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
   const { status: requestCVStatus } = useCVRequest();
   const { themeMode } = useTheme();
   const { showToast } = useToast();
@@ -310,5 +261,3 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
     </div>
   );
 };
-
-export default Terminal;

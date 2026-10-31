@@ -16,7 +16,10 @@ export type Words = {
   className?: string;
 }[];
 
-const Typewriter: React.FC<TypewriterProps> = ({ words, animationSpeed }) => {
+export const Typewriter: React.FC<TypewriterProps> = ({
+  words,
+  animationSpeed,
+}) => {
   const [scope, animate] = useAnimate();
 
   useEffect(() => {
@@ -64,5 +67,3 @@ const Typewriter: React.FC<TypewriterProps> = ({ words, animationSpeed }) => {
     </div>
   );
 };
-
-export default Typewriter;

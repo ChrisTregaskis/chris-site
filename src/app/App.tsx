@@ -1,10 +1,9 @@
 import React from "react";
 import { ToastContainer } from "react-toastify";
 
-import Terminal from "./components/Terminal";
-import useTerminal, { ActiveKeysEnum } from "./hooks/useTerminal";
-import About from "./components/About";
-import { useActiveContent } from "./hooks/useActiveContent";
+import { useActiveContent } from "./ActiveContentContext";
+import { About } from "@/features/about";
+import { ActiveKeysEnum, Terminal, useTerminal } from "@/features/terminal";
 import {
   CV_VIEW_URL,
   CVRequestForm,
@@ -13,16 +12,8 @@ import {
 import { KeyboardButton } from "@/ui/KeyboardButton";
 import { useToast } from "@/hooks/useToast";
 
-/**
- * todoLIST:
- *
- * - Add link for Medium Article Medium
- * - Make responsive? Make terminal scrollable on mobile and smaller screens
- * - Setup husky
- *
- * @description App is root level for rendering chris-tregaskis.uk
- */
-function App() {
+/** App is root level for rendering chris-tregaskis.uk */
+export function App() {
   const { status: cvRequestStatus } = useCVRequest();
   const { activeContent, setActiveContent } = useActiveContent();
   const { showToast } = useToast();
@@ -139,5 +130,3 @@ function App() {
     </>
   );
 }
-
-export default App;
