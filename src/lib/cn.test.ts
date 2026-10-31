@@ -10,3 +10,19 @@ describe("cn", () => {
     expect(classesFor(true)).toBe("hidden p-4");
   });
 });
+
+describe("cn with design tokens", () => {
+  it("keeps a token text size alongside a token text colour", () => {
+    expect(cn("text-body-sm", "text-on-accent")).toBe(
+      "text-body-sm text-on-accent",
+    );
+  });
+
+  it("lets a later token size, shadow or radius win", () => {
+    expect(cn("text-body", "text-caption")).toBe("text-caption");
+    expect(cn("shadow-ring-line", "shadow-ring-accent")).toBe(
+      "shadow-ring-accent",
+    );
+    expect(cn("rounded-card", "rounded-pill")).toBe("rounded-pill");
+  });
+});

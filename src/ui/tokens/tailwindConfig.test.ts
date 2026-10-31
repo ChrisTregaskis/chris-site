@@ -1,6 +1,7 @@
 import defaultTheme from "tailwindcss/defaultTheme";
 import { describe, expect, it } from "vitest";
 import config from "../../../tailwind.config";
+import { TOKEN_MERGE_KEYS } from "@/lib/cn";
 
 const LEGACY_COLOUR_KEYS = [
   "dark",
@@ -33,5 +34,13 @@ describe("tailwind config", () => {
       expect(colours).toHaveProperty(key);
     }
     expect(extend.animation).toHaveProperty("spin-fast");
+  });
+
+  it("tells tailwind-merge about every token size, shadow and radius", () => {
+    for (const [group, keys] of Object.entries(TOKEN_MERGE_KEYS)) {
+      expect(Object.keys(extend[group]).sort(), group).toEqual(
+        [...keys].sort(),
+      );
+    }
   });
 });
