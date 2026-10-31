@@ -6,14 +6,15 @@ This file orients any Claude session that opens this repo. Read it first, then `
 
 Chris Tregaskis's portfolio site, served at `chris-tregaskis.uk` (with `www.` redirecting). A single-page React app: a typing-terminal hero, an About panel, a theme toggle (lightbulb) and a CV-request form that posts to a separate Lambda (`VITE_CHRIS_API`). It is the proof link every freelance cold email points to, so what ships here is public-facing.
 
-It was built in a hurry from a starter template (credit in `README.md`) and has few deliberate patterns yet. A refresh is planned in phases (see Roadmap); until Phase 3 lands, keep changes small and in the style of what is there.
+It was built in a hurry from a starter template (credit in `README.md`). Phase 3a (foundations) gave it a deliberate folder architecture, written conventions (below) and a test suite; Phases 3b and 3c build on them (see Roadmap).
 
 ## Stack
 
 - Vite 5, React 18, TypeScript (strict), Tailwind 3, Framer Motion 11, `clsx` + `tailwind-merge`, `react-toastify`.
 - pnpm (lockfile is `pnpm-lock.yaml`; `pnpm-workspace.yaml` only carries `onlyBuiltDependencies`).
 - Hosted on AWS via SST v3: one `sst.aws.StaticSite` (`ChrisSite`) plus an `sst.aws.Bucket`, region `eu-west-2`, defined in `sst.config.ts`. The `production` stage is protected and retained on removal.
-- ESLint 8 with `eslint-config-kentcdodds`; Prettier with `prettier-plugin-tailwindcss`.
+- ESLint 8 with `eslint-config-kentcdodds` (+ `react-hooks/rules-of-hooks`); Prettier 3 with `prettier-plugin-tailwindcss`.
+- Vitest 3 + Testing Library (jsdom); config lives in `vite.config.ts` so the `@/` alias is shared.
 
 ## Commands
 
@@ -25,39 +26,64 @@ It was built in a hurry from a starter template (credit in `README.md`) and has 
 | `pnpm typecheck`       | Typecheck only (`tsc --noEmit`; covers `src/`). Runs in CI.                                                                       |
 | `pnpm lint`            | ESLint over the repo, `--max-warnings 0`.                                                                                         |
 | `pnpm format`          | Prettier, writes in place.                                                                                                        |
+| `pnpm format:check`    | Prettier check only. Runs in CI.                                                                                                  |
+| `pnpm test`            | Vitest, single run. Runs in CI.                                                                                                   |
+| `pnpm test:watch`      | Vitest in watch mode.                                                                                                             |
 | `pnpm preview`         | Serve the built `dist/`.                                                                                                          |
 | `pnpm sst:dev`         | `sst dev` with `AWS_PROFILE=chris`. Needs Chris's AWS credentials.                                                                |
 | `pnpm sst:deploy:prod` | `sst deploy --stage production` with `AWS_PROFILE=chris`. Chris's manual fallback only — not Claude's to run, and not used by CI. |
 
-`pnpm lint`, `pnpm typecheck` and `pnpm build` must all pass before anything is committed. CI (`.github/workflows/ci.yml`) runs the same three on every pull request and push to `master`. Node version is pinned in `.nvmrc`; pnpm in `packageManager`.
+`pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build` must all pass before anything is committed. CI (`.github/workflows/ci.yml`) runs the same five on every pull request and push to `master`. Node version is pinned in `.nvmrc`; pnpm in `packageManager`.
 
-## Repo layout (as it stands today)
+## Repo layout
 
-| Path                                           | Holds                                                                                                                                                                     |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/App.tsx`, `src/main.tsx`                  | Entry and top-level layout.                                                                                                                                               |
-| `src/components/`                              | Flat folder of components: `Terminal`, `TerminalLine`, `Typewriter`, `About`, `Button`, `Icon`, `ToolTip`, `KeyboardButton`, `CopyCode`, `Pin`, and `RequestResumeForm/`. |
-| `src/context/`, `src/providers/`, `src/hooks/` | React context per concern (theme, active content, CV request), its provider, and the hook that reads it.                                                                  |
-| `src/styles/globals.css`, `src/index.css`      | Global styles and the CSS custom properties the theme uses (`--bgColor`, `--textColorPrimary` and friends, mapped in `tailwind.config.ts`).                               |
-| `src/utils/`                                   | Small helpers (e.g. `cn` over `clsx` + `tailwind-merge`).                                                                                                                 |
-| `src/sst-env.d.ts`, `sst-env.d.ts`             | Generated by SST. Do not edit.                                                                                                                                            |
-| `sst.config.ts`                                | The AWS infrastructure.                                                                                                                                                   |
-| `public/`                                      | Static assets.                                                                                                                                                            |
-| `.github/workflows/`                           | `ci.yml` (lint, typecheck, build) and `deploy.yml` (manual production deploy via GitHub OIDC).                                                                            |
-| `.claude/settings.json`                        | Committed permissions allow-list.                                                                                                                                         |
-| `.claude/local/`                               | Working files (plans, scratch pad). Gitignored here; a symlink into Chris's HQ.                                                                                           |
+| Path                               | Holds                                                                                                                                                                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/main.tsx`                     | Entry (`index.html` points here). Imports `styles/index.css`, wraps `App` in `AppProviders`.                                                                                                                            |
+| `src/app/`                         | The page shell: `App.tsx` (header keys and the active-view switch), `AppProviders.tsx` (Theme → ActiveContent → CVRequest), `ActiveContentContext.ts` + `ActiveContentProvider.tsx` (which panel shows; retired in 3c). |
+| `src/features/<name>/`             | Vertical slices, each with an `index.ts` public API: `theme/`, `cv-request/` (context, provider, form, `cvLink.ts`), `terminal/` (terminal, lines, typewriter, copy button, command words, `useTerminal`), `about/`.    |
+| `src/ui/`                          | Shared presentational components, flat for now: `Button`, `KeyboardButton`, `ToolTip`.                                                                                                                                  |
+| `src/hooks/`                       | Shared cross-feature hooks: `useToast`.                                                                                                                                                                                 |
+| `src/lib/`                         | Framework-free helpers: `cn` (over `clsx` + `tailwind-merge`), `breakpoints`, `api` (`ApiStatus`).                                                                                                                      |
+| `src/styles/index.css`             | Global styles and the CSS custom properties the theme uses (`--bgColor`, `--textColorPrimary` and friends, mapped in `tailwind.config.ts`).                                                                             |
+| `src/test/`                        | Test setup (`setup.ts`), `renderWithProviders`, repo-level tests (`indexHtml.test.ts`).                                                                                                                                 |
+| `src/sst-env.d.ts`, `sst-env.d.ts` | Generated by SST. Do not edit.                                                                                                                                                                                          |
+| `sst.config.ts`                    | The AWS infrastructure.                                                                                                                                                                                                 |
+| `public/`                          | Static assets.                                                                                                                                                                                                          |
+| `.github/workflows/`               | `ci.yml` (format, lint, typecheck, test, build) and `deploy.yml` (manual production deploy via GitHub OIDC).                                                                                                            |
+| `.claude/settings.json`            | Committed permissions allow-list.                                                                                                                                                                                       |
+| `.claude/local/`                   | Working files (plans, scratch pad). Gitignored here; a symlink into Chris's HQ.                                                                                                                                         |
 
-The `@/` import alias points at `src/`.
+Reserved, not yet created: `src/ui/tokens/` and `src/ui/{atoms,molecules,organisms}/` (Phase 3b design system); `src/sections/` (Phase 3c long-scroll sections, each composing `ui/` + `features/`).
 
-## Conventions to follow now
+## Code conventions
 
-- **TypeScript, strict.** No JavaScript source files. Fix types rather than casting around them.
-- **Tailwind for styling.** Use the theme colours from `tailwind.config.ts` (backed by CSS variables) rather than raw hex, so light/dark keeps working. Compose classes with the `cn` helper.
-- **Framer Motion for animation.** Respect `prefers-reduced-motion` in anything new.
-- **British English** in visible copy, comments and docs. No connector em-dashes in visible copy.
-- **Keep what works working:** the CV-request form flow and theme switching must not regress.
-- **Works at phone width.** Chris often checks on his phone; no horizontal scroll.
-- Don't edit SST-generated files or anything under `.sst/`.
+**General.** TypeScript, strict; no JavaScript source files; fix types rather than casting around them. Framer Motion for animation, respecting `prefers-reduced-motion` in anything new. British English in visible copy, comments and docs; no connector em-dashes in visible copy. Works at phone width with no horizontal scroll. Keep what works working: the CV-request form flow and the theme must not regress. Don't edit SST-generated files or anything under `.sst/`.
+
+**Where things live.**
+
+- `app/` is app-wide wiring, not a feature; it may import anything.
+- `features/<kebab-name>/` holds one concern end to end. Inside a feature use relative imports; from outside, import only via the feature's `index.ts` (today: terminal → cv-request, theme; cv-request → theme).
+- `ui/`, `hooks/` and `lib/` never import from `app/` or `features/`. Documented exceptions until 3b moves the theme into design tokens: `hooks/useToast` and `ui/KeyboardButton` read `features/theme`.
+- A feature may read `app/ActiveContentContext` (the CV form's "Back To Terminal") until 3c retires it.
+- No import cycles.
+
+**Naming.** Components `PascalCase.tsx`, one component per file, named exports (no default exports). Hooks `useThing.ts` (`.tsx` only when they contain JSX). Helpers `camelCase.ts`. Constants `UPPER_SNAKE`. Feature folders kebab-case. Tests colocated as `Thing.test.tsx`. Prefer string-literal unions to enums in new code (`ThemeMode` and `ScreenSizeBreakPoint` stay until 3b).
+
+**Imports and aliases.** `@/` points at `src/`; use it across folders, and relative imports inside a feature.
+
+**Components and hooks.** Props as an `interface ThingProps`. Logic lives in hooks; components render. No `window` reads during render in new code.
+
+**Context and providers.** One context per concern, inside its feature: `ThingContext.ts` (the context, its value type, and a `useThing` hook that throws outside its provider) and `ThingProvider.tsx`. Memoise the provider value. Providers are composed only in `app/AppProviders.tsx`. Use context for app-wide state only; pass props otherwise.
+
+**Styling.** Tailwind with the theme colours from `tailwind.config.ts` (backed by CSS variables) rather than raw hex, so light and dark keep working. Use `cn` for conditional classes in new code. Don't retrofit `cn` onto existing class strings: `tailwind-merge` drops conflicting classes and can change rendering. Tailwind scans everything under `src/` (tests included), so class-like words in comments can generate CSS.
+
+**Tests.** Vitest + Testing Library. Test behaviour, not snapshots. Render through `renderWithProviders` (from `@/test/renderWithProviders`). Mock `fetch` with `vi.stubGlobal`, env with `vi.stubEnv`; `src/test/setup.ts` restores both after each test. Test fixtures use neutral data (`Ada`, `ada@example.com`).
+
+## Known issues
+
+- **CV form spins forever on a network failure.** When the fetch to `VITE_CHRIS_API` rejects, the form shows the error toast but leaves the CV-request status at `"loading"`, so the Submit button stays a spinner and can't be retried without a reload. Pinned (user-visible parts only) by `stays on the form when the request fails` in `src/features/cv-request/CVRequestForm.test.tsx`; to be fixed in a later phase.
+- **Dark only.** The lightbulb theme toggle is deliberately commented out in `src/app/App.tsx`; light mode is reachable only through `setThemeMode`.
 
 ## Anonymisation rule — portfolio content
 
