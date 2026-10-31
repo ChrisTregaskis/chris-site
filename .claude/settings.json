@@ -32,7 +32,11 @@
       "Bash(gh workflow view:*)",
       "Bash(gh pr view:*)",
       "Bash(gh pr list:*)",
-      "Bash(gh pr checks:*)"
+      "Bash(gh pr checks:*)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm format:check)",
+      "Bash(pnpm typecheck)"
     ],
     "deny": [
       "Read(./.env)",
