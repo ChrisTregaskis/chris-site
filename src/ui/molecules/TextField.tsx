@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FocusEvent, useId } from "react";
+import { type ChangeEvent, type FocusEvent, forwardRef, useId } from "react";
 import { FieldError } from "@/ui/atoms/FieldError";
 import { Input } from "@/ui/atoms/Input";
 import { Label } from "@/ui/atoms/Label";
@@ -12,6 +12,9 @@ export interface TextFieldProps {
   /** When set: the field is invalid and described by this message. */
   error?: string;
   optional?: boolean;
+  /** Marks the field required for the browser and assistive tech. */
+  required?: boolean;
+  disabled?: boolean;
   multiline?: boolean;
   type?: "text" | "email";
   autoComplete?: string;
@@ -25,33 +28,47 @@ export interface TextFieldProps {
  * Label, field and error, wired for assistive tech. Controlled or not, as the
  * caller chooses; validation belongs to the form that uses it.
  */
-export function TextField({
-  label,
-  name,
-  error,
-  optional = false,
-  multiline = false,
-  type = "text",
-  ...field
-}: TextFieldProps) {
-  const fieldId = useId();
-  const errorId = `${fieldId}-error`;
-  const invalid = Boolean(error);
-  const shared = {
-    id: fieldId,
-    name,
-    invalid,
-    "aria-describedby": invalid ? errorId : undefined,
-    ...field,
-  };
+export const TextField = forwardRef<FieldElement, TextFieldProps>(
+  function TextField(
+    {
+      label,
+      name,
+      error,
+      optional = false,
+      multiline = false,
+      type = "text",
+      ...field
+    },
+    ref,
+  ) {
+    const fieldId = useId();
+    // One callback ref serves either element type without a cast.
+    const setRef = (node: FieldElement | null) => {
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    };
+    const errorId = `${fieldId}-error`;
+    const invalid = Boolean(error);
+    const shared = {
+      id: fieldId,
+      name,
+      invalid,
+      "aria-describedby": invalid ? errorId : undefined,
+      ...field,
+    };
 
-  return (
-    <div className="flex min-w-0 flex-col gap-[6px]">
-      <Label htmlFor={fieldId} optional={optional}>
-        {label}
-      </Label>
-      {multiline ? <Textarea {...shared} /> : <Input type={type} {...shared} />}
-      <FieldError id={errorId}>{error}</FieldError>
-    </div>
-  );
-}
+    return (
+      <div className="flex min-w-0 flex-col gap-[6px]">
+        <Label htmlFor={fieldId} optional={optional}>
+          {label}
+        </Label>
+        {multiline ? (
+          <Textarea ref={setRef} {...shared} />
+        ) : (
+          <Input ref={setRef} type={type} {...shared} />
+        )}
+        <FieldError id={errorId}>{error}</FieldError>
+      </div>
+    );
+  },
+);

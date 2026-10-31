@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { createRef, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { TextField } from "./TextField";
 import { renderWithProviders } from "@/test/renderWithProviders";
@@ -91,5 +91,17 @@ describe("TextField", () => {
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     expect(onChange).toHaveBeenCalled();
     expect(screen.getByLabelText("Email")).toHaveValue("ada@example.com");
+  });
+
+  it("marks a required field as required", () => {
+    renderWithProviders(<TextField label="Email" name="email" required />);
+    expect(screen.getByLabelText("Email")).toBeRequired();
+  });
+
+  it("forwards its ref to the field so a form can focus it", () => {
+    const ref = createRef<HTMLInputElement | HTMLTextAreaElement>();
+    renderWithProviders(<TextField ref={ref} label="Email" name="email" />);
+    ref.current?.focus();
+    expect(screen.getByLabelText("Email")).toHaveFocus();
   });
 });

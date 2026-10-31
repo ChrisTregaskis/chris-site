@@ -16,7 +16,7 @@ export function TopNav({ name, links }: TopNavProps) {
       <nav aria-label="Primary" className="hidden gap-[22px] wide:flex">
         {links.map((link) => (
           <a
-            key={link.href}
+            key={`${link.href} ${link.label}`}
             href={link.href}
             className="text-muted no-underline transition-colors duration-base hover:text-ink motion-reduce:transition-none focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal"
           >
