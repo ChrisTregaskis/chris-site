@@ -1,6 +1,5 @@
 import React from "react";
-import { ThemeMode } from "@/context/ThemeContext";
-import { useTheme } from "@/hooks/useTheme";
+import { ThemeMode, useTheme } from "@/features/theme";
 
 const About: React.FC = () => {
   const { themeMode } = useTheme();

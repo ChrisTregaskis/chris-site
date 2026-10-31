@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import { googleDocId } from "../Terminal";
-import Button from "../Button";
-import { useTheme } from "@/hooks/useTheme";
-import { ThemeMode } from "@/context/ThemeContext";
-import { useRequestCV } from "@/hooks/useRequestCV";
+import { CV_VIEW_URL } from "./cvLink";
+import { useCVRequest } from "./CVRequestContext";
+import { Button } from "@/ui/Button";
+import { ThemeMode, useTheme } from "@/features/theme";
 import { useActiveContent } from "@/hooks/useActiveContent";
-import useToast from "@/hooks/useToast";
+import { useToast } from "@/hooks/useToast";
 
-const RequestResumeForm: React.FC = () => {
+export const CVRequestForm: React.FC = () => {
   const { themeMode } = useTheme();
-  const { status: requestCVStatus, setStatus } = useRequestCV();
+  const { status: requestCVStatus, setStatus } = useCVRequest();
   const { setActiveContent } = useActiveContent();
   const { showToast } = useToast();
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -157,11 +156,7 @@ const RequestResumeForm: React.FC = () => {
               />
               <Button
                 text="View CV"
-                handleClick={() =>
-                  window.open(
-                    `https://drive.google.com/file/d/${googleDocId}/view`,
-                  )
-                }
+                handleClick={() => window.open(CV_VIEW_URL)}
               />
             </div>
           </>
@@ -170,5 +165,3 @@ const RequestResumeForm: React.FC = () => {
     </div>
   );
 };
-
-export default RequestResumeForm;

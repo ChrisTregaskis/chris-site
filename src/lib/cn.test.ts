@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cn } from "./index";
+import { cn } from "./cn";
 
 const classesFor = (isHidden: boolean) =>
   cn("p-2", isHidden && "hidden", "p-4");

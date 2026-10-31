@@ -1,12 +1,9 @@
 import React from "react";
 import TerminalLine from "./TerminalLine";
-import { useTheme } from "@/hooks/useTheme";
-import { ThemeMode } from "@/context/ThemeContext";
-import { useRequestCV } from "@/hooks/useRequestCV";
-import useToast from "@/hooks/useToast";
-import { ScreenSizeBreakPoint } from "@/utils";
-
-export const googleDocId = "1AZSv0lZslUnKFXBZXfNR6NeZ1FUkLonj";
+import { ThemeMode, useTheme } from "@/features/theme";
+import { GOOGLE_DOC_ID, useCVRequest } from "@/features/cv-request";
+import { useToast } from "@/hooks/useToast";
+import { ScreenSizeBreakPoint } from "@/lib/breakpoints";
 
 /**
  *
@@ -70,7 +67,7 @@ interface TerminalProps {
 }
 
 const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
-  const { status: requestCVStatus } = useRequestCV();
+  const { status: requestCVStatus } = useCVRequest();
   const { themeMode } = useTheme();
   const { showToast } = useToast();
 
@@ -87,7 +84,7 @@ const Terminal: React.FC<TerminalProps> = ({ countOfExecution }) => {
       {
         text:
           requestCVStatus === "success"
-            ? googleDocId
+            ? GOOGLE_DOC_ID
             : " [ To access file id, please first click PDF icon and complete form request. ]",
         className:
           requestCVStatus === "success" ? "text-[#d2691e]" : "text-[#fff]",

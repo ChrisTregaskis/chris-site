@@ -1,7 +1,7 @@
 import React from "react";
-import { ThemeProvider } from "./ThemeProvider";
-import { RequestCVProvider } from "./RequestCVProvider";
 import { ActiveContentProvider } from "./ActiveContentProvider";
+import { ThemeProvider } from "@/features/theme";
+import { CVRequestProvider } from "@/features/cv-request";
 
 // This is the main provider of the app wrapping it with the providers it needs
 export const AppProvider: React.FC<React.PropsWithChildren> = ({
@@ -11,7 +11,7 @@ export const AppProvider: React.FC<React.PropsWithChildren> = ({
     <>
       <ThemeProvider>
         <ActiveContentProvider>
-          <RequestCVProvider>{children}</RequestCVProvider>
+          <CVRequestProvider>{children}</CVRequestProvider>
         </ActiveContentProvider>
       </ThemeProvider>
     </>

@@ -6,7 +6,7 @@ interface ButtonProps {
   loading?: boolean;
 }
 
-const Button: React.FC<ButtonProps> = ({
+export const Button: React.FC<ButtonProps> = ({
   text,
   htmlType,
   handleClick,
@@ -52,5 +52,3 @@ const Button: React.FC<ButtonProps> = ({
     </button>
   );
 };
-
-export default Button;

@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import CopyCode from "./CopyCode";
 import Typewriter, { TypewriterProps, Words } from "./Typewriter";
-import { cn } from "@/utils";
+import { cn } from "@/lib/cn";
 
 interface TerminalLineProps {
   typedWords: Words;

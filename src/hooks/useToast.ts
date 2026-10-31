@@ -1,8 +1,9 @@
 import { type ToastOptions as ToastifyToastOptions } from "react-toastify";
 import { toast } from "react-toastify";
 import { useCallback } from "react";
-import { ThemeMode } from "@/context/ThemeContext";
-import { useTheme } from "@/hooks/useTheme";
+// Documented exception to the layer rules: a shared hook reading a feature,
+// until 3b moves the theme into design tokens.
+import { ThemeMode, useTheme } from "@/features/theme";
 
 /** Different values for configuring the toast scheme */
 type ToastScheme = "SUCCESS" | "WARN" | "ERROR" | "INFO";
@@ -12,7 +13,7 @@ interface ToastOptions extends ToastifyToastOptions {
   scheme?: ToastScheme;
 }
 
-const useToast = () => {
+export const useToast = () => {
   const { themeMode } = useTheme();
 
   const showToast = useCallback(
@@ -69,5 +70,3 @@ const useToast = () => {
 
   return { showToast };
 };
-
-export default useToast;

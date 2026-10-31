@@ -1,7 +1,8 @@
 import React from "react";
-import ToolTip from "./ToolTip";
-import { ThemeMode } from "@/context/ThemeContext";
-import { useTheme } from "@/hooks/useTheme";
+import { ToolTip } from "./ToolTip";
+// Documented exception to the layer rules: reads the theme until 3b moves it
+// into design tokens.
+import { ThemeMode, useTheme } from "@/features/theme";
 
 interface KeyboardButtonProps {
   keyType:
@@ -17,7 +18,7 @@ interface KeyboardButtonProps {
   rightActive?: boolean;
 }
 
-const KeyboardButton: React.FC<KeyboardButtonProps> = ({
+export const KeyboardButton: React.FC<KeyboardButtonProps> = ({
   keyType,
   handleClick,
   isActive,
@@ -227,8 +228,6 @@ const KeyboardButton: React.FC<KeyboardButtonProps> = ({
     </button>
   );
 };
-
-export default KeyboardButton;
 
 /**
  

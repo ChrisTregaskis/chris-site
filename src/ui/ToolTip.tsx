@@ -2,7 +2,7 @@ interface ToolTipProps {
   tip: string;
 }
 
-const ToolTip: React.FC<ToolTipProps> = ({ tip }) => {
+export const ToolTip: React.FC<ToolTipProps> = ({ tip }) => {
   return (
     <span
       className="
@@ -28,5 +28,3 @@ const ToolTip: React.FC<ToolTipProps> = ({ tip }) => {
     </span>
   );
 };
-
-export default ToolTip;

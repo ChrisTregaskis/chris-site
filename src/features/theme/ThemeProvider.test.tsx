@@ -2,8 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "./ThemeProvider";
-import { ThemeMode } from "@/context/ThemeContext";
-import { useTheme } from "@/hooks/useTheme";
+import { ThemeMode, useTheme } from "./ThemeContext";
 
 function Probe() {
   const { themeMode, setThemeMode } = useTheme();

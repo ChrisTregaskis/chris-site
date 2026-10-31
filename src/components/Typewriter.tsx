@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { motion, stagger, useAnimate } from "framer-motion";
 
-import { cn } from "@/utils";
+import { cn } from "@/lib/cn";
 
 export interface TypewriterProps {
   words: Words;

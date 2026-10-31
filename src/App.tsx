@@ -1,14 +1,17 @@
 import React from "react";
 import { ToastContainer } from "react-toastify";
 
-import Terminal, { googleDocId } from "./components/Terminal";
-import KeyboardButton from "./components/KeyboardButton";
+import Terminal from "./components/Terminal";
 import useTerminal, { ActiveKeysEnum } from "./hooks/useTerminal";
 import About from "./components/About";
-import RequestResumeForm from "./components/RequestResumeForm/RequestResumeForm";
-import { useRequestCV } from "./hooks/useRequestCV";
 import { useActiveContent } from "./hooks/useActiveContent";
-import useToast from "./hooks/useToast";
+import {
+  CV_VIEW_URL,
+  CVRequestForm,
+  useCVRequest,
+} from "@/features/cv-request";
+import { KeyboardButton } from "@/ui/KeyboardButton";
+import { useToast } from "@/hooks/useToast";
 
 /**
  * todoLIST:
@@ -20,7 +23,7 @@ import useToast from "./hooks/useToast";
  * @description App is root level for rendering chris-tregaskis.uk
  */
 function App() {
-  const { status: cvRequestStatus } = useRequestCV();
+  const { status: cvRequestStatus } = useCVRequest();
   const { activeContent, setActiveContent } = useActiveContent();
   const { showToast } = useToast();
 
@@ -40,7 +43,7 @@ function App() {
   // Handler for opening CV in new window
   const handleOpenCV = React.useCallback(() => {
     if (cvRequestStatus === "success") {
-      window.open(`https://drive.google.com/file/d/${googleDocId}/view`);
+      window.open(CV_VIEW_URL);
     } else {
       setActiveContent("resume");
     }
@@ -88,7 +91,7 @@ function App() {
       case "terminal":
         return <Terminal countOfExecution={countOfExecution} />;
       case "resume":
-        return <RequestResumeForm />;
+        return <CVRequestForm />;
       default:
         showToast("Unhandled content renderer", { scheme: "ERROR" });
     }

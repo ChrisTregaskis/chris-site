@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import RequestResumeForm from "./RequestResumeForm";
+import { CVRequestForm } from "./CVRequestForm";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 const CV_URL =
@@ -12,7 +12,7 @@ function setup(fetchImpl: () => Promise<unknown>) {
   const fetchMock = vi.fn(fetchImpl);
   vi.stubGlobal("fetch", fetchMock);
   const user = userEvent.setup();
-  renderWithProviders(<RequestResumeForm />);
+  renderWithProviders(<CVRequestForm />);
   return { fetchMock, user };
 }
 
@@ -27,7 +27,7 @@ async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Submit" }));
 }
 
-describe("RequestResumeForm", () => {
+describe("CVRequestForm", () => {
   it("posts the form to the CV API and unlocks the CV", async () => {
     const { fetchMock, user } = setup(async () => ({ ok: true }));
     await fillAndSubmit(user);
