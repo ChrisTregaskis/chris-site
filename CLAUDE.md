@@ -4,13 +4,13 @@ This file orients any Claude session that opens this repo. Read it first, then `
 
 ## What this is
 
-Chris Tregaskis's portfolio site, served at `chris-tregaskis.uk` (with `www.` redirecting). A single-page React app: a typing-terminal hero, an About panel, a theme toggle (lightbulb) and a CV-request form that posts to a separate Lambda (`VITE_CHRIS_API`). It is the proof link every freelance cold email points to, so what ships here is public-facing.
+Chris Tregaskis's portfolio site, served at `chris-tregaskis.uk` (with `www.` redirecting). A single-page React app with one dark look (no theme switch): a typing-terminal hero, an About panel and a CV-request form that posts to a separate Lambda (`VITE_CHRIS_API`). It is the proof link every freelance cold email points to, so what ships here is public-facing.
 
-It was built in a hurry from a starter template (credit in `README.md`). Phase 3a (foundations) gave it a deliberate folder architecture, written conventions (below) and a test suite; Phases 3b and 3c build on them (see Roadmap).
+It was built in a hurry from a starter template (credit in `README.md`). Phase 3a (foundations) gave it a deliberate folder architecture, written conventions (below) and a test suite; Phase 3b-2 added the design system (tokens, motion presets, atoms, molecules and a dev-only showcase); Phase 3c builds the new sections from it (see Roadmap).
 
 ## Stack
 
-- Vite 5, React 18, TypeScript (strict), Tailwind 3, Framer Motion 11, `clsx` + `tailwind-merge`, `react-toastify`.
+- Vite 5, React 18, TypeScript (strict), Tailwind 3, Framer Motion 11, `clsx` + `tailwind-merge`, `react-toastify`, Fontsource variable fonts (Bricolage Grotesque, Figtree).
 - pnpm (lockfile is `pnpm-lock.yaml`; `pnpm-workspace.yaml` only carries `onlyBuiltDependencies`).
 - Hosted on AWS via SST v3: one `sst.aws.StaticSite` (`ChrisSite`) plus an `sst.aws.Bucket`, region `eu-west-2`, defined in `sst.config.ts`. The `production` stage is protected and retained on removal.
 - ESLint 8 with `eslint-config-kentcdodds` (+ `react-hooks/rules-of-hooks`); Prettier 3 with `prettier-plugin-tailwindcss`.
@@ -21,7 +21,7 @@ It was built in a hurry from a starter template (credit in `README.md`). Phase 3
 | Command                | What it does                                                                                                                      |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm install`         | Install dependencies. Non-interactive shells need `CI=true` if pnpm wants to rebuild `node_modules`.                              |
-| `pnpm dev`             | Vite dev server. The CV form needs `VITE_CHRIS_API` set to work locally.                                                          |
+| `pnpm dev`             | Vite dev server. The CV form needs `VITE_CHRIS_API` set to work locally. The design system showcase is at `/showcase.html`.       |
 | `pnpm build`           | `tsc && vite build` → `dist/`. This is also the typecheck gate.                                                                   |
 | `pnpm typecheck`       | Typecheck only (`tsc --noEmit`; covers `src/`). Runs in CI.                                                                       |
 | `pnpm lint`            | ESLint over the repo, `--max-warnings 0`.                                                                                         |
@@ -37,38 +37,43 @@ It was built in a hurry from a starter template (credit in `README.md`). Phase 3
 
 ## Repo layout
 
-| Path                               | Holds                                                                                                                                                                                                                   |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/main.tsx`                     | Entry (`index.html` points here). Imports `styles/index.css`, wraps `App` in `AppProviders`.                                                                                                                            |
-| `src/app/`                         | The page shell: `App.tsx` (header keys and the active-view switch), `AppProviders.tsx` (Theme → ActiveContent → CVRequest), `ActiveContentContext.ts` + `ActiveContentProvider.tsx` (which panel shows; retired in 3c). |
-| `src/features/<name>/`             | Vertical slices, each with an `index.ts` public API: `theme/`, `cv-request/` (context, provider, form, `cvLink.ts`), `terminal/` (terminal, lines, typewriter, copy button, command words, `useTerminal`), `about/`.    |
-| `src/ui/`                          | Shared presentational components, flat for now: `Button`, `KeyboardButton`, `ToolTip`.                                                                                                                                  |
-| `src/hooks/`                       | Shared cross-feature hooks: `useToast`.                                                                                                                                                                                 |
-| `src/lib/`                         | Framework-free helpers: `cn` (over `clsx` + `tailwind-merge`), `breakpoints`, `api` (`ApiStatus`).                                                                                                                      |
-| `src/styles/index.css`             | Global styles and the CSS custom properties the theme uses (`--bgColor`, `--textColorPrimary` and friends, mapped in `tailwind.config.ts`).                                                                             |
-| `src/test/`                        | Test setup (`setup.ts`), `renderWithProviders`, repo-level tests (`indexHtml.test.ts`).                                                                                                                                 |
-| `src/sst-env.d.ts`, `sst-env.d.ts` | Generated by SST. Do not edit.                                                                                                                                                                                          |
-| `sst.config.ts`                    | The AWS infrastructure.                                                                                                                                                                                                 |
-| `public/`                          | Static assets.                                                                                                                                                                                                          |
-| `.github/workflows/`               | `ci.yml` (format, lint, typecheck, test, build) and `deploy.yml` (manual production deploy via GitHub OIDC).                                                                                                            |
-| `.claude/settings.json`            | Committed permissions allow-list.                                                                                                                                                                                       |
-| `.claude/local/`                   | Working files (plans, scratch pad). Gitignored here; a symlink into Chris's HQ.                                                                                                                                         |
+| Path                               | Holds                                                                                                                                                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/main.tsx`                     | Entry (`index.html` points here). Imports `styles/index.css`, wraps `App` in `AppProviders`.                                                                                                                    |
+| `src/app/`                         | The page shell: `App.tsx` (header keys and the active-view switch), `AppProviders.tsx` (ActiveContent → CVRequest), `ActiveContentContext.ts` + `ActiveContentProvider.tsx` (which panel shows; retired in 3c). |
+| `src/features/<name>/`             | Vertical slices, each with an `index.ts` public API: `cv-request/` (context, provider, form, `cvLink.ts`), `terminal/` (terminal, lines, typewriter, copy button, command words, `useTerminal`), `about/`.      |
+| `src/ui/tokens/`                   | Design tokens: `tokens.css` (CSS variables, the only home of raw values), `motion.ts` (durations, eases, staggers for Framer), `breakpoints.ts`, `fonts.ts` (self-hosted fonts).                                |
+| `src/ui/motion/`                   | Reduced-motion-aware motion presets: `resolvePreset`, `staggerChildren`, `useMotionPreset`.                                                                                                                     |
+| `src/ui/atoms/`                    | Single-element components with no app knowledge: `Button`, `ButtonLink`, `Spinner`, `TextLink`, `Icon`, `VisuallyHidden`, `Chip`, `Card`, `Container`, `Label`, `Input`, `Textarea`, `FieldError`.              |
+| `src/ui/molecules/`                | Compositions of atoms: `ChipList`, `Section`, `ChapterHeading`, `TopNav`, `TextField`.                                                                                                                          |
+| `src/ui/legacy/`                   | The terminal-era `Button`, `KeyboardButton`, `ToolTip`. Retired in 3c as sections replace the terminal.                                                                                                         |
+| `src/hooks/`                       | Shared cross-feature hooks: `useToast`.                                                                                                                                                                         |
+| `src/lib/`                         | Framework-free helpers: `cn` (over `clsx` + `tailwind-merge`, taught the token keys), `breakpoints` (legacy terminal breakpoints), `api` (`ApiStatus`).                                                         |
+| `src/styles/index.css`             | Global styles: imports the tokens, then holds the legacy variables the terminal-era UI uses (`--bgColor`, `--textColorPrimary` and friends, mapped in `tailwind.config.ts`).                                    |
+| `src/showcase/`, `showcase.html`   | Dev-only design system showcase (a second Vite entry). Served by `pnpm dev` at `/showcase.html`; never built into `dist/`.                                                                                      |
+| `src/test/`                        | Test setup (`setup.ts`), `renderWithProviders`, repo-level tests (`indexHtml.test.ts`).                                                                                                                         |
+| `src/sst-env.d.ts`, `sst-env.d.ts` | Generated by SST. Do not edit.                                                                                                                                                                                  |
+| `sst.config.ts`                    | The AWS infrastructure.                                                                                                                                                                                         |
+| `public/`                          | Static assets.                                                                                                                                                                                                  |
+| `.github/workflows/`               | `ci.yml` (format, lint, typecheck, test, build) and `deploy.yml` (manual production deploy via GitHub OIDC).                                                                                                    |
+| `.claude/settings.json`            | Committed permissions allow-list.                                                                                                                                                                               |
+| `.claude/local/`                   | Working files (plans, scratch pad). Gitignored here; a symlink into Chris's HQ.                                                                                                                                 |
 
-Reserved, not yet created: `src/ui/tokens/` and `src/ui/{atoms,molecules,organisms}/` (Phase 3b design system); `src/sections/` (Phase 3c long-scroll sections, each composing `ui/` + `features/`).
+Reserved, not yet created: `src/ui/organisms/` (Phase 3c interactive pieces) and `src/sections/` (Phase 3c long-scroll sections, each composing `ui/` + `features/`).
 
 ## Code conventions
 
-**General.** TypeScript, strict; no JavaScript source files; fix types rather than casting around them. Framer Motion for animation, respecting `prefers-reduced-motion` in anything new. British English in visible copy, comments and docs; no connector em-dashes in visible copy. Works at phone width with no horizontal scroll. Keep what works working: the CV-request form flow and the theme must not regress. Don't edit SST-generated files or anything under `.sst/`.
+**General.** TypeScript, strict; no JavaScript source files; fix types rather than casting around them. Framer Motion for animation, respecting `prefers-reduced-motion` in anything new. British English in visible copy, comments and docs; no connector em-dashes in visible copy. Works at phone width with no horizontal scroll. Keep what works working: the CV-request form flow and the single dark look must not regress. Don't edit SST-generated files or anything under `.sst/`.
 
 **Where things live.**
 
 - `app/` is app-wide wiring, not a feature; it may import anything.
-- `features/<kebab-name>/` holds one concern end to end. Inside a feature use relative imports; from outside, import only via the feature's `index.ts` (today: terminal → cv-request, theme; cv-request → theme).
-- `ui/`, `hooks/` and `lib/` never import from `app/` or `features/`. Documented exceptions until 3b moves the theme into design tokens: `hooks/useToast` and `ui/KeyboardButton` read `features/theme`.
+- `features/<kebab-name>/` holds one concern end to end. Inside a feature use relative imports; from outside, import only via the feature's `index.ts` (today: terminal → cv-request).
+- `ui/`, `hooks/` and `lib/` never import from `app/` or `features/`.
 - A feature may read `app/ActiveContentContext` (the CV form's "Back To Terminal") until 3c retires it.
 - No import cycles.
 
-**Naming.** Components `PascalCase.tsx`, one component per file, named exports (no default exports). Hooks `useThing.ts` (`.tsx` only when they contain JSX). Helpers `camelCase.ts`. Constants `UPPER_SNAKE`. Feature folders kebab-case. Tests colocated as `Thing.test.tsx`. Prefer string-literal unions to enums in new code (`ThemeMode` and `ScreenSizeBreakPoint` stay until 3b).
+**Naming.** Components `PascalCase.tsx`, one component per file, named exports (no default exports). Hooks `useThing.ts` (`.tsx` only when they contain JSX). Helpers `camelCase.ts`. Constants `UPPER_SNAKE`. Feature folders kebab-case. Tests colocated as `Thing.test.tsx`. Prefer string-literal unions and `as const` objects to enums.
 
 **Imports and aliases.** `@/` points at `src/`; use it across folders, and relative imports inside a feature.
 
@@ -76,18 +81,27 @@ Reserved, not yet created: `src/ui/tokens/` and `src/ui/{atoms,molecules,organis
 
 **Context and providers.** One context per concern, inside its feature: `ThingContext.ts` (the context, its value type, and a `useThing` hook that throws outside its provider) and `ThingProvider.tsx`. Memoise the provider value. Providers are composed only in `app/AppProviders.tsx`. Use context for app-wide state only; pass props otherwise.
 
-**Styling.** Tailwind with the theme colours from `tailwind.config.ts` (backed by CSS variables) rather than raw hex, so light and dark keep working. Use `cn` for conditional classes in new code. Don't retrofit `cn` onto existing class strings: `tailwind-merge` drops conflicting classes and can change rendering. Tailwind scans everything under `src/` (tests included), so class-like words in comments can generate CSS.
+**Styling.** Tailwind with the design tokens; see Design system below. Use `cn` for conditional classes in new code. Don't retrofit `cn` onto existing class strings: `tailwind-merge` drops conflicting classes and can change rendering. Tailwind scans everything under `src/` (tests included), so class-like words in comments can generate CSS.
+
+**Design system.** Built in Phase 3b-2 from the locked b3 look; the live terminal UI doesn't use it yet (3c switches sections over one at a time).
+
+- **Tokens** are CSS variables in `src/ui/tokens/tokens.css`, mapped into Tailwind in `tailwind.config.ts` (`bg-surface`, `text-muted`, `border-line`, `text-body-sm`, `rounded-card`, `shadow-focus-glow`, `duration-base`, `ease-enter`, `sheet:` / `wide:` and friends). Colours are RGB channels, so opacity modifiers work (`bg-danger/10`).
+- **Never raw hex in components.** Raw values live only in `tokens.css`. A product mock with its own palette (a chat widget, an app screen) gets its own named token group there when 3c builds it.
+- **New token keys must not shadow Tailwind defaults** (`rounded-md`, `shadow-lg`, `font-mono`… are used by live markup); `src/ui/tokens/tailwindConfig.test.ts` enforces it. When you add a font size, shadow or radius key, add it to `TOKEN_MERGE_KEYS` in `src/lib/cn.ts` too (the same test checks), or `tailwind-merge` will drop it.
+- **Motion** comes from `useMotionPreset` (`src/ui/motion/`) or `@/ui/tokens/motion` (`DURATION`, `EASE`, `STAGGER`), never hard-coded durations. Every preset drops transforms and duration under `prefers-reduced-motion`; CSS transitions add `motion-reduce:transition-none`.
+- **Layers:** atoms are single elements with no app knowledge; molecules compose atoms; organisms (3c) may hold behaviour. None import from `app/` or `features/`.
+- **Fonts** are self-hosted Fontsource variable fonts, imported from `@/ui/tokens/fonts`. Until 3c only the showcase imports them; 3c moves the import into `main.tsx` and adds preloads.
+- **Showcase:** run `pnpm dev` and open `/showcase.html` to see every token and component. Add each new component there (a section in `src/showcase/sections/`). It is a second Vite entry, never built into `dist/`.
 
 **Tests.** Vitest + Testing Library. Test behaviour, not snapshots. Render through `renderWithProviders` (from `@/test/renderWithProviders`). Mock `fetch` with `vi.stubGlobal`, env with `vi.stubEnv`; `src/test/setup.ts` restores both after each test. Test fixtures use neutral data (`Ada`, `ada@example.com`).
 
 ## Known issues
 
 - **CV form spins forever on a network failure.** When the fetch to `VITE_CHRIS_API` rejects, the form shows the error toast but leaves the CV-request status at `"loading"`, so the Submit button stays a spinner and can't be retried without a reload. Pinned (user-visible parts only) by `stays on the form when the request fails` in `src/features/cv-request/CVRequestForm.test.tsx`; to be fixed in a later phase.
-- **Dark only.** The lightbulb theme toggle is deliberately commented out in `src/app/App.tsx`; light mode is reachable only through `setThemeMode`.
 
 ## Anonymisation rule — portfolio content
 
-This site is public and will describe work Chris did through his employer. **Never name the employer's clients or vendors** in copy, alt text, image content, file names, commit messages or code comments. Describe work by what it does ("an AI concierge for a global automotive brand"), never who it was for. No real screenshots of client work. Chris's own products (e.g. Badass Burpees) and employers already on his public CV are fine.
+This site is public and will describe work Chris did through his employer. **Never name the employer's clients or vendors** in copy, alt text, image content, file names, commit messages or code comments. Describe work by what it does ("an AI guide for a global automotive brand"), never who it was for. The public product name for that work is **Wayfinder**. No real screenshots of client work. Chris's own products (e.g. Badass Burpees) and employers already on his public CV are fine.
 
 The named deny-list lives in `CLAUDE.local.md` and in the refresh design doc in HQ — deliberately not here, because this repo is public and the list itself would disclose the relationships it protects. Check new copy against it before committing.
 
