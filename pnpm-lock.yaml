@@ -78,9 +78,6 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.5.14
         version: 0.5.14(prettier@3.8.1)
-      sst-darwin-arm64:
-        specifier: ^3.17.37
-        version: 3.17.37
       tailwindcss:
         specifier: ^3.4.5
         version: 3.4.19(yaml@2.8.2)
@@ -5230,7 +5227,8 @@ snapshots:
 
   spdx-license-ids@3.0.22: {}
 
-  sst-darwin-arm64@3.17.37: {}
+  sst-darwin-arm64@3.17.37:
+    optional: true
 
   sst-darwin-x64@3.17.37:
     optional: true

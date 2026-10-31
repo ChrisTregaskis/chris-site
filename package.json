@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
     "sst:dev": "AWS_PROFILE=chris sst dev",
     "sst:deploy:prod": "AWS_PROFILE=chris npx sst deploy --stage production",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --report-unused-disable-directives --max-warnings 0",
@@ -38,9 +39,9 @@
     "lint-staged": "^15.4.1",
     "postcss": "^8.4.40",
     "prettier-plugin-tailwindcss": "^0.5.14",
-    "sst-darwin-arm64": "^3.17.37",
     "tailwindcss": "^3.4.5",
     "typescript": "^5.5.4",
     "vite": "^5.4.4"
-  }
+  },
+  "packageManager": "pnpm@10.28.1"
 }

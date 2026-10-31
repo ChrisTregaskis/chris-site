@@ -1,0 +1,100 @@
+name: Deploy
+
+# Production deploy, triggered by hand (or by a Claude session per CLAUDE.md → Deploys).
+# Runs only on master, and only for a commit whose CI run concluded success.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Check ref, role and CI status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Require master
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/master" ]; then
+            echo "::error::Deploys run from master only (got $REF)."
+            exit 1
+          fi
+
+      - name: Require AWS_DEPLOY_ROLE_ARN
+        env:
+          ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+        run: |
+          if [ -z "$ROLE_ARN" ]; then
+            echo "::error::Repository variable AWS_DEPLOY_ROLE_ARN is not set. Set it with: gh variable set AWS_DEPLOY_ROLE_ARN --body <role-arn> --repo ${GITHUB_REPOSITORY}"
+            exit 1
+          fi
+
+      - name: Require green CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          count=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${SHA}&status=success&per_page=1" --jq '.total_count')
+          if [ "${count:-0}" -lt 1 ]; then
+            echo "::error::No successful CI run (ci.yml) for ${SHA}. Wait for CI to go green before deploying."
+            exit 1
+          fi
+          echo "CI is green for ${SHA}."
+
+  deploy:
+    name: sst deploy --stage production
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0 (version from packageManager)
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: chris-site-deploy-${{ github.run_id }}
+          aws-region: eu-west-2
+
+      # Not `pnpm sst:deploy:prod`: that script sets AWS_PROFILE, which would override the OIDC credentials.
+      - name: Deploy
+        run: pnpm exec sst deploy --stage production
+
+      - name: Smoke check https://chris-tregaskis.uk/
+        run: |
+          url="https://chris-tregaskis.uk/"
+          expected="<title>Chris Tregaskis - Welcome</title>"
+          for attempt in 1 2 3 4 5; do
+            status=$(curl -sS -o page.html -w '%{http_code}' "$url" || echo 000)
+            if [ "$status" = "200" ] && grep -qF "$expected" page.html; then
+              echo "Live: $url returned 200 with the expected title."
+              exit 0
+            fi
+            echo "Attempt $attempt: status $status; retrying in 15s."
+            sleep 15
+          done
+          echo "::error::Smoke check failed: $url did not return 200 with the expected title."
+          exit 1
