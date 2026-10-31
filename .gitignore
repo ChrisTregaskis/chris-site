@@ -39,8 +39,10 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 
-# VS Code
-.vscode/
+# VS Code (shared editor settings are tracked; everything else stays local)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 
 # MacOS
 .DS_Store
