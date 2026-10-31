@@ -52,3 +52,7 @@ yarn-error.log*
 Thumbs.db
 # Claude Code local working files (symlinked into HQ)
 .claude/local
+
+# Claude Code machine-local notes
+CLAUDE.local.md
+.claude/settings.local.json
