@@ -1,3 +1,4 @@
+import { MotionSection } from "./sections/MotionSection";
 import { TokensSection } from "./sections/TokensSection";
 
 /**
@@ -19,6 +20,7 @@ export function Showcase() {
           </p>
         </header>
         <TokensSection />
+        <MotionSection />
       </div>
     </div>
   );
