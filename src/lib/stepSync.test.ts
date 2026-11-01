@@ -40,8 +40,20 @@ describe("step sync maths", () => {
     );
   });
 
+  it("never centres a card's top above the top limit (under the sticky bar)", () => {
+    // 1440x700 desktop, a 580px card: centred, its top would sit at 60, under the 68px bar.
+    expect(scrollDeltaToFocus({ top: 800, height: 580 }, 350, 700, 88)).toBe(
+      712,
+    );
+    // A card with room to spare is still centred.
+    expect(scrollDeltaToFocus({ top: 800, height: 400 }, 350, 700, 88)).toBe(
+      650,
+    );
+  });
+
   it("puts the focus line mid-screen side by side, and below the pinned figure when stacked", () => {
     expect(focusLine(900, null)).toEqual({ focusY: 450, topLimit: 20 });
+    expect(focusLine(900, null, 68)).toEqual({ focusY: 450, topLimit: 88 });
     expect(focusLine(844, 384)).toEqual({
       focusY: 384 + 460 * 0.42,
       topLimit: 404,

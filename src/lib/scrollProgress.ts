@@ -49,3 +49,20 @@ export function viewportProgress(
 ): number {
   return clamp01((viewportHeight - top) / (viewportHeight + height));
 }
+
+/**
+ * Where a pinned panel of `height` sits, from the viewport top: centred, but
+ * at least 16px below the sticky bar (`clearance`). One too tall for the room
+ * under the bar lines its bottom up 16px above the viewport's bottom instead,
+ * so whatever plays out in it stays in view while it is pinned.
+ */
+export function pinTopFor(
+  viewportHeight: number,
+  height: number,
+  clearance = 0,
+): number {
+  const top = Math.max(clearance + 16, (viewportHeight - height) / 2);
+  return top + height > viewportHeight - 16
+    ? viewportHeight - height - 16
+    : top;
+}

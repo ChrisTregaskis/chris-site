@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   milestonesPassed,
+  pinTopFor,
   runwayProgress,
   stickyProgress,
   viewportProgress,
@@ -35,5 +36,16 @@ describe("scroll progress", () => {
     expect(viewportProgress(1000, 400, 1000)).toBe(0);
     expect(viewportProgress(300, 400, 1000)).toBe(0.5);
     expect(viewportProgress(-400, 400, 1000)).toBe(1);
+  });
+
+  it("pins a panel centred, clear of the sticky bar, and keeps a tall one's bottom in view", () => {
+    // Room to spare: centred (b3).
+    expect(pinTopFor(900, 358, 68)).toBe(271);
+    // A short phone: centring would tuck the heading under the 68px bar.
+    expect(pinTopFor(667, 525, 68)).toBe(84);
+    // Taller than the room under the bar: bottom 16px above the viewport's bottom.
+    expect(pinTopFor(568, 576, 68)).toBe(-24);
+    // No bar: centred, as before.
+    expect(pinTopFor(600, 500)).toBe(50);
   });
 });

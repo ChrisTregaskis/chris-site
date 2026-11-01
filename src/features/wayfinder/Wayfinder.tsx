@@ -18,6 +18,7 @@ import {
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
+import { topClearance } from "@/lib/topClearance";
 import { Button } from "@/ui/atoms/Button";
 import { NumberedDropdown, pad2 } from "@/ui/organisms/NumberedDropdown";
 import { Odometer } from "@/ui/organisms/Odometer";
@@ -50,7 +51,9 @@ export function Wayfinder() {
   const measure = useCallback(() => {
     const stage = stageRef.current;
     const stacked = window.matchMedia(BELOW_WIDE).matches;
-    if (!stacked || !stage) return focusLine(window.innerHeight, null);
+    if (!stacked || !stage) {
+      return focusLine(window.innerHeight, null, topClearance());
+    }
     // Stacked, the stage pins under the top bar: its bottom is where the room for cards starts.
     const pinnedTop = parseFloat(getComputedStyle(stage).top) || 0;
     return focusLine(window.innerHeight, pinnedTop + stage.offsetHeight);

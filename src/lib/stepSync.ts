@@ -37,9 +37,10 @@ export function stepAtFocus(
 }
 
 /**
- * How far to scroll so a card's middle sits on the focus line. A card taller
- * than the room below `topLimit` lines its top up with `topLimit` instead.
- * Returns 0 when it is already there (within 2px).
+ * How far to scroll so a card's middle sits on the focus line. A card whose
+ * top would then sit above `topLimit` (one taller than the room, or one that
+ * would slide under the sticky top bar) lines its top up with `topLimit`
+ * instead. Returns 0 when it is already there (within 2px).
  */
 export function scrollDeltaToFocus(
   card: Pick<VerticalRect, "top" | "height">,
@@ -48,21 +49,24 @@ export function scrollDeltaToFocus(
   topLimit: number,
 ): number {
   let delta = card.top + card.height / 2 - focusY;
-  if (card.height > viewportHeight - topLimit - 20) delta = card.top - topLimit;
+  const tooTall = card.height > viewportHeight - topLimit - 20;
+  if (tooTall || card.top - delta < topLimit) delta = card.top - topLimit;
   return Math.abs(delta) < 2 ? 0 : delta;
 }
 
 /**
  * Where the focus line sits. Side by side (desktop) it is the middle of the
- * viewport; stacked (phone) the figure pins at the top, so the line sits 42%
- * of the way down the room left beneath it.
+ * viewport, and a card may scroll no higher than 20px below `topClearance`
+ * (the sticky top bar); stacked (phone) the figure pins at the top, so the
+ * line sits 42% of the way down the room left beneath it.
  */
 export function focusLine(
   viewportHeight: number,
   stackedStageBottom: number | null,
+  topClearance = 0,
 ): { focusY: number; topLimit: number } {
   if (stackedStageBottom === null) {
-    return { focusY: viewportHeight * 0.5, topLimit: 20 };
+    return { focusY: viewportHeight * 0.5, topLimit: topClearance + 20 };
   }
   return {
     focusY: stackedStageBottom + (viewportHeight - stackedStageBottom) * 0.42,

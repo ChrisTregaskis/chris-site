@@ -1,6 +1,11 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useScrollFrame } from "@/hooks/useScrollFrame";
-import { milestonesPassed, runwayProgress } from "@/lib/scrollProgress";
+import {
+  milestonesPassed,
+  pinTopFor,
+  runwayProgress,
+} from "@/lib/scrollProgress";
+import { topClearance } from "@/lib/topClearance";
 
 interface Layout {
   /** The run's height: the section plus its runway. */
@@ -11,7 +16,8 @@ interface Layout {
 }
 
 /**
- * The b3 build lane: the section pins in the middle of the screen while a
+ * The b3 build lane: the section pins in the middle of the screen (clear of
+ * the sticky bar, or bottom-aligned when it can't fit beneath it) while a
  * runway of 2.5 times the track's height (at least 30% of the viewport) plays
  * the track out, so a quick flick can't skip it. Writes the fill straight to
  * the track (`--p`) and reports how many steps are lit. Static (reduced
@@ -35,7 +41,7 @@ export function useBuildRunway(steps: number, still: boolean) {
     const runway = Math.max(track.offsetHeight * 2.5, window.innerHeight * 0.3);
     setLayout({
       height: height + runway,
-      pinTop: Math.max(16, (window.innerHeight - height) / 2),
+      pinTop: pinTopFor(window.innerHeight, height, topClearance()),
       runway,
     });
   }, [still]);

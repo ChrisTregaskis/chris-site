@@ -28,24 +28,29 @@ const FRAMES: Record<Pose, string> = {
 };
 
 /**
- * Chapter 3: Badass Burpees, Chris's own app. The phone sticks while the
- * section scrolls, counting a set of 100 as you go, and its figure (the app's
- * own art) does Navy SEAL burpees at the app's beat. Static under reduced
- * motion: a finished set and one frame.
+ * Chapter 3: Badass Burpees, Chris's own app. The phone sticks (under the
+ * sticky bar on phones) while the section scrolls, counting a set of 100 as
+ * you go, and its figure (the app's own art) does Navy SEAL burpees at the
+ * app's beat. Static under reduced motion: a finished set and one frame.
  */
 export function BurpeesSection() {
   const still = useReducedMotion() ?? false;
   const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [reps, setReps] = useState(still ? 100 : 0);
   const { figureRef, pose, count } = useSealBeat(still);
 
   const onFrame = useCallback(() => {
     const section = sectionRef.current;
-    if (!section) return;
+    const stage = stageRef.current;
+    if (!section || !stage) return;
     const rect = section.getBoundingClientRect();
+    // Phones pin the stage under the sticky bar; side by side it pins at the top (b3).
+    const stickTop = parseFloat(getComputedStyle(stage).top) || 0;
     setReps(
       Math.round(
-        stickyProgress(rect.top, rect.height, window.innerHeight) * 100,
+        stickyProgress(rect.top, rect.height, window.innerHeight, stickTop) *
+          100,
       ),
     );
   }, []);
@@ -62,9 +67,12 @@ export function BurpeesSection() {
         className={cn("relative", !still && "h-[200vh] wide:h-[220vh]")}
       >
         <div
+          ref={stageRef}
           className={cn(
             "grid grid-cols-1 content-center gap-[18px] wide:grid-cols-2 wide:items-center wide:gap-[clamp(24px,5vw,72px)]",
-            still ? "py-[clamp(40px,6vw,80px)]" : "sticky top-0 h-screen",
+            still
+              ? "py-[clamp(40px,6vw,80px)]"
+              : "sticky top-nav h-[calc(100svh-var(--size-nav))] wide:top-0 wide:h-screen",
           )}
         >
           <div>
