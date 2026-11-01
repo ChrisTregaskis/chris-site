@@ -22,9 +22,9 @@ export const EMPTY_ENQUIRY_VALUES: EnquiryValues = {
 
 /** The optional "What kind of help" choices; the value is what Chris's inbox shows. */
 export const HELP_OPTIONS: readonly SelectOption[] = [
-  { value: "new-product", label: "A new product or app" },
-  { value: "ai", label: "Bringing AI into the business" },
-  { value: "existing-system", label: "Improving a system we already have" },
+  { value: "existing-system", label: "Improving an existing system" },
+  { value: "ai", label: "Adding AI to what we have" },
+  { value: "prototype", label: "A prototype or proof of concept" },
   { value: "not-sure", label: "Not sure yet" },
 ];
 

@@ -28,9 +28,9 @@ export const PARTS: Record<PartId, Part> = {
     stack: ["React", "TypeScript", "Vite", "Shadow DOM"],
   },
   bff: {
-    name: "BFF",
-    heading: "A BFF in front of everything",
-    text: "A Node API between the widget and the agents. It owns sessions and rate limits, and turns agent output into cards the widget knows how to draw.",
+    name: "API server (BFF)",
+    heading: "An API layer in front of everything",
+    text: "A Node API between the widget and the agents. It owns sessions and rate limits, and turns agent output into cards the widget knows how to draw. A PII layer redacts personal details before anything reaches a model.",
     stack: ["Node", "Hono", "Zod"],
   },
   sup: {
@@ -42,7 +42,7 @@ export const PARTS: Record<PartId, Part> = {
   spec: {
     name: "Specialist agents",
     heading: "Specialists do the answering",
-    text: "Narrow agents for vehicles, test-drive booking and finance. Each one only sees the tools it needs, which keeps answers grounded.",
+    text: "Narrow agents for vehicles and electrification, with test-drive booking and finance proven in the prototype. Each one only sees the tools it needs, which keeps answers grounded.",
     stack: ["Agents", "Tool calling"],
   },
   adp: {
@@ -60,13 +60,13 @@ export const PARTS: Record<PartId, Part> = {
   mcp: {
     name: "MCP server",
     heading: "Tools arrive over MCP",
-    text: "Vehicle, booking and finance APIs exposed as tools over the Model Context Protocol, so any agent can call them and each one is testable on its own.",
+    text: "Vehicle APIs exposed as tools over the Model Context Protocol, so any agent can call them and each one is testable on its own. In the prototype, booking and finance plugged in the same way.",
     stack: ["MCP SDK", "TypeScript"],
   },
   tools: {
     name: "Tools",
     heading: "Thin wrappers over real services",
-    text: "Small, typed wrappers over the brand's existing vehicle, retailer and finance services.",
+    text: "Small, typed wrappers over the brand's existing vehicle services. In the prototype, retailer and finance services were wrapped the same way.",
     stack: ["REST", "Zod schemas"],
   },
   cloud: {

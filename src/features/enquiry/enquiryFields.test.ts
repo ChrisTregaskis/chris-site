@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateEnquiryField } from "./enquiryFields";
+import { HELP_OPTIONS, validateEnquiryField } from "./enquiryFields";
 import { enquiryPayload } from "./sendEnquiry";
 
 describe("enquiry fields", () => {
@@ -13,6 +13,15 @@ describe("enquiry fields", () => {
       "Tell me a little about what you need",
     );
     expect(validateEnquiryField("help", "")).toBe("");
+  });
+
+  it("offers the kinds of help in order, with the values the API accepts", () => {
+    expect(HELP_OPTIONS.map(({ value, label }) => [value, label])).toEqual([
+      ["existing-system", "Improving an existing system"],
+      ["ai", "Adding AI to what we have"],
+      ["prototype", "A prototype or proof of concept"],
+      ["not-sure", "Not sure yet"],
+    ]);
   });
 
   it("trims what it sends and leaves out an unchosen kind of help", () => {

@@ -21,10 +21,11 @@ export function Contact() {
         Let&apos;s work together.
       </h2>
       <p className="m-0 mb-[26px] max-w-measure text-lede text-muted">
-        I help small and medium businesses from the technical side, end to end:
-        from a first prototype to a product running in production, with AI where
-        it earns its place. Tell me what you&apos;re trying to do and I&apos;ll
-        tell you how I&apos;d build it.
+        I help small and medium businesses get more from the software they
+        already have: adding AI where it earns its place, improving what&apos;s
+        there, or proving an idea with a focused prototype. Tell me what
+        you&apos;re trying to do and I&apos;ll tell you how I&apos;d approach
+        it.
       </p>
       <div className="flex flex-wrap gap-3">
         <EnquiryButton />

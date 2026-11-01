@@ -6,7 +6,7 @@ import { NumberedDropdown, pad2 } from "./NumberedDropdown";
 
 const OPTIONS = [
   { value: 1, label: "Chat overlay" },
-  { value: 2, label: "BFF" },
+  { value: 2, label: "API server (BFF)" },
   { value: 3, label: "Supervisor agent" },
   { value: 4, label: "Try it, live demo", separated: true },
 ];

@@ -73,7 +73,7 @@ export function PhysioSection() {
       <ChapterHeading
         id="physio-title"
         title="A multi-tenant SaaS for physio and wellness practices"
-        lede="Bookings and client notes for many wellness practices, from one codebase and one database. A personal project, built with my own agentic Claude Code workflow."
+        lede="Bookings and client notes for many wellness practices, from one codebase and one database. A personal project, built with my own AI-assisted Claude Code workflow."
         chips={[
           "React",
           "tRPC",

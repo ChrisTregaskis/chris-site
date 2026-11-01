@@ -22,7 +22,7 @@ async function fill(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Email address"), "ada@example.com");
   await user.selectOptions(
     screen.getByLabelText(/What kind of help/),
-    "A new product or app",
+    "A prototype or proof of concept",
   );
   await user.type(
     screen.getByLabelText("What's it about?"),
@@ -52,7 +52,7 @@ describe("EnquiryForm", () => {
     expect(JSON.parse(init.body as string)).toEqual({
       name: "Ada Lovelace",
       email: "ada@example.com",
-      help: "new-product",
+      help: "prototype",
       message: "A booking system for the studio.",
     });
 
