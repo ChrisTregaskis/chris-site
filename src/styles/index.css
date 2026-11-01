@@ -4,6 +4,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* In-page links land below the sticky top bar. */
+    scroll-padding-top: var(--size-nav);
+  }
+
+  body {
+    @apply bg-surface font-body text-body text-ink;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-signal));
+    outline-offset: 3px;
+  }
+}
+
 .key--darker {
   @apply bg-gray-800 border-gray-700 shadow-gray-900;
 }

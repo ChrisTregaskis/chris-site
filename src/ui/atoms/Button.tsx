@@ -36,8 +36,11 @@ export function Button({
   onClick,
   ...rest
 }: ButtonProps) {
+  const ariaDisabled = rest["aria-disabled"];
+  // A caller's aria-disabled blocks clicks too, not just the look.
+  const blocked = loading || ariaDisabled === true || ariaDisabled === "true";
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (loading) {
+    if (blocked) {
       event.preventDefault();
       return;
     }
@@ -50,7 +53,7 @@ export function Button({
       type={type}
       onClick={handleClick}
       aria-busy={loading || undefined}
-      aria-disabled={loading || rest["aria-disabled"]}
+      aria-disabled={blocked || undefined}
       aria-pressed={pressed}
       className={cn(buttonClasses(variant), className)}
     >

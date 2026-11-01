@@ -19,10 +19,45 @@ const COLOUR_TOKENS = [
   "danger",
   "danger-ink",
   "scrim",
+  "figure-top",
+  "figure-left",
+  "figure-right",
+  "figure-on-left",
+  "figure-base-left",
+  "figure-base-right",
+  "figure-base-on",
+  "chat-surface",
+  "chat-ink",
+  "chat-strong",
+  "chat-muted",
+  "chat-line",
+  "chat-card-line",
+  "chat-bubble",
+  "chat-media-from",
+  "chat-media-to",
+  "chat-typing",
+  "bb-bezel",
+  "bb-bezel-edge",
+  "bb-screen",
+  "bb-glow",
+  "bb-ink",
+  "bb-track",
+  "bb-yellow",
+  "bb-cadence",
+  "bb-dark",
+  "tenant-teal",
 ] as const;
 
+// The showcase is a dev-only entry, never built into dist/, so production
+// CSS skips its utilities.
+const SHOWCASE_IN_CSS = process.env.NODE_ENV !== "production";
+
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    ...(SHOWCASE_IN_CSS ? [] : ["!./src/showcase/**"]),
+  ],
   theme: {
     extend: {
       colors: {
@@ -75,6 +110,7 @@ export default {
         gutter: "var(--space-gutter)",
         section: "var(--space-section)",
         "section-lg": "var(--space-section-lg)",
+        nav: "var(--size-nav)",
       },
       maxWidth: {
         container: "var(--size-container)",
@@ -92,7 +128,8 @@ export default {
       },
       boxShadow: {
         popover: "var(--shadow-popover)",
-        raised: "var(--shadow-raised)",
+        float: "var(--shadow-float)",
+        phone: "var(--shadow-phone)",
         drawer: "var(--shadow-drawer)",
         "focus-glow": "var(--shadow-focus-glow)",
         "ring-line": "var(--shadow-ring-line)",

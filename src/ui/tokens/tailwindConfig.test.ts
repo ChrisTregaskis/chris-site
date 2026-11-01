@@ -36,6 +36,14 @@ describe("tailwind config", () => {
     expect(shadowed).toEqual([]);
   });
 
+  it("names no shadow after a colour (Tailwind would emit both rules)", () => {
+    const colours = Object.keys(extend.colors);
+    const clashes = Object.keys(extend.boxShadow).filter((key) =>
+      colours.includes(key),
+    );
+    expect(clashes).toEqual([]);
+  });
+
   it("keeps the legacy colour keys", () => {
     const colours = extend.colors as Record<string, unknown>;
     for (const key of LEGACY_COLOUR_KEYS) {

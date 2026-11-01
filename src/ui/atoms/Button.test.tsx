@@ -56,6 +56,18 @@ describe("Button", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it("ignores clicks when the caller marks it aria-disabled", async () => {
+    const onClick = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <Button aria-disabled onClick={onClick}>
+        Send
+      </Button>,
+    );
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
   it("exposes a pressed state", () => {
     renderWithProviders(<Button pressed>Try it</Button>);
     expect(screen.getByRole("button", { name: "Try it" })).toHaveAttribute(

@@ -86,7 +86,7 @@ jobs:
       - name: Smoke check https://chris-tregaskis.uk/
         run: |
           url="https://chris-tregaskis.uk/"
-          expected="<title>Chris Tregaskis - Welcome</title>"
+          expected="<title>Chris Tregaskis, senior full-stack TypeScript developer</title>"
           for attempt in 1 2 3 4 5; do
             status=$(curl -sS -o page.html -w '%{http_code}' "$url" || echo 000)
             if [ "$status" = "200" ] && grep -qF "$expected" page.html; then
