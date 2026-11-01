@@ -156,3 +156,73 @@ describe("CVRequestForm", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("CVRequestForm on a return visit", () => {
+  const KEY = "ct:cv-unlocked:v1";
+  const stored = () =>
+    JSON.parse(localStorage.getItem(KEY) ?? "null") as { at: string } | null;
+
+  it.each([
+    ["the note reaches me", true],
+    ["the API answers with an error", false],
+  ])("remembers an unlock when %s", async (_, ok) => {
+    const { user } = setup(async () => ({ ok }));
+    expect(stored()).toBeNull();
+    await fill(user);
+    await user.click(submitButton());
+
+    await screen.findByRole("heading", { name: "CV unlocked" });
+    expect(Object.keys(stored() ?? {})).toEqual(["at"]);
+  });
+
+  it("doesn't remember a request that never arrived", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { user } = setup(async () => {
+      throw new Error("network down");
+    });
+    await fill(user);
+    await user.click(submitButton());
+
+    await screen.findByRole("alert");
+    expect(stored()).toBeNull();
+  });
+
+  it("opens on the unlocked view when an earlier visit unlocked it", async () => {
+    localStorage.setItem(KEY, JSON.stringify({ at: "2026-11-01T09:30:00Z" }));
+    const { fetchMock, onDone, user } = setup(async () => ({ ok: true }));
+
+    expect(
+      screen.getByRole("heading", { name: "CV unlocked" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "It's still unlocked from your last visit, ready to view or download.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^View CV/ })).toHaveAttribute(
+      "href",
+      CV_URL,
+    );
+    expect(screen.queryByLabelText("First name")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back to the site" }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows the form as before when storage is blocked", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new DOMException("The operation is insecure.", "SecurityError");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("The operation is insecure.", "SecurityError");
+    });
+    const { user } = setup(async () => ({ ok: true }));
+
+    expect(screen.getByLabelText("First name")).toBeInTheDocument();
+    await fill(user);
+    await user.click(submitButton());
+    expect(
+      await screen.findByRole("heading", { name: "CV unlocked" }),
+    ).toBeInTheDocument();
+  });
+});

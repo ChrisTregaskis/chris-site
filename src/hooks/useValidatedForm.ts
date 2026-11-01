@@ -59,6 +59,7 @@ export function useValidatedForm<F extends string>({
   const submitRef = useRef<HTMLButtonElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
   const sending = useRef(false);
+  const [focusFirstField, setFocusFirstField] = useState(false);
 
   const check = (field: F, value: string) =>
     setErrors((previous) => ({
@@ -111,10 +112,25 @@ export function useValidatedForm<F extends string>({
     }
   };
 
+  /** Back to an empty, untouched form, with focus on its first field. */
+  const reset = () => {
+    setValues(initialValues);
+    setErrors({});
+    setTried(false);
+    setStatus("idle");
+    setFocusFirstField(true);
+  };
+
+  useEffect(() => {
+    if (!focusFirstField) return;
+    setFocusFirstField(false);
+    fieldRefs.current[fields[0]]?.focus();
+  }, [focusFirstField, fields]);
+
   // Move focus to the done view when the request lands.
   useEffect(() => {
     if (status === "success") doneRef.current?.focus({ preventScroll: true });
   }, [status]);
 
-  return { status, values, fieldProps, submit, submitRef, doneRef };
+  return { status, values, fieldProps, submit, reset, submitRef, doneRef };
 }

@@ -11,11 +11,12 @@ import { useValidatedForm } from "@/hooks/useValidatedForm";
  * The enquiry form: the shared drawer-form behaviour (`useValidatedForm`)
  * sending through `sendEnquiry`. Any failure, including an API error, keeps
  * the details and offers a retry, since an enquiry must never look sent when
- * it wasn't.
+ * it wasn't. A visitor who sent one on an earlier visit lands on the sent
+ * view (`remembered`), and `sendAnother` takes them back to an empty form.
  */
 export function useEnquiryForm() {
-  const { status, setStatus } = useEnquiry();
-  return useValidatedForm({
+  const { status, setStatus, remembered, forget } = useEnquiry();
+  const form = useValidatedForm({
     fields: ENQUIRY_FIELDS,
     initialValues: EMPTY_ENQUIRY_VALUES,
     validateField: validateEnquiryField,
@@ -24,4 +25,11 @@ export function useEnquiryForm() {
     send: sendEnquiry,
     failureLabel: "Enquiry failed",
   });
+
+  const sendAnother = () => {
+    forget();
+    form.reset();
+  };
+
+  return { ...form, remembered, sendAnother };
 }

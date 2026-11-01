@@ -17,9 +17,41 @@ interface EnquiryFormProps {
   onDone: () => void;
 }
 
-/** "Get in touch": name, email, an optional kind of help and the message; its failure banner; the sent view. */
+/**
+ * "Get in touch": name, email, an optional kind of help and the message; its
+ * failure banner; the sent view, and its return-visit version with "Send
+ * another message".
+ */
 export function EnquiryForm({ onDone }: EnquiryFormProps) {
-  const { status, fieldProps, submit, submitRef, doneRef } = useEnquiryForm();
+  const {
+    status,
+    remembered,
+    sendAnother,
+    fieldProps,
+    submit,
+    submitRef,
+    doneRef,
+  } = useEnquiryForm();
+
+  if (status === "success" && remembered) {
+    return (
+      <DrawerDone
+        doneRef={doneRef}
+        titleId={ENQUIRY_DONE_TITLE_ID}
+        title="Message sent"
+        actions={
+          <>
+            <Button onClick={sendAnother}>Send another message</Button>
+            <Button variant="ghost" onClick={onDone}>
+              Back to the site
+            </Button>
+          </>
+        }
+      >
+        Thanks, your message reached me and I&apos;ll reply by email.
+      </DrawerDone>
+    );
+  }
 
   if (status === "success") {
     return (

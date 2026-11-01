@@ -12,7 +12,7 @@ interface DrawerDoneProps {
   actions: ReactNode;
 }
 
-/** A drawer form's done view: the signal tick, a heading, a line and its actions. Focusable, so focus can land on it. */
+/** A drawer form's done view: the signal tick, a heading, a line and its actions. Focusable, so focus can land on it, and the drawer focuses it when it opens on it. */
 export function DrawerDone({
   doneRef,
   titleId,
@@ -24,6 +24,7 @@ export function DrawerDone({
     <div
       ref={doneRef}
       tabIndex={-1}
+      data-drawer-focus=""
       aria-labelledby={titleId}
       className="flex flex-col gap-[18px] focus:outline-none"
     >

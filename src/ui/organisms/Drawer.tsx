@@ -18,7 +18,8 @@ export interface DrawerProps {
 /**
  * The b3 CV drawer: a modal side drawer from `sheet` up, a bottom sheet below
  * it. A native `<dialog>`, so focus is held inside and the page is inert while
- * it is open; focus goes back to whatever opened it.
+ * it is open; focus goes back to whatever opened it. On open, focus goes to an
+ * element inside marked `data-drawer-focus` if there is one.
  */
 export function Drawer({ open, onClose, labelledBy, children }: DrawerProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -33,6 +34,11 @@ export function Drawer({ open, onClose, labelledBy, children }: DrawerProps) {
           ? document.activeElement
           : null;
       dialog.showModal();
+      // A view can ask for focus on open (the done view, so it is read first);
+      // otherwise the browser's own choice stands.
+      dialog
+        .querySelector<HTMLElement>("[data-drawer-focus]")
+        ?.focus({ preventScroll: true });
     } else if (!open && dialog.open) {
       dialog.close();
     }

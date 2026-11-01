@@ -12,10 +12,11 @@ import { useValidatedForm } from "@/hooks/useValidatedForm";
  * The CV request form: the shared drawer-form behaviour (`useValidatedForm`)
  * posting to `VITE_CHRIS_API/resume`. An API that answers with an error still
  * unlocks the CV (the request just didn't reach Chris); a request that never
- * arrives leaves the form filled in, ready to try again.
+ * arrives leaves the form filled in, ready to try again. A visitor who
+ * unlocked it on an earlier visit lands on the unlocked view (`remembered`).
  */
 export function useCVRequestForm() {
-  const { status, setStatus } = useCVRequest();
+  const { status, setStatus, remembered } = useCVRequest();
   const [delivered, setDelivered] = useState(true);
 
   const send = async (values: CVValues) => {
@@ -37,5 +38,13 @@ export function useCVRequestForm() {
     failureLabel: "CV request failed",
   });
 
-  return { status, delivered, fieldProps, submit, submitRef, doneRef };
+  return {
+    status,
+    remembered,
+    delivered,
+    fieldProps,
+    submit,
+    submitRef,
+    doneRef,
+  };
 }

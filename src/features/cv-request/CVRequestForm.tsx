@@ -17,10 +17,17 @@ interface CVRequestFormProps {
   onDone: () => void;
 }
 
-/** The b3 CV request: the form, its failure banner, and the unlocked view. */
+/** The b3 CV request: the form, its failure banner, and the unlocked view (with its own line on a return visit). */
 export function CVRequestForm({ onDone }: CVRequestFormProps) {
-  const { status, delivered, fieldProps, submit, submitRef, doneRef } =
-    useCVRequestForm();
+  const {
+    status,
+    remembered,
+    delivered,
+    fieldProps,
+    submit,
+    submitRef,
+    doneRef,
+  } = useCVRequestForm();
 
   if (status === "success") {
     return (
@@ -40,9 +47,11 @@ export function CVRequestForm({ onDone }: CVRequestFormProps) {
           </>
         }
       >
-        {delivered
-          ? "Thanks for asking. It's yours to view or download, and I'll be in touch if it looks like a fit."
-          : "It's yours to view or download. Your note didn't reach me this time, so if you'd like a chat, LinkedIn is the quickest way."}
+        {remembered
+          ? "It's still unlocked from your last visit, ready to view or download."
+          : delivered
+            ? "Thanks for asking. It's yours to view or download, and I'll be in touch if it looks like a fit."
+            : "It's yours to view or download. Your note didn't reach me this time, so if you'd like a chat, LinkedIn is the quickest way."}
       </DrawerDone>
     );
   }
