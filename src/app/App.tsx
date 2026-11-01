@@ -1,6 +1,7 @@
 import { CVDrawer, CVRequestButton } from "@/features/cv-request";
 import { Contact } from "@/sections/contact/Contact";
 import { Hero } from "@/sections/hero/Hero";
+import { WayfinderSection } from "@/sections/wayfinder/WayfinderSection";
 import { Container } from "@/ui/atoms/Container";
 import { TopNav } from "@/ui/molecules/TopNav";
 
@@ -31,7 +32,7 @@ export function App() {
       </div>
       <main id="main">
         <Hero />
-        <div id="work" />
+        <WayfinderSection />
         <Contact />
       </main>
       <Container as="footer">

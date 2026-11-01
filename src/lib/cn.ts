@@ -30,6 +30,7 @@ export const TOKEN_MERGE_KEYS = {
     "focus-glow",
     "ring-line",
     "ring-accent",
+    "ring-signal",
   ],
   borderRadius: ["badge", "row", "input", "control", "card", "sheet", "pill"],
 } as const;

@@ -126,6 +126,7 @@ export default {
         "focus-glow": "var(--shadow-focus-glow)",
         "ring-line": "var(--shadow-ring-line)",
         "ring-accent": "var(--shadow-ring-accent)",
+        "ring-signal": "var(--shadow-ring-signal)",
       },
       screens: {
         sheet: `${BREAKPOINT.sheet}px`,
@@ -153,10 +154,15 @@ export default {
         "sheet-up": {
           from: { transform: "translateY(40px)", opacity: "0" },
         },
+        // The chat mock's typing dots (b3 "bl").
+        "typing-dot": {
+          "50%": { opacity: "0.25" },
+        },
       },
       animation: {
         "drawer-in": "drawer-in var(--duration-enter) var(--ease-enter)",
         "sheet-up": "sheet-up var(--duration-enter) var(--ease-enter)",
+        "typing-dot": "typing-dot 1s infinite",
       },
     },
   },

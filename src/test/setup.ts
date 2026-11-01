@@ -18,6 +18,35 @@ if (
   };
 }
 
+// Browser APIs jsdom lacks, as inert defaults. A test that needs to drive one
+// stubs its own with vi.stubGlobal.
+if (typeof window !== "undefined") {
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList;
+  window.IntersectionObserver = class {
+    readonly root = null;
+    readonly rootMargin = "";
+    readonly thresholds = [];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  } as unknown as typeof IntersectionObserver;
+  Element.prototype.scrollIntoView = function scrollIntoView() {};
+  window.scrollTo = () => {};
+}
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
