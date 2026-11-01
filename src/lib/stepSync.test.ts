@@ -10,6 +10,9 @@ describe("step sync maths", () => {
   it("watches a thin band around the focus line", () => {
     expect(focusBandMargin(450, 900)).toBe("-444px 0px -444px 0px");
     expect(focusBandMargin(500.4, 844)).toBe("-494px 0px -338px 0px");
+    // A line outside the viewport (mid-resize) still makes a valid margin.
+    expect(focusBandMargin(900, 600)).toBe("-894px 0px -0px 0px");
+    expect(focusBandMargin(Number.NaN, 0)).toBe("-0px 0px -0px 0px");
   });
 
   it("finds the step spanning the focus line", () => {

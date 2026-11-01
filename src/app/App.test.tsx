@@ -21,6 +21,35 @@ describe("App", () => {
     ).toEqual(["#work", "#about", "#contact"]);
   });
 
+  it("tells the story in order: the work, how it's built, about and contact", () => {
+    renderWithProviders(<App />);
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
+    ).toEqual([
+      "Wayfinder, an AI guide for a global automotive brand",
+      "A multi-tenant SaaS for physio clinics",
+      "Badass Burpees",
+      "About",
+      "Always up for an interesting side project. Get in touch.",
+    ]);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "How it was built" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", {
+        name: "Chris with his son on his shoulders, out walking through the ferns",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /GitHub/ })).toHaveAttribute(
+      "href",
+      "https://github.com/ChrisTregaskis",
+    );
+    expect(screen.getByRole("link", { name: /Articles/ })).toHaveAttribute(
+      "href",
+      "https://medium.com/@c.tregaskis",
+    );
+  });
+
   it("opens the CV drawer from any Request my CV button and closes it again", async () => {
     vi.stubEnv("VITE_CHRIS_API", "https://api.test");
     const user = userEvent.setup();

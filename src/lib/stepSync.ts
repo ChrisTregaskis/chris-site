@@ -10,13 +10,18 @@ export interface VerticalRect {
   height: number;
 }
 
-/** IntersectionObserver rootMargin for a 12px band centred on the focus line. */
+/**
+ * IntersectionObserver rootMargin for a 12px band centred on the focus line.
+ * Always well formed, even mid-resize when the line can sit outside the
+ * viewport (a doubled minus sign makes the observer throw).
+ */
 export function focusBandMargin(
   focusY: number,
   viewportHeight: number,
 ): string {
-  const top = Math.round(focusY - 6);
-  const bottom = Math.round(viewportHeight - focusY - 6);
+  const inset = (value: number) => Math.max(0, Math.round(value)) || 0;
+  const top = inset(focusY - 6);
+  const bottom = inset(viewportHeight - focusY - 6);
   return `-${top}px 0px -${bottom}px 0px`;
 }
 

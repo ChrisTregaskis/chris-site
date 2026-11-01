@@ -1,0 +1,188 @@
+import { useReducedMotion } from "framer-motion";
+import { useCallback } from "react";
+import { useStepSync } from "@/hooks/useStepSync";
+import { cn } from "@/lib/cn";
+import { focusLine } from "@/lib/stepSync";
+import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
+import { Section } from "@/ui/molecules/Section";
+
+const STEPS = [
+  {
+    title: "One database, every clinic",
+    text: "Appointments from every clinic live in the same Postgres tables. Cheap to run and simple to migrate.",
+  },
+  {
+    title: "Every request names its clinic",
+    text: "The tRPC context sets the current clinic on the connection before a single query runs.",
+  },
+  {
+    title: "Postgres hides the rest",
+    text: "Row-level security filters out other clinics' rows in the database itself, so a missed filter in app code can't leak data.",
+  },
+] as const;
+
+type Clinic = "Riverside" | "Harbour" | "Moorland";
+
+const ROWS: { label: string; clinic: Clinic }[] = [
+  { label: "Initial assessment", clinic: "Riverside" },
+  { label: "Sports massage", clinic: "Harbour" },
+  { label: "Knee rehab, week 3", clinic: "Riverside" },
+  { label: "Back pain review", clinic: "Moorland" },
+  { label: "Shoulder follow-up", clinic: "Harbour" },
+  { label: "Discharge notes", clinic: "Riverside" },
+  { label: "Gait analysis", clinic: "Moorland" },
+];
+
+const DOT: Record<Clinic, string> = {
+  Riverside: "bg-accent",
+  Harbour: "bg-signal",
+  Moorland: "bg-tenant-teal",
+};
+
+const FADE = "transition-opacity duration-state motion-reduce:transition-none";
+
+/**
+ * Chapter 2: the physio SaaS. Three steps scroll past a list of appointments
+ * from three clinics: all of them, then the clinic is set, then row-level
+ * security hides everyone else's. Static (reduced motion): the end state.
+ */
+export function PhysioSection() {
+  const still = useReducedMotion() ?? false;
+  const measure = useCallback(() => focusLine(window.innerHeight, null), []);
+  const { current, stepRef, cardRef } = useStepSync({
+    measure,
+    reducedMotion: still,
+    enabled: !still,
+  });
+  const stage = still ? 3 : Math.max(1, current);
+  const clinicSet = stage >= 2;
+  const filtered = stage >= 3;
+
+  return (
+    <Section id="physio" labelledBy="physio-title">
+      <ChapterHeading
+        id="physio-title"
+        title="A multi-tenant SaaS for physio clinics"
+        lede="Bookings and patient notes for many clinics, from one codebase and one database. A personal project, built with my own agentic Claude Code workflow."
+        chips={[
+          "React",
+          "tRPC",
+          "Zod",
+          "Drizzle",
+          "Postgres RLS",
+          "SST",
+          "Turborepo",
+        ]}
+      />
+      <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
+        <div
+          className={cn(
+            "flex items-center justify-center",
+            still
+              ? "relative py-6"
+              : "sticky top-nav z-[1] h-[46vh] bg-gradient-to-b from-surface from-85% to-surface/0 py-2 wide:top-[6vh] wide:h-[88vh] wide:bg-none wide:py-0",
+          )}
+        >
+          <figure
+            className="m-0 w-full max-w-[440px]"
+            aria-label="Appointments from three clinics in one table"
+          >
+            <p
+              className={cn(
+                "m-0 mb-[10px] text-caption text-muted",
+                FADE,
+                clinicSet ? "opacity-100" : "opacity-0",
+              )}
+            >
+              Signed in as Riverside Physio
+            </p>
+            <div
+              className={cn(
+                "mb-[6px] rounded-input border-[1.5px] border-dashed border-muted px-3 py-2 text-caption font-medium text-muted",
+                FADE,
+                clinicSet ? "opacity-100" : "opacity-0",
+              )}
+            >
+              policy: tenant_id = current clinic
+            </div>
+            <ul className="m-0 grid w-full list-none gap-2 p-0">
+              {ROWS.map((row) => {
+                const hidden = filtered && row.clinic !== "Riverside";
+                return (
+                  <li
+                    key={row.label}
+                    className={cn(
+                      "grid grid-cols-[12px_1fr_auto] items-center gap-[10px] rounded-row border border-line bg-panel px-3 py-[10px] text-[14.5px] leading-[1.6] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none",
+                      hidden && "translate-x-[14px] opacity-[0.12] saturate-0",
+                    )}
+                  >
+                    <i
+                      aria-hidden="true"
+                      className={cn(
+                        "size-[10px] rounded-pill",
+                        DOT[row.clinic],
+                      )}
+                    />
+                    {row.label}
+                    <small className="text-[12px] text-muted">
+                      {row.clinic}
+                      {hidden ? (
+                        <span className="sr-only">, hidden</span>
+                      ) : null}
+                    </small>
+                  </li>
+                );
+              })}
+            </ul>
+          </figure>
+        </div>
+        <div
+          className={cn(
+            "relative z-[2]",
+            still ? "pb-6" : "pb-[20vh] pt-[4vh] wide:py-[30vh]",
+          )}
+        >
+          {STEPS.map((step, index) => {
+            const n = index + 1;
+            const on = still || current === n;
+            return (
+              <div
+                key={step.title}
+                ref={stepRef(n)}
+                className={cn(
+                  "flex",
+                  still
+                    ? "py-2"
+                    : "min-h-[64vh] items-end wide:min-h-[62vh] wide:items-center",
+                )}
+              >
+                <div
+                  ref={cardRef(n)}
+                  className={cn(
+                    "w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] transition-[border-color,opacity] duration-state motion-reduce:transition-none wide:w-auto wide:max-w-[430px] wide:bg-panel",
+                    on
+                      ? "border-accent-strong"
+                      : "border-line wide:opacity-[0.45]",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "mb-[10px] inline-grid size-7 place-items-center rounded-pill text-[14px] font-semibold leading-none",
+                      on ? "bg-accent text-on-accent" : "bg-raised text-ink",
+                    )}
+                  >
+                    {n}
+                  </span>
+                  <h3 className="m-0 mb-[6px] font-display text-title font-semibold">
+                    {step.title}
+                  </h3>
+                  <p className="m-0 text-[16px] text-muted">{step.text}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Section>
+  );
+}

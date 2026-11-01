@@ -1,6 +1,9 @@
 import { CVDrawer, CVRequestButton } from "@/features/cv-request";
+import { AboutSection } from "@/sections/about/AboutSection";
+import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
 import { Contact } from "@/sections/contact/Contact";
 import { Hero } from "@/sections/hero/Hero";
+import { PhysioSection } from "@/sections/physio/PhysioSection";
 import { WayfinderSection } from "@/sections/wayfinder/WayfinderSection";
 import { Container } from "@/ui/atoms/Container";
 import { TopNav } from "@/ui/molecules/TopNav";
@@ -33,6 +36,9 @@ export function App() {
       <main id="main">
         <Hero />
         <WayfinderSection />
+        <PhysioSection />
+        <BurpeesSection />
+        <AboutSection />
         <Contact />
       </main>
       <Container as="footer">

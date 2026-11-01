@@ -1,3 +1,4 @@
+import { BuildStory } from "./BuildStory";
 import { Wayfinder } from "@/features/wayfinder";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
@@ -13,6 +14,7 @@ export function WayfinderSection() {
         chips={["React", "Node", "Multi-agent", "MCP", "Terraform"]}
       />
       <Wayfinder />
+      <BuildStory />
     </Section>
   );
 }
