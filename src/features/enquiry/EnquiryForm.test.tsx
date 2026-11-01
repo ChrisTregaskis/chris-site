@@ -10,8 +10,8 @@ function setup(fetchImpl: () => Promise<unknown>) {
   vi.stubGlobal("fetch", fetchMock);
   const onDone = vi.fn();
   const user = userEvent.setup();
-  renderWithProviders(<EnquiryForm onDone={onDone} />);
-  return { fetchMock, onDone, user };
+  const view = renderWithProviders(<EnquiryForm onDone={onDone} />);
+  return { fetchMock, onDone, user, view };
 }
 
 const sendButton = (name: RegExp | string = "Send message") =>
@@ -233,27 +233,69 @@ describe("EnquiryForm on a return visit", () => {
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 
+  const EARLIER = "2026-11-01T09:30:00.000Z";
+  const sendAnother = (user: ReturnType<typeof userEvent.setup>) =>
+    user.click(screen.getByRole("button", { name: "Send another message" }));
+
   it("sends another message from an empty form", async () => {
-    localStorage.setItem(KEY, JSON.stringify({ at: "2026-11-01T09:30:00Z" }));
+    localStorage.setItem(KEY, JSON.stringify({ at: EARLIER }));
     const { fetchMock, user } = setup(async () => ({ ok: true }));
 
-    await user.click(
-      screen.getByRole("button", { name: "Send another message" }),
-    );
+    await sendAnother(user);
 
     const name = screen.getByLabelText("Name");
     expect(name).toHaveFocus();
     expect(name).toHaveValue("");
     expect(screen.getByLabelText("What's it about?")).toHaveValue("");
     expect(name).not.toHaveAttribute("aria-invalid");
-    expect(stored()).toBeNull();
+    // The empty form is for this visit only; the stored flag stays.
+    expect(stored()).toEqual({ at: EARLIER });
 
     await fill(user);
     await user.click(sendButton());
     await screen.findByRole("heading", { name: "Message sent" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(screen.getByText(/I'll read it properly/)).toBeInTheDocument();
-    expect(stored()).not.toBeNull();
+    // The new send re-sets the flag with a fresh timestamp.
+    expect(stored()?.at).not.toBe(EARLIER);
+    expect(Number.isNaN(Date.parse(stored()?.at ?? ""))).toBe(false);
+  });
+
+  it("still remembers the earlier send after Send another message, then leaving without sending", async () => {
+    localStorage.setItem(KEY, JSON.stringify({ at: EARLIER }));
+    const { fetchMock, user, view } = setup(async () => ({ ok: true }));
+
+    await sendAnother(user);
+    await user.type(screen.getByLabelText("Name"), "Ada");
+    view.unmount();
+
+    // Next visit opens on the sent view again.
+    setup(async () => ({ ok: true }));
+    expect(
+      screen.getByRole("heading", { name: "Message sent" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Send another message" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(stored()).toEqual({ at: EARLIER });
+  });
+
+  it("keeps the earlier flag when another message fails to send", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    localStorage.setItem(KEY, JSON.stringify({ at: EARLIER }));
+    const { user } = setup(async () => ({ ok: false }));
+
+    await sendAnother(user);
+    await fill(user);
+    await user.click(sendButton());
+
+    await screen.findByRole("alert");
+    expect(
+      screen.queryByRole("heading", { name: "Message sent" }),
+    ).not.toBeInTheDocument();
+    expect(stored()).toEqual({ at: EARLIER });
   });
 
   it("shows the form as before when storage is blocked", async () => {
