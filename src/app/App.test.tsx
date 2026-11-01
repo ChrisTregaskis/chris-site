@@ -53,6 +53,19 @@ describe("App", () => {
     );
   });
 
+  it("describes Chris's own build as AI-assisted, one step at a time, never parallel agents", () => {
+    renderWithProviders(<App />);
+    const page = document.body.textContent;
+    expect(page).not.toMatch(
+      /agents build|agents implement|in parallel|several at once|subagent|fleet/i,
+    );
+    expect(
+      screen.getByRole("heading", { level: 3, name: "AI-assisted build" }),
+    ).toBeInTheDocument();
+    const lane = screen.getByRole("region", { name: "How it was built" });
+    expect(within(lane).getByText("AI-assisted build")).toBeInTheDocument();
+  });
+
   it("leads with Get in touch: the bar, the hero and Contact each open the enquiry", async () => {
     vi.stubEnv("VITE_CHRIS_API", "https://api.test");
     const user = userEvent.setup();

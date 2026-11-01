@@ -71,17 +71,3 @@ export function pinTopFor(
 export function milestoneAt(index: number, count: number): number {
   return (index + 0.2) / count;
 }
-
-/**
- * Progress through one stretch of a run: 0 until `progress` reaches `from`,
- * 1 from `to` on (a branch that plays out between two milestones).
- */
-export function segmentProgress(
-  progress: number,
-  from: number,
-  to: number,
-): number {
-  return to > from
-    ? clamp01((progress - from) / (to - from))
-    : +(progress >= to);
-}

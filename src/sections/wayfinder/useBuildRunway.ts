@@ -5,15 +5,8 @@ import {
   milestonesPassed,
   pinTopFor,
   runwayProgress,
-  segmentProgress,
 } from "@/lib/scrollProgress";
 import { topClearance } from "@/lib/topClearance";
-
-/** A branch off the lane, played out between two points of its progress. */
-export interface Fork {
-  from: number;
-  to: number;
-}
 
 interface Layout {
   /** The run's height: the section plus its runway. */
@@ -28,17 +21,20 @@ interface Layout {
  * the sticky bar, or bottom-aligned when it can't fit beneath it) while a
  * runway of 2.5 times the track's height (at least 30% of the viewport) plays
  * the track out, so a quick flick can't skip it. Writes the fill straight to
- * the track (`--p`, and `--f` for a branch off it) and reports how many steps
- * are lit and whether the branch has arrived. Static (reduced motion): no
- * runway, everything lit.
+ * the track (`--p`) and reports how many steps are lit. Static (reduced
+ * motion): no runway, everything lit.
  */
-export function useBuildRunway(steps: number, still: boolean, fork?: Fork) {
+export function useBuildRunway(
+  steps: number,
+  still: boolean,
+  /** Anything that changes the section's height without a resize (a layout switch): re-measure when it changes. */
+  arrangement?: unknown,
+) {
   const runRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
   const [lit, setLit] = useState(still ? steps : 0);
-  const [forked, setForked] = useState(still);
 
   const size = useCallback(() => {
     const section = sectionRef.current;
@@ -75,11 +71,10 @@ export function useBuildRunway(steps: number, still: boolean, fork?: Fork) {
       window.removeEventListener("resize", onResize);
       onResize.cancel();
     };
-  }, [size]);
+    // A new arrangement re-runs this, so the new height is measured before paint.
+  }, [size, arrangement]);
 
   const drawn = useRef(-1);
-  const forkFrom = fork?.from ?? 1;
-  const forkTo = fork?.to ?? 1;
   const onFrame = useCallback(() => {
     const run = runRef.current;
     const track = trackRef.current;
@@ -91,17 +86,14 @@ export function useBuildRunway(steps: number, still: boolean, fork?: Fork) {
           layout.runway,
         )
       : 1;
-    const branch = segmentProgress(progress, forkFrom, forkTo);
     if (progress !== drawn.current) {
       drawn.current = progress;
       track.style.setProperty("--p", String(progress));
-      track.style.setProperty("--f", String(branch));
     }
     setLit(milestonesPassed(progress, steps));
-    setForked(branch >= 1);
-  }, [layout, steps, forkFrom, forkTo]);
+  }, [layout, steps]);
 
   useScrollFrame(onFrame, true, runRef);
 
-  return { runRef, sectionRef, trackRef, layout, lit, forked };
+  return { runRef, sectionRef, trackRef, layout, lit };
 }

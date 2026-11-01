@@ -1,148 +1,160 @@
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useBuildRunway } from "./useBuildRunway";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/cn";
-import { milestoneAt } from "@/lib/scrollProgress";
+import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
+import { useMotionPreset } from "@/ui/motion/useMotionPreset";
 
 const STEPS = [
   { name: "Spec", text: "What it must do, written before code." },
   { name: "Plan", text: "Small tasks with clear finish lines." },
-  { name: "Agents build", text: "AI agents implement, in parallel." },
+  {
+    name: "AI-assisted build",
+    text: "From my architecture and design, one step at a time, reviewed as it goes.",
+  },
   { name: "Review gates", text: "Tests, types, lint and my own read." },
   { name: "Ship", text: "Deployed from CI, infrastructure as code." },
 ] as const;
 
-/** The step the eval bench branches off (Agents build). */
-const FORK_STEP = 2;
-/** The branch plays out from that step lighting until just before the next one does. */
-const FORK = {
-  from: milestoneAt(FORK_STEP, STEPS.length),
-  to: milestoneAt(FORK_STEP + 1, STEPS.length) - 0.04,
-};
+/** The eval bench note shows once the lane reaches this many lit steps (Review gates). */
+const BENCH_AFTER = 4;
 
 const BENCH = {
   name: "Eval bench",
-  text: "Free text means endless possible conversations. Before each release the bench replays as many as is sensible, not every edge case, and catches answers that got worse before they ship.",
+  text: "A regression suite of conversation scenarios, run before every release. Free text means endless possible conversations, so it covers as many as is sensible rather than every edge case, and catches anything that got worse before it ships.",
 };
 
-function Dot({ on, className }: { on: boolean; className: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "absolute size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none",
-        on ? "border-signal bg-signal" : "border-line bg-surface",
-        className,
-      )}
-    />
-  );
-}
-
-/** A 3px line in the lane's style: a quiet base with the gradient fill over it. */
-function Line({ className, fill }: { className: string; fill: string }) {
-  return (
-    <span aria-hidden="true" className={cn("absolute", className)}>
-      <span className="absolute inset-0 rounded-[3px] bg-line" />
-      <span className={cn("absolute left-0 top-0 rounded-[3px]", fill)} />
-    </span>
-  );
-}
+const stroke = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
 
 /**
- * The eval bench, branching off Agents build. Stacked, it hangs under the
- * step, joined to the lane by a short line that fills left to right; side by
- * side, it sits in a second row under the last three steps, and the branch
- * drops from the lane in the gutter beside the Agents build dot.
+ * The eval bench: a companion note under the lane, not a step on it. Side by
+ * side it sits in the pinned section under the build, review and ship steps;
+ * stacked, it follows the pinned run (so the lane still fits a phone's
+ * screen), lined up with the steps' text. It rises in as the lane reaches
+ * Review gates (static under reduced motion, where the lane is lit from the
+ * start).
  */
-function Bench({ on }: { on: boolean }) {
+function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
+  const preset = useMotionPreset("fadeUp");
   return (
-    <div className="relative mt-[14px] pl-[30px] wide:mt-0 wide:w-[calc(300%+32px)] wide:pl-4">
-      {/* Stacked: from the lane (6px into the track's 34px inset) to the dot. */}
-      <Line
-        className="left-[-27px] top-3 h-[3px] w-[27px] wide:hidden"
-        fill="h-full w-[calc(var(--f,0)*100%)] bg-gradient-to-r from-accent to-signal"
-      />
-      <Dot on={on} className="left-0 top-[3px] wide:left-[-18.5px]" />
-      <b className="mb-[2px] block font-display text-[18px] font-semibold leading-[normal] text-ink">
-        {BENCH.name}
-      </b>
-      {BENCH.text}
+    <div
+      className={cn(
+        "pl-[34px] wide:grid wide:grid-cols-5 wide:gap-x-4 wide:pl-0",
+        stacked ? "pb-[clamp(40px,6vw,80px)]" : "mt-7",
+      )}
+    >
+      <motion.aside
+        aria-labelledby="bench-title"
+        initial={false}
+        animate={shown ? preset.animate : preset.initial}
+        transition={preset.transition}
+        className="flex max-w-[640px] flex-col gap-3 rounded-card sheet:flex-row sheet:gap-4 border border-dashed border-line-strong bg-panel px-5 py-4 wide:col-span-3 wide:col-start-3"
+      >
+        <span
+          aria-hidden="true"
+          className="grid size-9 shrink-0 place-items-center rounded-pill bg-raised text-signal"
+        >
+          <svg viewBox="0 0 24 24" className="size-5">
+            <path
+              d="M9 3h6M10 3v6l-5.2 9.2A1.9 1.9 0 0 0 6.5 21h11a1.9 1.9 0 0 0 1.7-2.8L14 9V3"
+              {...stroke}
+            />
+            <path d="M7.2 15h9.6" {...stroke} />
+          </svg>
+        </span>
+        <div className="text-[15px] leading-[1.6] text-muted">
+          <h4
+            id="bench-title"
+            className="m-0 mb-[2px] font-display text-[18px] font-semibold leading-[normal] text-ink"
+          >
+            {BENCH.name}
+          </h4>
+          <p className="m-0">{BENCH.text}</p>
+        </div>
+      </motion.aside>
     </div>
   );
 }
 
-/** How Wayfinder was built: five stages lit one by one as the section is scrolled through, with the eval bench branching off Agents build. */
+/** How Wayfinder was built: five stages lit one by one as the section is scrolled through, with the eval bench as a note beneath. */
 export function BuildStory() {
   const still = useReducedMotion() ?? false;
-  const { runRef, sectionRef, trackRef, layout, lit, forked } = useBuildRunway(
+  const stacked = useMediaQuery(BELOW_WIDE);
+  const { runRef, sectionRef, trackRef, layout, lit } = useBuildRunway(
     STEPS.length,
     still,
-    FORK,
+    stacked,
   );
+  const bench = <BenchNote shown={lit >= BENCH_AFTER} stacked={stacked} />;
 
   return (
-    <div
-      ref={runRef}
-      className="relative"
-      style={layout ? { height: layout.height } : undefined}
-    >
-      <section
-        ref={sectionRef}
-        aria-labelledby="build-title"
-        className={cn("py-[clamp(40px,6vw,80px)]", layout && "sticky")}
-        style={layout ? { top: layout.pinTop } : undefined}
+    <>
+      <div
+        ref={runRef}
+        className="relative"
+        style={layout ? { height: layout.height } : undefined}
       >
-        <h3
-          id="build-title"
-          className="m-0 mb-[6px] font-display text-title-lg font-semibold leading-[normal]"
+        <section
+          ref={sectionRef}
+          aria-labelledby="build-title"
+          className={cn("py-[clamp(40px,6vw,80px)]", layout && "sticky")}
+          style={layout ? { top: layout.pinTop } : undefined}
         >
-          How it was built
-        </h3>
-        <p className="m-0 mb-7 text-muted">
-          One person carrying the whole stack, because the workflow does the
-          carrying.
-        </p>
-        <div
-          ref={trackRef}
-          className="relative pl-[34px] wide:pl-0 wide:pt-[34px]"
-        >
-          <span
-            aria-hidden="true"
-            className="absolute left-[6px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-2 wide:h-[3px] wide:w-auto"
-          />
-          <span
-            aria-hidden="true"
-            className="absolute left-[6px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-gradient-to-b from-accent to-signal wide:left-0 wide:top-2 wide:h-[3px] wide:w-[calc(var(--p,0)*100%)] wide:bg-gradient-to-r"
-          />
-          {/* Side by side, every step spans two subgrid rows so the bench's row sits under all of them. */}
-          <ol className="m-0 grid list-none gap-[22px] p-0 wide:grid-cols-5 wide:grid-rows-[auto_auto] wide:gap-x-4 wide:gap-y-6">
-            {STEPS.map((step, index) => (
-              <li
-                key={step.name}
-                className="relative text-[15px] leading-[1.6] text-muted wide:row-span-2 wide:grid wide:grid-rows-subgrid"
-              >
-                <div className="relative">
-                  <Dot
-                    on={index < lit}
-                    className="-left-[34px] top-[3px] wide:-top-8 wide:left-0"
+          <h3
+            id="build-title"
+            className="m-0 mb-[6px] font-display text-title-lg font-semibold leading-[normal]"
+          >
+            How it was built
+          </h3>
+          <p className="m-0 mb-7 text-muted">
+            One person carrying the whole stack, because the workflow does the
+            carrying.
+          </p>
+          <div
+            ref={trackRef}
+            className="relative pl-[34px] wide:pl-0 wide:pt-[34px]"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute left-[6px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-2 wide:h-[3px] wide:w-auto"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute left-[6px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-gradient-to-b from-accent to-signal wide:left-0 wide:top-2 wide:h-[3px] wide:w-[calc(var(--p,0)*100%)] wide:bg-gradient-to-r"
+            />
+            <ol className="m-0 grid list-none gap-[22px] p-0 wide:grid-cols-5 wide:gap-4">
+              {STEPS.map((step, index) => (
+                <li
+                  key={step.name}
+                  className="relative text-[15px] leading-[1.6] text-muted"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
+                      index < lit
+                        ? "border-signal bg-signal"
+                        : "border-line bg-surface",
+                    )}
                   />
-                  {index === FORK_STEP ? (
-                    // Side by side: the branch, from the lane (26px above) down the gutter to the bench's dot (the 24px row gap plus 13.5px below).
-                    <Line
-                      className="-bottom-[37.5px] -left-[9.5px] -top-[26px] hidden w-[3px] wide:block"
-                      fill="w-full h-[calc(var(--f,0)*100%)] bg-gradient-to-b from-accent to-signal"
-                    />
-                  ) : null}
                   <b className="mb-[2px] block font-display text-[18px] font-semibold leading-[normal] text-ink">
                     {step.name}
                   </b>
                   {step.text}
-                </div>
-                {index === FORK_STEP ? <Bench on={forked} /> : null}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-    </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+          {stacked ? null : bench}
+        </section>
+      </div>
+      {stacked ? bench : null}
+    </>
   );
 }

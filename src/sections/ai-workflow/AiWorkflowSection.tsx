@@ -23,13 +23,12 @@ const STEPS: { title: string; text: string; icon: ReactNode }[] = [
     ),
   },
   {
-    title: "Agents implement",
-    text: "AI agents build the tasks, several at once, each given just the context it needs.",
+    title: "AI-assisted build",
+    text: "AI tooling helps me build out the code from the architecture, design and principles I've set, one step at a time, with me reviewing as it goes.",
     icon: (
       <>
-        <rect x="4" y="7" width="7" height="7" rx="2" {...stroke} />
-        <rect x="13" y="7" width="7" height="7" rx="2" {...stroke} />
-        <path d="M7.5 14v3M16.5 14v3M7.5 7V4M16.5 7V4" {...stroke} />
+        <path d="M8 7l-5 5 5 5M16 7l5 5-5 5" {...stroke} />
+        <path d="M13.5 5l-3 14" {...stroke} />
       </>
     ),
   },

@@ -27,25 +27,29 @@ describe("App under reduced motion", () => {
     expect(within(physio).getAllByText(", hidden")).toHaveLength(4);
   });
 
-  it("shows the build lane finished, with the eval bench branched off Agents build", () => {
+  it("shows the build lane finished, with the eval bench as a note beneath it", () => {
     renderWithProviders(<App />);
     const lane = screen.getByRole("region", { name: "How it was built" });
     const steps = within(lane).getAllByRole("listitem");
     expect(steps.map((step) => step.querySelector("b")?.textContent)).toEqual([
       "Spec",
       "Plan",
-      "Agents build",
+      "AI-assisted build",
       "Review gates",
       "Ship",
     ]);
-    expect(within(steps[2]).getByText("Eval bench")).toBeInTheDocument();
-    expect(steps[2]).toHaveTextContent(
-      /Free text means endless possible conversations\..*not every edge case/,
+    // The bench is off the lane: not a step, not inside one.
+    expect(within(lane).getByRole("list")).not.toHaveTextContent("Eval bench");
+    const bench = within(lane).getByRole("complementary", {
+      name: "Eval bench",
+    });
+    expect(bench).toHaveTextContent(
+      /regression suite of conversation scenarios, run before every release\..*rather than every edge case/,
     );
-    // Static: the lane and the branch are drawn in full.
+    // Static: the lane is drawn in full and the note is simply there.
     const track = within(lane).getByRole("list").parentElement;
     expect(track?.style.getPropertyValue("--p")).toBe("1");
-    expect(track?.style.getPropertyValue("--f")).toBe("1");
+    expect(bench).not.toHaveStyle({ opacity: "0" });
   });
 
   it("shows a finished Badass Burpees set", () => {
