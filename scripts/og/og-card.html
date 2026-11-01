@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: "Bricolage";
+        src: url(../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2)
+          format("woff2");
+        font-weight: 200 800;
+      }
+      @font-face {
+        font-family: "Figtree";
+        src: url(../../node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2)
+          format("woff2");
+        font-weight: 300 900;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #13142e;
+        color: #ecebfa;
+        font-family: "Figtree", sans-serif;
+      }
+      .card {
+        position: relative;
+        box-sizing: border-box;
+        width: 1200px;
+        height: 630px;
+        padding: 72px 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background:
+          radial-gradient(
+            900px 520px at 100% 0%,
+            rgba(110, 91, 214, 0.38),
+            transparent 60%
+          ),
+          radial-gradient(
+            700px 420px at 0% 100%,
+            rgba(54, 58, 114, 0.55),
+            transparent 65%
+          ),
+          #13142e;
+      }
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(90, 95, 168, 0.12) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(90, 95, 168, 0.12) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(
+          800px 500px at 80% 20%,
+          black,
+          transparent 75%
+        );
+      }
+      .top {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .top svg {
+        width: 64px;
+        height: 64px;
+      }
+      .name {
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      .role {
+        font-size: 22px;
+        color: #a4a6cf;
+        margin-top: 2px;
+      }
+      h1 {
+        position: relative;
+        margin: 0;
+        font-family: "Bricolage", sans-serif;
+        font-weight: 600;
+        font-size: 66px;
+        line-height: 1.04;
+        letter-spacing: -0.02em;
+        max-width: 960px;
+      }
+      h1 em {
+        font-style: normal;
+        color: #b8a6ff;
+      }
+      .foot {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      .tags {
+        display: flex;
+        gap: 12px;
+      }
+      .tag {
+        font-size: 21px;
+        padding: 9px 18px;
+        border: 1.5px solid #363a72;
+        border-radius: 999px;
+        color: #ecebfa;
+        background: rgba(28, 30, 66, 0.7);
+      }
+      .url {
+        font-size: 24px;
+        font-weight: 600;
+        color: #b8a6ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="grid"></div>
+      <div class="top">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="7" fill="#B8A6FF" />
+          <g
+            transform="translate(1.5 0)"
+            fill="none"
+            stroke="#14122E"
+            stroke-width="4.5"
+          >
+            <path d="M14 7.5 A8.5 8.5 0 1 0 18.25 23.36" />
+            <path d="M13 7.5 H27.5 M23 7.5 V26.75" stroke-linecap="butt" />
+          </g>
+        </svg>
+        <div>
+          <div class="name">Chris Tregaskis</div>
+          <div class="role">Senior full-stack TypeScript developer</div>
+        </div>
+      </div>
+      <h1>
+        I build whole products, end to end,
+        <em>built properly and shipped quickly</em> with AI in the workflow.
+      </h1>
+      <div class="foot">
+        <div class="tags">
+          <span class="tag">Front end</span><span class="tag">Back end</span
+          ><span class="tag">AI agents</span><span class="tag">Cloud</span>
+        </div>
+        <div class="url">chris-tregaskis.uk</div>
+      </div>
+    </div>
+  </body>
+</html>
