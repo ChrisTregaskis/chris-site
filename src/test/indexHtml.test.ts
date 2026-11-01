@@ -21,6 +21,65 @@ describe("index.html", () => {
     );
   });
 
+  describe("link previews (Open Graph and Twitter cards)", () => {
+    const SITE = "https://chris-tregaskis.uk/";
+
+    /** The content of each `<meta property|name="key" content="...">`. */
+    const metaTags = () =>
+      new Map(
+        [
+          ...read("index.html").matchAll(
+            /<meta\s+(?:property|name)="([^"]+)"\s+content="([^"]*)"\s*\/>/g,
+          ),
+        ].map((match) => [match[1], match[2]]),
+      );
+
+    it("gives every tag a card needs", () => {
+      const meta = metaTags();
+      const html = read("index.html");
+      const title = html.match(/<title>([^<]+)<\/title>/)?.[1];
+      const description = meta.get("description");
+      expect(title).toBeTruthy();
+      expect(description).toBeTruthy();
+
+      expect(Object.fromEntries(meta)).toMatchObject({
+        "og:type": "website",
+        "og:site_name": "Chris Tregaskis",
+        "og:title": title,
+        "og:description": description,
+        "og:url": SITE,
+        "og:image:type": "image/png",
+        "og:image:width": "1200",
+        "og:image:height": "630",
+        "og:locale": "en_GB",
+        "twitter:card": "summary_large_image",
+        "twitter:title": title,
+        "twitter:description": description,
+      });
+      for (const key of ["og:image:alt", "twitter:image:alt"]) {
+        expect(meta.get(key)).toMatch(/^Chris Tregaskis, .{40,}/);
+      }
+      expect(html).toContain(`<link rel="canonical" href="${SITE}" />`);
+    });
+
+    it("points the image at an absolute https URL that public/ serves", () => {
+      const meta = metaTags();
+      const image = new URL(meta.get("og:image") ?? "", "file:///relative/");
+      expect(image.href).toBe(`${SITE}og-image.png`);
+      expect(image.protocol).toBe("https:");
+      expect(meta.get("twitter:image")).toBe(image.href);
+      const file = resolve(__dirname, "../../public", image.pathname.slice(1));
+      expect(existsSync(file)).toBe(true);
+    });
+
+    it("ships a 1200 by 630 PNG", () => {
+      const png = readFileSync(resolve(__dirname, "../../public/og-image.png"));
+      expect(png.subarray(1, 4).toString("ascii")).toBe("PNG");
+      expect(png.readUInt32BE(16)).toBe(1200);
+      expect(png.readUInt32BE(20)).toBe(630);
+    });
+  });
+
   it("links icons that exist in public/", () => {
     const icons = [
       ...read("index.html").matchAll(
