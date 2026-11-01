@@ -1,10 +1,11 @@
 import { useReducedMotion } from "framer-motion";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
+import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
 const STEPS = [
   {
@@ -48,7 +49,16 @@ const FADE = "transition-opacity duration-state motion-reduce:transition-none";
  */
 export function PhysioSection() {
   const still = useReducedMotion() ?? false;
-  const measure = useCallback(() => focusLine(window.innerHeight, null), []);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const measure = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage || !window.matchMedia(BELOW_WIDE).matches) {
+      return focusLine(window.innerHeight, null);
+    }
+    // Stacked, the stage pins under the top bar: a card is read in the room beneath it.
+    const pinnedTop = parseFloat(getComputedStyle(stage).top) || 0;
+    return focusLine(window.innerHeight, pinnedTop + stage.offsetHeight);
+  }, []);
   const { current, stepRef, cardRef } = useStepSync({
     measure,
     reducedMotion: still,
@@ -76,6 +86,7 @@ export function PhysioSection() {
       />
       <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
         <div
+          ref={stageRef}
           className={cn(
             "flex items-center justify-center",
             still

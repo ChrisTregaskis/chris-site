@@ -68,6 +68,15 @@ export function Wayfinder() {
   const shown = current || 1;
 
   const selectPart = (id: PartId) => goTo(stepForPart(id));
+  // Stacked, the demo card is taller than the room under the figure: bring
+  // its bottom (the chat input) into view rather than its top.
+  const select = (n: number) =>
+    goTo(
+      n,
+      n === DEMO_STEP && window.matchMedia(BELOW_WIDE).matches
+        ? { align: "end" }
+        : undefined,
+    );
 
   const announcement = selected
     ? `Part ${current}, ${PARTS[selected].name}`
@@ -97,7 +106,7 @@ export function Wayfinder() {
               options={PICKER_OPTIONS}
               value={current}
               valueText={optionText(shown)}
-              onSelect={(n) => goTo(n)}
+              onSelect={select}
             >
               <Odometer
                 value={shown}
@@ -124,7 +133,7 @@ export function Wayfinder() {
             </NumberedDropdown>
             <Button
               pressed={current === DEMO_STEP}
-              onClick={() => goTo(DEMO_STEP)}
+              onClick={() => select(DEMO_STEP)}
               className="flex-none rounded-control px-4 py-0 wide:px-5"
             >
               Try it
@@ -201,7 +210,7 @@ export function Wayfinder() {
           demo
           badge={CHAT_BUBBLE}
           badgeLabel="Show the live demo"
-          onSelect={goTo}
+          onSelect={select}
           stepRef={stepRef(DEMO_STEP)}
           cardRef={cardRef(DEMO_STEP)}
         >

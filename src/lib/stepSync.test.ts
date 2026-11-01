@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   focusBandMargin,
   focusLine,
+  READING_DEPTH,
+  readingLine,
   scrollDeltaToFocus,
   stepAtFocus,
 } from "./stepSync";
@@ -51,12 +53,59 @@ describe("step sync maths", () => {
     );
   });
 
-  it("puts the focus line mid-screen side by side, and below the pinned figure when stacked", () => {
-    expect(focusLine(900, null)).toEqual({ focusY: 450, topLimit: 20 });
-    expect(focusLine(900, null, 68)).toEqual({ focusY: 450, topLimit: 88 });
-    expect(focusLine(844, 384)).toEqual({
-      focusY: 384 + 460 * 0.42,
-      topLimit: 404,
+  it("brings a tall card's bottom into view when asked to align its end", () => {
+    // 390x844 phone, figure pinned to 385: the 617px demo card ends in the chat input.
+    expect(
+      scrollDeltaToFocus({ top: 900, height: 617 }, 500, 844, 405, "end"),
+    ).toBe(900 + 617 - (844 - 16));
+    // A card that fits is centred as usual.
+    expect(
+      scrollDeltaToFocus({ top: 900, height: 200 }, 500, 844, 405, "end"),
+    ).toBe(scrollDeltaToFocus({ top: 900, height: 200 }, 500, 844, 405));
+  });
+
+  it("puts the focus line mid-screen side by side, tracking each step's scroll box", () => {
+    expect(focusLine(900, null)).toEqual({
+      focusY: 450,
+      topLimit: 20,
+      track: "step",
     });
+    expect(focusLine(900, null, 68)).toEqual({
+      focusY: 450,
+      topLimit: 88,
+      track: "step",
+    });
+  });
+
+  it("stacked, tracks the cards across the reading line below the pinned figure", () => {
+    expect(focusLine(844, 384)).toEqual({
+      focusY: 384 + 460 * READING_DEPTH,
+      topLimit: 404,
+      track: "card",
+    });
+  });
+
+  it("puts the reading line a quarter of the way into the room under the figure", () => {
+    expect(readingLine(385, 844)).toBeCloseTo(499.75);
+    // At least 24px into a sliver of room...
+    expect(readingLine(500, 568)).toBe(524);
+    // ...but never off the bottom of the screen (the figure fills a landscape phone).
+    expect(readingLine(600, 568)).toBe(544);
+  });
+
+  it("selects a card only once it is meaningfully on screen", () => {
+    // Measured stage bottoms and card heights (QA, 1 Nov 2026). The card's top
+    // is on the reading line as it is selected, so what shows is the room below it.
+    const shown = (stageBottom: number, viewport: number, card: number) =>
+      Math.min(card, viewport - readingLine(stageBottom, viewport));
+    // 390x844: every Wayfinder card (253 to 294px) and physio card (194px) whole.
+    expect(shown(385, 844, 294)).toBe(294);
+    expect(shown(456, 844, 194)).toBe(194);
+    // 768x1024: whole (was 40px of a 202px card).
+    expect(shown(608, 1024, 202)).toBe(202);
+    // 375x667: three quarters of a 281px card (was 111px).
+    expect(shown(375, 667, 281)).toBeGreaterThanOrEqual(0.75 * 281);
+    // 320x568: three quarters of all the room there is (was 128px).
+    expect(shown(340, 568, 334)).toBe(0.75 * (568 - 340));
   });
 });

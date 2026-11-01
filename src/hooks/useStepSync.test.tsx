@@ -27,9 +27,17 @@ function fakeObserver() {
 const rect = (top: number, height: number) =>
   ({ top, bottom: top + height, height }) as DOMRect;
 
-function Story({ reducedMotion = false }: { reducedMotion?: boolean }) {
+function Story({
+  reducedMotion = false,
+  track,
+  align,
+}: {
+  reducedMotion?: boolean;
+  track?: "step" | "card";
+  align?: "end";
+}) {
   const { current, stepRef, cardRef, goTo } = useStepSync({
-    measure: () => ({ focusY: 450, topLimit: 20 }),
+    measure: () => ({ focusY: 450, topLimit: 20, track }),
     reducedMotion,
   });
   return (
@@ -37,7 +45,11 @@ function Story({ reducedMotion = false }: { reducedMotion?: boolean }) {
       <output>{current}</output>
       {[1, 2, 3].map((n) => (
         <div key={n} ref={stepRef(n)} data-testid={`step-${n}`}>
-          <button type="button" ref={cardRef(n)} onClick={() => goTo(n)}>
+          <button
+            type="button"
+            ref={cardRef(n)}
+            onClick={() => goTo(n, { align })}
+          >
             Card {n}
           </button>
         </div>
@@ -115,5 +127,52 @@ describe("useStepSync", () => {
     });
     io.cross(screen.getByTestId("step-2"));
     expect(screen.getByRole("status")).toHaveTextContent("2");
+  });
+
+  it("can track the cards instead of their scroll boxes (stacked phones)", () => {
+    const io = fakeObserver();
+    render(<Story track="card" />);
+
+    // A step's box crossing the line no longer counts...
+    io.cross(screen.getByTestId("step-2"));
+    expect(screen.getByRole("status")).toHaveTextContent("0");
+    // ...only its card does.
+    io.cross(screen.getByRole("button", { name: "Card 2" }));
+    expect(screen.getByRole("status")).toHaveTextContent("2");
+  });
+
+  it("settles on the card across the line after a click, when tracking cards", () => {
+    const io = fakeObserver();
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    render(<Story track="card" />);
+    const card = screen.getByRole("button", { name: "Card 3" });
+    vi.spyOn(card, "getBoundingClientRect").mockReturnValue(rect(1200, 200));
+
+    act(() => card.click());
+    vi.spyOn(
+      screen.getByRole("button", { name: "Card 2" }),
+      "getBoundingClientRect",
+    ).mockReturnValue(rect(300, 200));
+    act(() => {
+      window.dispatchEvent(new Event("scrollend"));
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("2");
+    io.cross(screen.getByRole("button", { name: "Card 1" }));
+    expect(screen.getByRole("status")).toHaveTextContent("1");
+  });
+
+  it("brings a tall card's end into view when asked", () => {
+    fakeObserver();
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    render(<Story align="end" />);
+    const card = screen.getByRole("button", { name: "Card 3" });
+    // jsdom is 768 tall: a 900px card can't fit, so its bottom goes 16px above the viewport's.
+    vi.spyOn(card, "getBoundingClientRect").mockReturnValue(rect(1200, 900));
+
+    act(() => card.click());
+    expect(scrollTo).toHaveBeenCalledWith({
+      top: 1200 + 900 - (768 - 16),
+      behavior: "smooth",
+    });
   });
 });

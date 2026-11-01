@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  type FocusAlign,
   focusBandMargin,
   scrollDeltaToFocus,
   stepAtFocus,
+  type StepTrack,
 } from "@/lib/stepSync";
 
 export interface StepSyncOptions {
-  /** Measures the focus line (viewport px) and the highest a card may scroll to. */
-  measure: () => { focusY: number; topLimit: number };
+  /**
+   * Measures the focus line (viewport px), the highest a card may scroll to,
+   * and what has to cross the line to be selected: the step's scroll box
+   * (the default) or just its card.
+   */
+  measure: () => { focusY: number; topLimit: number; track?: StepTrack };
   /** Jump instead of smooth-scrolling. */
   reducedMotion: boolean;
   /** Off: no scroll tracking (e.g. a static layout); clicks still select. */
@@ -17,12 +23,17 @@ export interface StepSyncOptions {
 export interface StepSync {
   /** The selected step, 1-based; 0 until anything is selected. */
   current: number;
-  /** Ref for step n's scroll box (what crosses the focus line). */
+  /** Ref for step n's scroll box (what crosses the focus line, by default). */
   stepRef: (n: number) => (element: HTMLElement | null) => void;
-  /** Ref for step n's card (what a click scrolls to the focus line). */
+  /** Ref for step n's card (what a click scrolls to the focus line, and what crosses it when tracking cards). */
   cardRef: (n: number) => (element: HTMLElement | null) => void;
-  /** Select step n and scroll its card to the focus line. */
-  goTo: (n: number, options?: { instant?: boolean }) => void;
+  /** Select step n and scroll its card to the focus line (or, `align: "end"`, a tall card's bottom into view). */
+  goTo: (n: number, options?: GoToOptions) => void;
+}
+
+export interface GoToOptions {
+  instant?: boolean;
+  align?: FocusAlign;
 }
 
 const SETTLE_MS = 140;
@@ -30,7 +41,8 @@ const SAFETY_MS = 1600;
 
 /**
  * One source of truth for a scroll story's selected step. Scrolling selects
- * whichever step crosses a thin focus band; a click selects its step and
+ * whichever step (or card, when `measure` says so) crosses a thin focus band;
+ * a click selects its step and
  * scrolls it there, ignoring the steps it passes on the way until the scroll
  * settles (scrollend, a 140ms pause, or a 1.6s safety net).
  */
@@ -46,6 +58,8 @@ export function useStepSync({
   const settleTimer = useRef(0);
   const safetyTimer = useRef(0);
   const measureRef = useRef(measure);
+  /** What the observer watches: the step boxes or the cards. */
+  const tracked = useRef(steps.current);
 
   useEffect(() => {
     measureRef.current = measure;
@@ -58,7 +72,7 @@ export function useStepSync({
     window.clearTimeout(safetyTimer.current);
     const { focusY } = measureRef.current();
     const n = stepAtFocus(
-      steps.current.map((step) => step?.getBoundingClientRect() ?? null),
+      tracked.current.map((target) => target?.getBoundingClientRect() ?? null),
       focusY,
     );
     if (n) setCurrent(n);
@@ -69,7 +83,8 @@ export function useStepSync({
     let observer: IntersectionObserver | null = null;
     const observe = () => {
       observer?.disconnect();
-      const { focusY } = measureRef.current();
+      const { focusY, track = "step" } = measureRef.current();
+      tracked.current = track === "card" ? cards.current : steps.current;
       observer = new IntersectionObserver(
         (entries) => {
           if (locked.current) return;
@@ -78,13 +93,13 @@ export function useStepSync({
             if (entry.isIntersecting) hit = entry.target;
           }
           if (!hit) return;
-          const n = steps.current.findIndex((step) => step === hit) + 1;
+          const n = tracked.current.findIndex((target) => target === hit) + 1;
           if (n) setCurrent(n);
         },
         { rootMargin: focusBandMargin(focusY, window.innerHeight) },
       );
-      for (const step of steps.current) {
-        if (step) observer.observe(step);
+      for (const target of tracked.current) {
+        if (target) observer.observe(target);
       }
     };
     observe();
@@ -114,7 +129,7 @@ export function useStepSync({
   }, [enabled, release]);
 
   const goTo = useCallback(
-    (n: number, { instant = false }: { instant?: boolean } = {}) => {
+    (n: number, { instant = false, align = "focus" }: GoToOptions = {}) => {
       setCurrent(n);
       const card = cards.current[n - 1];
       if (!enabled || !card) return;
@@ -124,6 +139,7 @@ export function useStepSync({
         focusY,
         window.innerHeight,
         topLimit,
+        align,
       );
       if (delta === 0) return;
       locked.current = true;
