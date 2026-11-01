@@ -89,7 +89,7 @@ export function BurpeesSection() {
                 ]}
               />
             </div>
-            <p className="m-0 mt-5">
+            <p className="m-0 mb-4 mt-5">
               <ButtonLink
                 variant="ghost"
                 href="https://badass-burpees.app/"

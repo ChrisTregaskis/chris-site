@@ -32,7 +32,7 @@ export function BuildStory() {
       >
         <h3
           id="build-title"
-          className="m-0 mb-[6px] font-display text-title-lg font-semibold"
+          className="m-0 mb-[6px] font-display text-title-lg font-semibold leading-[normal]"
         >
           How it was built
         </h3>
@@ -61,13 +61,13 @@ export function BuildStory() {
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "absolute -left-[34px] top-[3px] size-[15px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
+                    "absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
                     index < lit
                       ? "border-signal bg-signal"
                       : "border-line bg-surface",
                   )}
                 />
-                <b className="mb-[2px] block font-display text-[18px] font-semibold text-ink">
+                <b className="mb-[2px] block font-display text-[18px] font-semibold leading-[normal] text-ink">
                   {step.name}
                 </b>
                 {step.text}
