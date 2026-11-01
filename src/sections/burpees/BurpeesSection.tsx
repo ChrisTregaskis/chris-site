@@ -29,7 +29,9 @@ const FRAMES: Record<Pose, string> = {
 
 /**
  * Chapter 3: Badass Burpees, Chris's own app. The phone sticks (under the
- * sticky bar on phones) while the section scrolls, counting a set of 100 as
+ * sticky bar on phones and on short desktops, where b3's top-of-screen pin
+ * would put the bar over the phone; there it also shrinks to fit the room
+ * under the bar) while the section scrolls, counting a set of 100 as
  * you go, and its figure (the app's own art) does Navy SEAL burpees at the
  * app's beat. Static under reduced motion: a finished set and one frame.
  */
@@ -45,8 +47,9 @@ export function BurpeesSection() {
     const section = sectionRef.current;
     const stage = stageRef.current;
     if (!section || !stage) return;
-    // Phones pin the stage under the sticky bar; side by side it pins at the
-    // top (b3). Only a resize can change which, so it's measured only then.
+    // Phones and short desktops pin the stage under the sticky bar; other
+    // desktops pin it at the top (b3). Only a resize can change which, so
+    // it's measured only then.
     if (resized) {
       stickTop.current = parseFloat(getComputedStyle(stage).top) || 0;
     }
@@ -80,7 +83,7 @@ export function BurpeesSection() {
             "grid grid-cols-1 content-center gap-[18px] [@media(max-width:860px)_and_(max-height:620px)]:gap-[6px] wide:grid-cols-2 wide:items-center wide:gap-[clamp(24px,5vw,72px)]",
             still
               ? "py-[clamp(40px,6vw,80px)]"
-              : "sticky top-nav h-[calc(100svh-var(--size-nav))] wide:top-0 wide:h-screen",
+              : "sticky top-nav h-[calc(100svh-var(--size-nav))] wide:top-0 wide:h-screen [@media(min-width:861px)_and_(max-height:760px)]:top-nav [@media(min-width:861px)_and_(max-height:760px)]:h-[calc(100svh-var(--size-nav))]",
           )}
         >
           <div>
@@ -121,7 +124,7 @@ export function BurpeesSection() {
           <div
             role="group"
             aria-label="Badass Burpees app screen"
-            className="mx-auto aspect-[9/18.5] w-[min(220px,60vw)] rounded-[38px] bg-bb-bezel p-[10px] shadow-phone wide:w-[min(280px,72vw)]"
+            className="mx-auto aspect-[9/18.5] w-[min(220px,60vw)] rounded-[38px] bg-bb-bezel p-[10px] shadow-phone wide:w-[min(280px,72vw)] [@media(min-width:861px)_and_(max-height:760px)]:w-[min(280px,72vw,calc((100svh_-_var(--size-nav)_-_24px)*9/18.5))]"
           >
             <div className="flex h-full flex-col items-center justify-between gap-2 rounded-[30px] bg-bb-screen px-4 pb-[18px] pt-[22px] text-center font-display text-bb-ink">
               <p className="m-0 self-stretch text-left text-[24px] font-extrabold leading-[0.9] tracking-[0.01em]">

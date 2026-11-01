@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useScrollFrame } from "@/hooks/useScrollFrame";
+import { frameThrottle } from "@/lib/frameThrottle";
 import {
   milestonesPassed,
   pinTopFor,
@@ -39,17 +40,32 @@ export function useBuildRunway(steps: number, still: boolean) {
     }
     const height = section.offsetHeight;
     const runway = Math.max(track.offsetHeight * 2.5, window.innerHeight * 0.3);
-    setLayout({
+    const next = {
       height: height + runway,
       pinTop: pinTopFor(window.innerHeight, height, topClearance()),
       runway,
-    });
+    };
+    // Keep the same object when nothing moved, so a resize that changes
+    // nothing here (most of them) doesn't re-render the lane.
+    setLayout((previous) =>
+      previous?.height === next.height &&
+      previous.pinTop === next.pinTop &&
+      previous.runway === next.runway
+        ? previous
+        : next,
+    );
   }, [still]);
 
+  // Measure once before paint, then at most once a frame while resizing (a
+  // drag, or a phone's toolbar sliding away mid-scroll, fires resize in bursts).
   useLayoutEffect(() => {
     size();
-    window.addEventListener("resize", size);
-    return () => window.removeEventListener("resize", size);
+    const onResize = frameThrottle(size);
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      onResize.cancel();
+    };
   }, [size]);
 
   const drawn = useRef(-1);

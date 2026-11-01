@@ -68,4 +68,8 @@ describe("colour tokens", () => {
     expect(contrast("line-field", "panel")).toBeGreaterThanOrEqual(3);
     expect(contrast("line-field", "surface")).toBeGreaterThanOrEqual(3);
   });
+
+  it("draws the chat widget's input bar at 3:1 against the white widget", () => {
+    expect(contrast("chat-field", "chat-surface")).toBeGreaterThanOrEqual(3);
+  });
 });

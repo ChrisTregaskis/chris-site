@@ -32,6 +32,7 @@ const COLOUR_TOKENS = [
   "chat-strong",
   "chat-muted",
   "chat-line",
+  "chat-field",
   "chat-card-line",
   "chat-bubble",
   "chat-media-from",

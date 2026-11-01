@@ -42,6 +42,7 @@
   --color-chat-strong: 29 29 36; /* #1D1D24 */
   --color-chat-muted: 107 107 120; /* #6B6B78 */
   --color-chat-line: 230 230 236; /* #E6E6EC */
+  --color-chat-field: 138 138 150; /* #8A8A96, 3.4:1 on chat-surface: the input bar's edge */
   --color-chat-card-line: 226 226 234; /* #E2E2EA */
   --color-chat-bubble: 240 240 244; /* #F0F0F4 */
   --color-chat-media-from: 237 237 243; /* #EDEDF3 */

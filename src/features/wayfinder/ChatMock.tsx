@@ -173,7 +173,7 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
         </div>
         <form
           onSubmit={submit}
-          className="flex border-t border-chat-line focus-within:shadow-[inset_0_0_0_1.5px_rgb(var(--color-accent-strong))]"
+          className="flex border-t border-chat-field focus-within:shadow-[inset_0_0_0_1.5px_rgb(var(--color-accent-strong))]"
         >
           <input
             aria-label="Message"
