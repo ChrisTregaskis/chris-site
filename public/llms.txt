@@ -1,0 +1,25 @@
+# Chris Tregaskis
+
+> Chris Tregaskis is a senior full-stack TypeScript developer who builds whole products end to end (front end, back end, AI agents and the cloud underneath) and ships them fast with AI tooling in the workflow. He helps small and medium businesses from the technical side: from a first prototype to a product running in production, with AI where it earns its place.
+
+This site is one long page. Each section below links to its anchor on that page.
+
+## Work
+
+- [Wayfinder](https://chris-tregaskis.uk/#work): an AI guide for a global automotive brand. A chat assistant that helps buyers find a car, book a test drive and price up finance, built end to end by Chris from a reusable white-label foundation: React widget, Node API, a supervisor agent routing to specialist agents, tools over MCP, infrastructure in Terraform. The page includes an interactive figure of the architecture, a scripted chat demo and how it was built (spec, plan, AI-assisted build one step at a time, review gates, ship, plus an eval bench of conversation scenarios run before every release).
+- [Physio and wellness SaaS](https://chris-tregaskis.uk/#physio): a multi-tenant SaaS for physio and wellness practices. Bookings and client notes for many practices from one codebase and one Postgres database, kept apart by row-level security. React, tRPC, Zod, Drizzle, SST and Turborepo. A personal project.
+- [Badass Burpees](https://chris-tregaskis.uk/#burpees): Chris's own fitness app. Set the reps and the time you have and it paces you, counting you through every one. Its interface is built from atomic components.
+  - [badass-burpees.app](https://badass-burpees.app/): the live app.
+  - [Design system](https://badass-burpees.app/design): its atomic design system (tokens, components, figure).
+- [How I work with AI](https://chris-tregaskis.uk/#how-i-work): specs and plans, AI-assisted build, review gates and living working docs.
+
+## About
+
+- [About](https://chris-tregaskis.uk/#about): a full-stack TypeScript developer who loves turning a rough idea into something people use. Lately that means AI: agents, MCP tooling and chat products.
+
+## Contact
+
+- [Get in touch](https://chris-tregaskis.uk/#contact): the Get in touch button opens a short enquiry form (name, email, what kind of help, and what it's about); Chris replies by email. Request my CV opens a form that unlocks his CV.
+- [LinkedIn](https://www.linkedin.com/in/christophertregaskis): the quickest way to message him directly.
+- [GitHub](https://github.com/ChrisTregaskis): his code.
+- [Articles](https://medium.com/@c.tregaskis): his writing on Medium.
