@@ -49,14 +49,7 @@ describe("agent and crawler files", () => {
     const anchors = [
       ...llms.matchAll(/\(https:\/\/chris-tregaskis\.uk\/#([a-z-]+)\)/g),
     ].map((match) => match[1]);
-    expect(anchors).toEqual([
-      "work",
-      "physio",
-      "burpees",
-      "how-i-work",
-      "about",
-      "contact",
-    ]);
+    expect(anchors).toEqual(["work", "physio", "burpees", "about", "contact"]);
     const ids = pageAnchors();
     for (const anchor of anchors) expect(ids).toContain(anchor);
     expect(llms).toContain("(https://badass-burpees.app/design)");

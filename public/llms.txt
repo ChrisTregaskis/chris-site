@@ -11,7 +11,6 @@ This site is one long page. Each section below links to its anchor on that page.
 - [Badass Burpees](https://chris-tregaskis.uk/#burpees): Chris's own fitness app. Set the reps and the time you have and it paces you, counting you through every one. Its interface is built from atomic components.
   - [badass-burpees.app](https://badass-burpees.app/): the live app.
   - [Design system](https://badass-burpees.app/design): its atomic design system (tokens, components, figure).
-- [How I work with AI](https://chris-tregaskis.uk/#how-i-work): specs and plans, AI-assisted build, review gates and living working docs.
 
 ## About
 

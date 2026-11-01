@@ -29,7 +29,6 @@ describe("App", () => {
       "Wayfinder, an AI guide for a global automotive brand",
       "A multi-tenant SaaS for physio and wellness practices",
       "Badass Burpees",
-      "How I work with AI",
       "About",
       "Let's work together.",
     ]);
@@ -57,9 +56,6 @@ describe("App", () => {
     expect(page).not.toMatch(
       /agents build|agents implement|in parallel|several at once|subagent|fleet/i,
     );
-    expect(
-      screen.getByRole("heading", { level: 3, name: "AI-assisted build" }),
-    ).toBeInTheDocument();
     const lane = screen.getByRole("region", { name: "How it was built" });
     expect(within(lane).getByText("AI-assisted build")).toBeInTheDocument();
   });

@@ -1,7 +1,6 @@
 import { CVDrawer } from "@/features/cv-request";
 import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
 import { AboutSection } from "@/sections/about/AboutSection";
-import { AiWorkflowSection } from "@/sections/ai-workflow/AiWorkflowSection";
 import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
 import { Contact } from "@/sections/contact/Contact";
 import { Hero } from "@/sections/hero/Hero";
@@ -40,7 +39,6 @@ export function App() {
         <WayfinderSection />
         <PhysioSection />
         <BurpeesSection />
-        <AiWorkflowSection />
         <AboutSection />
         <Contact />
       </main>
