@@ -30,8 +30,8 @@ const FRAMES: Record<Pose, string> = {
 /**
  * Chapter 3: Badass Burpees, Chris's own app. The phone sticks (under the
  * sticky bar on phones and on short desktops, where b3's top-of-screen pin
- * would put the bar over the phone; there it also shrinks to fit the room
- * under the bar) while the section scrolls, counting a set of 100 as
+ * would put the bar over the phone; on short screens it also shrinks to fit
+ * the room under the bar, the heading and the two links) while the section scrolls, counting a set of 100 as
  * you go, and its figure (the app's own art) does Navy SEAL burpees at the
  * app's beat. Static under reduced motion: a finished set and one frame.
  */
@@ -95,8 +95,9 @@ export function BurpeesSection() {
             </h2>
             <p className="m-0 mb-4 hidden max-w-measure-narrow text-muted wide:block">
               My own fitness app. Set the reps and the time you have and it
-              paces you, counting you through every one. Keep scrolling to do a
-              set.
+              paces you, counting you through every one. Its interface is built
+              from atomic components, atoms up to molecules and organisms. Keep
+              scrolling to do a set.
             </p>
             <div className="hidden wide:block">
               <ChipList
@@ -108,7 +109,7 @@ export function BurpeesSection() {
                 ]}
               />
             </div>
-            <p className="m-0 mb-4 mt-5 [@media(max-width:860px)_and_(max-height:620px)]:mb-0 [@media(max-width:860px)_and_(max-height:620px)]:mt-[6px]">
+            <p className="m-0 mb-4 mt-5 flex flex-wrap gap-3 [@media(max-width:860px)_and_(max-height:620px)]:mb-0 [@media(max-width:860px)_and_(max-height:620px)]:mt-[6px] [@media(max-width:860px)_and_(max-height:620px)]:gap-2">
               <ButtonLink
                 variant="ghost"
                 href="https://badass-burpees.app/"
@@ -118,13 +119,22 @@ export function BurpeesSection() {
                 Open badass-burpees.app
                 <VisuallyHidden> (opens in a new tab)</VisuallyHidden>
               </ButtonLink>
+              <ButtonLink
+                variant="ghost"
+                href="https://badass-burpees.app/design"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                See the atomic design system
+                <VisuallyHidden> (opens in a new tab)</VisuallyHidden>
+              </ButtonLink>
             </p>
           </div>
 
           <div
             role="group"
             aria-label="Badass Burpees app screen"
-            className="mx-auto aspect-[9/18.5] w-[min(220px,60vw)] rounded-[38px] bg-bb-bezel p-[10px] shadow-phone wide:w-[min(280px,72vw)] [@media(min-width:861px)_and_(max-height:760px)]:w-[min(280px,72vw,calc((100svh_-_var(--size-nav)_-_24px)*9/18.5))]"
+            className="mx-auto aspect-[9/18.5] w-[min(220px,60vw,calc((100svh_-_var(--size-nav)_-_230px)*9/18.5))] rounded-[38px] bg-bb-bezel p-[10px] shadow-phone wide:w-[min(280px,72vw)] [@media(min-width:861px)_and_(max-height:760px)]:w-[min(280px,72vw,calc((100svh_-_var(--size-nav)_-_24px)*9/18.5))] [@media(max-width:860px)_and_(max-height:620px)]:w-[min(220px,60vw,calc((100svh_-_var(--size-nav)_-_180px)*9/18.5))]"
           >
             <div className="flex h-full flex-col items-center justify-between gap-2 rounded-[30px] bg-bb-screen px-4 pb-[18px] pt-[22px] text-center font-display text-bb-ink">
               <p className="m-0 self-stretch text-left text-[24px] font-extrabold leading-[0.9] tracking-[0.01em]">

@@ -27,7 +27,7 @@ describe("App", () => {
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
     ).toEqual([
       "Wayfinder, an AI guide for a global automotive brand",
-      "A multi-tenant SaaS for physio clinics",
+      "A multi-tenant SaaS for physio and wellness practices",
       "Badass Burpees",
       "AI prototypes and MCP tooling",
       "E-commerce for food manufacturing",

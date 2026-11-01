@@ -9,32 +9,32 @@ import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
 const STEPS = [
   {
-    title: "One database, every clinic",
-    text: "Appointments from every clinic live in the same Postgres tables. Cheap to run and simple to migrate.",
+    title: "One database, every practice",
+    text: "Sessions from every practice live in the same Postgres tables. Cheap to run and simple to migrate.",
   },
   {
-    title: "Every request names its clinic",
-    text: "The tRPC context sets the current clinic on the connection before a single query runs.",
+    title: "Every request names its practice",
+    text: "The tRPC context sets the current practice on the connection before a single query runs.",
   },
   {
     title: "Postgres hides the rest",
-    text: "Row-level security filters out other clinics' rows in the database itself, so a missed filter in app code can't leak data.",
+    text: "Row-level security filters out other practices' rows in the database itself, so a missed filter in app code can't leak data.",
   },
 ] as const;
 
-type Clinic = "Riverside" | "Harbour" | "Moorland";
+type Practice = "Riverside" | "Harbour" | "Moorland";
 
-const ROWS: { label: string; clinic: Clinic }[] = [
-  { label: "Initial assessment", clinic: "Riverside" },
-  { label: "Sports massage", clinic: "Harbour" },
-  { label: "Knee rehab, week 3", clinic: "Riverside" },
-  { label: "Back pain review", clinic: "Moorland" },
-  { label: "Shoulder follow-up", clinic: "Harbour" },
-  { label: "Discharge notes", clinic: "Riverside" },
-  { label: "Gait analysis", clinic: "Moorland" },
+const ROWS: { label: string; practice: Practice }[] = [
+  { label: "First session", practice: "Riverside" },
+  { label: "Sports massage", practice: "Harbour" },
+  { label: "Mobility plan, week 3", practice: "Riverside" },
+  { label: "Posture check-in", practice: "Moorland" },
+  { label: "Follow-up session", practice: "Harbour" },
+  { label: "Session notes", practice: "Riverside" },
+  { label: "Running form review", practice: "Moorland" },
 ];
 
-const DOT: Record<Clinic, string> = {
+const DOT: Record<Practice, string> = {
   Riverside: "bg-accent",
   Harbour: "bg-signal",
   Moorland: "bg-tenant-teal",
@@ -43,9 +43,9 @@ const DOT: Record<Clinic, string> = {
 const FADE = "transition-opacity duration-state motion-reduce:transition-none";
 
 /**
- * Chapter 2: the physio SaaS. Three steps scroll past a list of appointments
- * from three clinics: all of them, then the clinic is set, then row-level
- * security hides everyone else's. Static (reduced motion): the end state.
+ * Chapter 2: the physio and wellness SaaS. Three steps scroll past a list of
+ * sessions from three practices: all of them, then the practice is set, then
+ * row-level security hides everyone else's. Static (reduced motion): the end state.
  */
 export function PhysioSection() {
   const still = useReducedMotion() ?? false;
@@ -65,15 +65,15 @@ export function PhysioSection() {
     enabled: !still,
   });
   const stage = still ? 3 : Math.max(1, current);
-  const clinicSet = stage >= 2;
+  const practiceSet = stage >= 2;
   const filtered = stage >= 3;
 
   return (
     <Section id="physio" labelledBy="physio-title">
       <ChapterHeading
         id="physio-title"
-        title="A multi-tenant SaaS for physio clinics"
-        lede="Bookings and patient notes for many clinics, from one codebase and one database. A personal project, built with my own agentic Claude Code workflow."
+        title="A multi-tenant SaaS for physio and wellness practices"
+        lede="Bookings and client notes for many wellness practices, from one codebase and one database. A personal project, built with my own agentic Claude Code workflow."
         chips={[
           "React",
           "tRPC",
@@ -96,29 +96,29 @@ export function PhysioSection() {
         >
           <figure
             className="m-0 w-full max-w-[440px]"
-            aria-label="Appointments from three clinics in one table"
+            aria-label="Sessions from three practices in one table"
           >
             <p
               className={cn(
                 "m-0 mb-[10px] text-caption text-muted",
                 FADE,
-                clinicSet ? "opacity-100" : "opacity-0",
+                practiceSet ? "opacity-100" : "opacity-0",
               )}
             >
-              Signed in as Riverside Physio
+              Signed in as Riverside Wellness
             </p>
             <div
               className={cn(
                 "mb-[6px] rounded-input border-[1.5px] border-dashed border-muted px-3 py-2 text-caption font-medium text-muted",
                 FADE,
-                clinicSet ? "opacity-100" : "opacity-0",
+                practiceSet ? "opacity-100" : "opacity-0",
               )}
             >
-              policy: tenant_id = current clinic
+              policy: tenant_id = current practice
             </div>
             <ul className="m-0 grid w-full list-none gap-2 p-0">
               {ROWS.map((row) => {
-                const hidden = filtered && row.clinic !== "Riverside";
+                const hidden = filtered && row.practice !== "Riverside";
                 return (
                   <li
                     key={row.label}
@@ -131,12 +131,12 @@ export function PhysioSection() {
                       aria-hidden="true"
                       className={cn(
                         "size-[10px] rounded-pill",
-                        DOT[row.clinic],
+                        DOT[row.practice],
                       )}
                     />
                     {row.label}
                     <small className="text-[12px] text-muted">
-                      {row.clinic}
+                      {row.practice}
                       {hidden ? (
                         <span className="sr-only">, hidden</span>
                       ) : null}
