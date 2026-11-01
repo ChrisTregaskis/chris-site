@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { chatScrollTop } from "./chatScroll";
 import { type Ask, type LogLine, SCRIPTED_REPLY, SUGGESTIONS } from "./demo";
 import { type ChatMessage } from "./useWayfinderDemo";
 import { VehicleImage } from "./VehicleImage";
@@ -17,6 +18,8 @@ const BUBBLE =
 const BOT = cn(BUBBLE, "rounded-bl-[4px] bg-chat-bubble");
 const CARD =
   "max-w-[92%] shrink-0 overflow-hidden rounded-input border border-chat-card-line";
+/** The vehicle card leads with its picture across the full width, as a car maker's listing does. */
+const LISTING = cn(CARD, "w-full max-w-sm");
 const CTA =
   "mt-[6px] inline-block border-b-[1.5px] border-current text-[12.5px] font-semibold";
 
@@ -43,10 +46,8 @@ function Reply({ message }: { message: ChatMessage }) {
       );
     case "vehicle":
       return (
-        <div className={CARD}>
-          <div className="grid h-[62px] place-items-center bg-gradient-to-br from-chat-media-from to-chat-media-to">
-            <VehicleImage />
-          </div>
+        <div className={LISTING}>
+          <VehicleImage />
           <div className="px-[10px] py-2 text-[13px]">
             <strong className="block text-[14px]">Model 3-row (example)</strong>
             Seven seats, hybrid. From £XX,XXX.
@@ -97,7 +98,15 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
 
   useEffect(() => {
     const list = listRef.current;
-    if (list) list.scrollTop = list.scrollHeight;
+    const last = list?.lastElementChild;
+    if (!list || !last) return;
+    const box = last.getBoundingClientRect();
+    list.scrollTop = chatScrollTop({
+      viewHeight: list.clientHeight,
+      contentHeight: list.scrollHeight,
+      lastTop: box.top - list.getBoundingClientRect().top + list.scrollTop,
+      lastHeight: box.height,
+    });
   }, [messages.length, typing]);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -109,7 +118,7 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
   return (
     <div data-no-select="">
       {/* The page's amber focus ring is too faint on the white widget (1.6:1), so it draws in the widget's ink here. */}
-      <div className="mt-[14px] flex h-[320px] flex-col overflow-hidden rounded-[16px] bg-chat-surface text-chat-ink shadow-float wide:h-[380px] [&_:focus-visible]:outline-chat-strong">
+      <div className="mt-[14px] flex h-[360px] flex-col overflow-hidden rounded-[16px] bg-chat-surface text-chat-ink shadow-float wide:h-[clamp(380px,calc(100svh-280px),480px)] [&_:focus-visible]:outline-chat-strong">
         <div className="flex items-center gap-[10px] border-b border-chat-line px-3 py-[10px]">
           <span
             aria-hidden="true"
