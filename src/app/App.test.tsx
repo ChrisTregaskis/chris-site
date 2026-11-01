@@ -29,8 +29,6 @@ describe("App", () => {
       "Wayfinder, an AI guide for a global automotive brand",
       "A multi-tenant SaaS for physio and wellness practices",
       "Badass Burpees",
-      "AI prototypes and MCP tooling",
-      "E-commerce for food manufacturing",
       "How I work with AI",
       "About",
       "Let's work together.",
