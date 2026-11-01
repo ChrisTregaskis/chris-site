@@ -1,13 +1,15 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { SUGGESTIONS, type LogLine } from "./demo";
+import { type Ask, type LogLine, SCRIPTED_REPLY, SUGGESTIONS } from "./demo";
 import { type ChatMessage } from "./useWayfinderDemo";
+import { VehicleImage } from "./VehicleImage";
 import { cn } from "@/lib/cn";
 
 interface ChatMockProps {
   messages: ChatMessage[];
   typing: boolean;
   trace: LogLine[];
-  onSend: (question: string) => void;
+  /** A pill passes its `ask` (and so its route); typed text passes none. */
+  onSend: (question: string, ask?: Ask) => void;
 }
 
 const BUBBLE =
@@ -17,19 +19,6 @@ const CARD =
   "max-w-[92%] shrink-0 overflow-hidden rounded-input border border-chat-card-line";
 const CTA =
   "mt-[6px] inline-block border-b-[1.5px] border-current text-[12.5px] font-semibold";
-
-function Car() {
-  return (
-    <svg viewBox="0 0 120 44" className="h-[42px] w-[118px]" aria-hidden="true">
-      <path
-        d="M8 32 L14 20 Q18 14 28 13 L70 12 Q80 12 88 18 L100 24 Q112 26 113 32 L113 34 L8 34 Z"
-        className="fill-chat-surface stroke-chat-strong stroke-[1.5]"
-      />
-      <circle cx="30" cy="34" r="7" className="fill-chat-strong" />
-      <circle cx="92" cy="34" r="7" className="fill-chat-strong" />
-    </svg>
-  );
-}
 
 function Reply({ message }: { message: ChatMessage }) {
   if (message.from === "me") {
@@ -56,7 +45,7 @@ function Reply({ message }: { message: ChatMessage }) {
       return (
         <div className={CARD}>
           <div className="grid h-[62px] place-items-center bg-gradient-to-br from-chat-media-from to-chat-media-to">
-            <Car />
+            <VehicleImage />
           </div>
           <div className="px-[10px] py-2 text-[13px]">
             <strong className="block text-[14px]">Model 3-row (example)</strong>
@@ -69,19 +58,19 @@ function Reply({ message }: { message: ChatMessage }) {
     case "booking":
       return (
         <div className={BOT}>
-          Your nearest retailer has these slots on Saturday:
-          <div className="mt-[6px] flex flex-wrap gap-[6px]">
-            {["09:30", "11:00", "14:15"].map((slot) => (
-              <span
-                key={slot}
-                className="rounded-[20px] border border-chat-strong px-[9px] py-[2px] text-[12px]"
-              >
-                {slot}
-              </span>
-            ))}
-          </div>
+          Happy to book that. Which model would you like to drive, and
+          what&apos;s your postcode?
         </div>
       );
+    case "explain":
+      return (
+        <div className={BOT}>
+          A hybrid pairs a petrol engine with an electric motor and a small
+          battery. It charges as you drive, so there&apos;s nothing to plug in.
+        </div>
+      );
+    case "scripted":
+      return <div className={BOT}>{SCRIPTED_REPLY}</div>;
     case "finance":
       return (
         <div className={CARD}>
@@ -164,7 +153,7 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
             <button
               key={suggestion.label}
               type="button"
-              onClick={() => onSend(suggestion.question)}
+              onClick={() => onSend(suggestion.question, suggestion)}
               className="cursor-pointer rounded-[20px] border border-chat-strong bg-chat-surface px-[10px] py-1 text-[12.5px] font-medium leading-[normal] text-chat-strong"
             >
               {suggestion.label}

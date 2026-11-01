@@ -15,6 +15,12 @@ beforeEach(() => {
   }));
 });
 
+/** The pipes lit by the last message, in the figure's drawing order. */
+const litRoutes = (container: HTMLElement) =>
+  [...container.querySelectorAll("[data-route]")]
+    .filter((path) => path.classList.contains("opacity-100"))
+    .map((path) => path.getAttribute("data-route"));
+
 const picker = () => screen.getByRole("button", { name: /^Wayfinder part/ });
 
 describe("Wayfinder", () => {
@@ -80,27 +86,74 @@ describe("Wayfinder", () => {
     );
   });
 
-  it("answers a scripted question and traces its route", async () => {
+  it("answers a pill along its own route, short of MCP when nothing live is needed", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<Wayfinder />);
+    const { container } = render(<Wayfinder />);
     await user.click(screen.getByRole("button", { name: "Book a test drive" }));
 
     const chat = screen.getByRole("log", { name: "Wayfinder chat" });
-    expect(await within(chat).findByText("11:00")).toBeInTheDocument();
+    expect(
+      await within(chat).findByText(/Which model would you like to drive/),
+    ).toBeInTheDocument();
     expect(within(chat).getByText("Book a test drive")).toBeInTheDocument();
     const trace = screen.getByLabelText("Trace");
-    expect(trace).toHaveTextContent("booking agent calls retailer.slots");
+    expect(trace).toHaveTextContent(
+      "booking agent asks for a model and postcode first",
+    );
     expect(trace).toHaveTextContent("intent: booking (platform B)");
-    expect(trace).toHaveTextContent("bff rendered as a rich card");
+    expect(trace).not.toHaveTextContent("mcp");
+    expect(litRoutes(container)).toEqual([
+      "chat-bff",
+      "bff-sup",
+      "sup-adp",
+      "adp-ai1",
+      "sup-s1",
+    ]);
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+  });
 
-    // A typed question works too, and the form clears.
-    const input = screen.getByRole("textbox", { name: "Message" });
-    await user.type(input, "What would it cost a month?{Enter}");
+  it("fetches live data over MCP for a monthly cost", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Wayfinder />);
+    await user.click(screen.getByRole("button", { name: "Monthly cost?" }));
+
+    const chat = screen.getByRole("log", { name: "Wayfinder chat" });
     expect(
       await within(chat).findByText(/From £XXX a month/),
     ).toBeInTheDocument();
+    const trace = screen.getByLabelText("Trace");
+    expect(trace).toHaveTextContent("mcp finance.quote 200, 38 ms");
+    expect(trace).toHaveTextContent("bff rendered as a rich card");
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+  });
+
+  it("answers typed free text with the scripted line, via the supervisor only", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const { container } = render(<Wayfinder />);
+
+    // Even a pill's own words count as free text when typed.
+    const input = screen.getByRole("textbox", { name: "Message" });
+    await user.type(input, "What would it cost a month?{Enter}");
+
+    const chat = screen.getByRole("log", { name: "Wayfinder chat" });
+    expect(
+      await within(chat).findByText(
+        "This is a scripted response. Try clicking the pills below?",
+      ),
+    ).toBeInTheDocument();
+    expect(within(chat).queryByText(/From £XXX a month/)).toBeNull();
     expect(input).toHaveValue("");
+    expect(screen.getByLabelText("Trace")).toHaveTextContent(
+      "supervisor free text: scripted reply in this demo",
+    );
+    expect(litRoutes(container)).toEqual(["chat-bff", "bff-sup"]);
     act(() => {
       vi.runOnlyPendingTimers();
     });

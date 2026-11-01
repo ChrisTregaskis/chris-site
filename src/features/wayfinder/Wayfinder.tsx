@@ -218,8 +218,8 @@ export function Wayfinder() {
             messages={demo.messages}
             typing={demo.typing}
             trace={demo.trace}
-            onSend={(question) => {
-              void demo.send(question);
+            onSend={(question, ask) => {
+              void demo.send(question, ask);
             }}
           />
         </StepCard>

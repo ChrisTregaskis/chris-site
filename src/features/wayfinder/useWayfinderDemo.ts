@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  type Ask,
   demoPlan,
-  type IntentKey,
-  intentFor,
+  FREE_TEXT,
   type LogLine,
+  type ReplyKind,
   swapLine,
 } from "./demo";
 import { type RouteKey, routePoints } from "./iso";
@@ -14,7 +15,7 @@ import { DURATION } from "@/ui/tokens/motion";
 export type ChatMessage =
   | { id: number; from: "me"; text: string }
   | { id: number; from: "bot"; kind: "greeting" }
-  | { id: number; from: "bot"; kind: IntentKey };
+  | { id: number; from: "bot"; kind: ReplyKind };
 
 /** How long a pulse takes per unit of pipe, with a floor per leg (b3). */
 const MS_PER_UNIT = 3.4;
@@ -108,12 +109,15 @@ export function useWayfinderDemo(reducedMotion: boolean) {
     [reducedMotion],
   );
 
+  /**
+   * Send a message. A suggestion pill passes its own `ask` (and route);
+   * anything typed is free text, which goes to the supervisor and back.
+   */
   const send = useCallback(
-    async (question: string) => {
+    async (question: string, ask: Ask = FREE_TEXT) => {
       const text = question.trim();
       if (busy.current || !text) return;
       busy.current = true;
-      const intent = intentFor(text);
       setMessages((previous) => [
         ...previous,
         { id: nextId.current++, from: "me", text },
@@ -121,7 +125,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
       setTyping(true);
       setLit(new Set());
 
-      for (const step of demoPlan(intent, platformRef.current)) {
+      for (const step of demoPlan(ask, platformRef.current)) {
         if (!alive.current) return;
         if (step.type === "log") {
           const { line } = step;
@@ -141,11 +145,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
       setTyping(false);
       setMessages((previous) => [
         ...previous,
-        { id: nextId.current++, from: "bot", kind: intent.key },
-      ]);
-      setTrace((previous) => [
-        ...previous,
-        { who: "bff", text: "rendered as a rich card" },
+        { id: nextId.current++, from: "bot", kind: ask.key },
       ]);
       busy.current = false;
     },
