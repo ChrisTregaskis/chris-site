@@ -1,11 +1,16 @@
 import { type ReactNode } from "react";
 import { CVRequestProvider } from "@/features/cv-request";
+import { EnquiryProvider } from "@/features/enquiry";
 
 interface AppProvidersProps {
   children: ReactNode;
 }
 
-/** Composes every app-wide provider. Today only the CV request is app-wide. */
+/** Composes every app-wide provider: the CV request and the enquiry. */
 export function AppProviders({ children }: AppProvidersProps) {
-  return <CVRequestProvider>{children}</CVRequestProvider>;
+  return (
+    <CVRequestProvider>
+      <EnquiryProvider>{children}</EnquiryProvider>
+    </CVRequestProvider>
+  );
 }

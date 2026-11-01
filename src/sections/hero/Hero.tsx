@@ -1,13 +1,14 @@
 import { CVRequestButton } from "@/features/cv-request";
-import { ButtonLink } from "@/ui/atoms/ButtonLink";
+import { EnquiryButton } from "@/features/enquiry";
 import { Container } from "@/ui/atoms/Container";
 
 /**
- * The first screen: who, what, and the two ways in. Fills the viewport under
- * the sticky bar, so the work is found by scrolling, and fits it whole down to
- * about 600px tall: b3's padding and spacing from about 900px, easing down
- * with the viewport's height below that (the headline's size does too, in the
- * display-xl token).
+ * The first screen: who, what, and the two ways in (get in touch, or take
+ * the CV; the lede and the nav's Work link point on to the work). Fills the
+ * viewport under the sticky bar, so the work is found by scrolling, and fits
+ * it whole down to about 600px tall: b3's padding and spacing from about
+ * 900px, easing down with the viewport's height below that (the headline's
+ * size does too, in the display-xl token).
  */
 export function Hero() {
   return (
@@ -31,10 +32,8 @@ export function Hero() {
           watch one of them assemble.
         </p>
         <div className="flex flex-wrap gap-3">
-          <CVRequestButton />
-          <ButtonLink variant="ghost" href="#work">
-            See the work
-          </ButtonLink>
+          <EnquiryButton />
+          <CVRequestButton variant="ghost" />
         </div>
       </section>
     </Container>

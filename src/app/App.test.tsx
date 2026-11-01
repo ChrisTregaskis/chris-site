@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -33,7 +33,7 @@ describe("App", () => {
       "E-commerce for food manufacturing",
       "How I work with AI",
       "About",
-      "Always up for an interesting side project. Get in touch.",
+      "Let's work together.",
     ]);
     expect(
       screen.getByRole("heading", { level: 3, name: "How it was built" }),
@@ -53,21 +53,109 @@ describe("App", () => {
     );
   });
 
+  it("leads with Get in touch: the bar, the hero and Contact each open the enquiry", async () => {
+    vi.stubEnv("VITE_CHRIS_API", "https://api.test");
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+
+    const bar = screen
+      .getByRole("navigation", { name: "Primary" })
+      .closest("header") as HTMLElement;
+    const hero = screen.getByRole("region", { name: /I build whole products/ });
+    const contact = screen.getByRole("region", {
+      name: "Let's work together.",
+    });
+    // The bar has one action, and it's Get in touch.
+    expect(
+      within(bar)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Get in touch"]);
+    // Hero and Contact: Get in touch first, Request my CV second.
+    for (const region of [hero, contact]) {
+      expect(
+        within(region)
+          .getAllByRole("button")
+          .map((b) => b.textContent),
+      ).toEqual(["Get in touch", "Request my CV"]);
+    }
+    expect(
+      within(contact)
+        .getAllByRole("link")
+        .map((link) => link.textContent.replace(" (opens in a new tab)", "")),
+    ).toEqual(["LinkedIn", "GitHub", "Articles"]);
+
+    const opensTheEnquiry = async (region: HTMLElement) => {
+      const opener = within(region).getByRole("button", {
+        name: "Get in touch",
+      });
+      await user.click(opener);
+      const drawer = screen.getByRole("dialog", { name: "Get in touch" });
+      expect(drawer).toHaveAttribute("open");
+      expect(
+        screen.queryByRole("dialog", { name: "Request my CV" }),
+      ).not.toBeInTheDocument();
+
+      // Escape: jsdom's dialog has no key handling, so fire what it sends.
+      fireEvent(drawer, new Event("cancel", { cancelable: true }));
+      expect(drawer).not.toHaveAttribute("open");
+      expect(opener).toHaveFocus();
+    };
+    await opensTheEnquiry(bar);
+    await opensTheEnquiry(hero);
+    await opensTheEnquiry(contact);
+  });
+
   it("opens the CV drawer from any Request my CV button and closes it again", async () => {
     vi.stubEnv("VITE_CHRIS_API", "https://api.test");
     const user = userEvent.setup();
     renderWithProviders(<App />);
 
     const buttons = screen.getAllByRole("button", { name: "Request my CV" });
-    expect(buttons.length).toBeGreaterThanOrEqual(3);
+    expect(buttons).toHaveLength(2);
 
     await user.click(buttons[0]);
     const drawer = screen.getByRole("dialog", { name: "Request my CV" });
     expect(drawer).toHaveAttribute("open");
 
+    expect(
+      screen.queryByRole("dialog", { name: "Get in touch" }),
+    ).not.toBeInTheDocument();
     await user.click(within(drawer).getByRole("button", { name: "Close" }));
     expect(drawer).not.toHaveAttribute("open");
     expect(buttons[0]).toHaveFocus();
+
+    await user.click(buttons[1]);
+    expect(drawer).toHaveAttribute("open");
+  });
+
+  it("keeps the enquiry sent when the drawer is opened again", async () => {
+    vi.stubEnv("VITE_CHRIS_API", "https://api.test");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true })),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+
+    const [open] = screen.getAllByRole("button", { name: "Get in touch" });
+    await user.click(open);
+    const enquiry = within(
+      screen.getByRole("dialog", { name: "Get in touch" }),
+    );
+    await user.type(enquiry.getByLabelText("Name"), "Ada");
+    await user.type(enquiry.getByLabelText("Email address"), "ada@example.com");
+    await user.type(enquiry.getByLabelText("What's it about?"), "Hello");
+    await user.click(enquiry.getByRole("button", { name: "Send message" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Back to the site" }),
+    );
+    expect(open).toHaveFocus();
+
+    await user.click(open);
+    expect(
+      screen.getByRole("dialog", { name: "Message sent" }),
+    ).toHaveAttribute("open");
   });
 
   it("keeps the CV unlocked when the drawer is opened again", async () => {
@@ -81,9 +169,10 @@ describe("App", () => {
 
     const [open] = screen.getAllByRole("button", { name: "Request my CV" });
     await user.click(open);
-    await user.type(screen.getByLabelText("First name"), "Ada");
-    await user.type(screen.getByLabelText("Email address"), "ada@example.com");
-    await user.click(screen.getByRole("button", { name: "Unlock the CV" }));
+    const cv = within(screen.getByRole("dialog", { name: "Request my CV" }));
+    await user.type(cv.getByLabelText("First name"), "Ada");
+    await user.type(cv.getByLabelText("Email address"), "ada@example.com");
+    await user.click(cv.getByRole("button", { name: "Unlock the CV" }));
     await user.click(
       await screen.findByRole("button", { name: "Back to the site" }),
     );

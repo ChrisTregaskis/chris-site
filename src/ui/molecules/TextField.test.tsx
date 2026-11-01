@@ -99,9 +99,50 @@ describe("TextField", () => {
   });
 
   it("forwards its ref to the field so a form can focus it", () => {
-    const ref = createRef<HTMLInputElement | HTMLTextAreaElement>();
+    const ref = createRef<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >();
     renderWithProviders(<TextField ref={ref} label="Email" name="email" />);
     ref.current?.focus();
     expect(screen.getByLabelText("Email")).toHaveFocus();
+  });
+
+  it("renders a native select from options, with an empty first choice", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderWithProviders(
+      <TextField
+        label="What kind of help"
+        name="help"
+        optional
+        placeholder="Choose one"
+        options={[
+          { value: "a", label: "First" },
+          { value: "b", label: "Second" },
+        ]}
+        onChange={onChange}
+      />,
+    );
+    const select = screen.getByLabelText(/What kind of help/);
+    expect(select.tagName).toBe("SELECT");
+    expect(
+      screen.getAllByRole("option").map((option) => option.textContent),
+    ).toEqual(["Choose one", "First", "Second"]);
+    expect(select).toHaveValue("");
+    await user.selectOptions(select, "Second");
+    expect(select).toHaveValue("b");
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it("disables a select while read-only, since a select can't be", () => {
+    renderWithProviders(
+      <TextField
+        label="Kind"
+        name="kind"
+        readOnly
+        options={[{ value: "a", label: "First" }]}
+      />,
+    );
+    expect(screen.getByLabelText("Kind")).toBeDisabled();
   });
 });

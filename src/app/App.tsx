@@ -1,4 +1,5 @@
-import { CVDrawer, CVRequestButton } from "@/features/cv-request";
+import { CVDrawer } from "@/features/cv-request";
+import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
 import { AboutSection } from "@/sections/about/AboutSection";
 import { AiWorkflowSection } from "@/sections/ai-workflow/AiWorkflowSection";
 import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
@@ -17,7 +18,7 @@ const NAV_LINKS = [
   { href: "#contact", label: "Contact" },
 ];
 
-/** chris-tregaskis.uk: one long page, a sticky top bar and the CV drawer. */
+/** chris-tregaskis.uk: one long page, a sticky top bar, and the enquiry and CV drawers. */
 export function App() {
   return (
     <>
@@ -32,7 +33,7 @@ export function App() {
           <TopNav
             name="Chris Tregaskis"
             links={NAV_LINKS}
-            action={<CVRequestButton variant="ghost" size="sm" />}
+            action={<EnquiryButton variant="ghost" size="sm" />}
           />
         </Container>
       </div>
@@ -52,6 +53,7 @@ export function App() {
           © {new Date().getFullYear()} Chris Tregaskis
         </p>
       </Container>
+      <EnquiryDrawer />
       <CVDrawer />
     </>
   );
