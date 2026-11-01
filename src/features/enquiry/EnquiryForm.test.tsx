@@ -183,3 +183,93 @@ describe("EnquiryForm", () => {
     },
   );
 });
+
+describe("EnquiryForm on a return visit", () => {
+  const KEY = "ct:enquiry-sent:v1";
+  const stored = () =>
+    JSON.parse(localStorage.getItem(KEY) ?? "null") as { at: string } | null;
+
+  it("remembers a sent enquiry, holding only when it was sent", async () => {
+    const { user } = setup(async () => ({ ok: true }));
+    expect(stored()).toBeNull();
+    await fill(user);
+    await user.click(sendButton());
+
+    await screen.findByRole("heading", { name: "Message sent" });
+    const flag = stored();
+    expect(Object.keys(flag ?? {})).toEqual(["at"]);
+    expect(Number.isNaN(Date.parse(flag?.at ?? ""))).toBe(false);
+    // This visit keeps its own sent view.
+    expect(screen.getByText(/I'll read it properly/)).toBeInTheDocument();
+  });
+
+  it.each([
+    ["the API answers with an error", () => Promise.resolve({ ok: false })],
+    ["the request never arrives", () => Promise.reject(new Error("down"))],
+  ])("doesn't remember an enquiry when %s", async (_, failure) => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { user } = setup(failure);
+    await fill(user);
+    await user.click(sendButton());
+
+    await screen.findByRole("alert");
+    expect(stored()).toBeNull();
+  });
+
+  it("opens on the sent view when an earlier visit sent one", async () => {
+    localStorage.setItem(KEY, JSON.stringify({ at: "2026-11-01T09:30:00Z" }));
+    const { onDone, user } = setup(async () => ({ ok: true }));
+
+    expect(
+      screen.getByRole("heading", { name: "Message sent" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Thanks, your message reached me and I'll reply by email.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back to the site" }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends another message from an empty form", async () => {
+    localStorage.setItem(KEY, JSON.stringify({ at: "2026-11-01T09:30:00Z" }));
+    const { fetchMock, user } = setup(async () => ({ ok: true }));
+
+    await user.click(
+      screen.getByRole("button", { name: "Send another message" }),
+    );
+
+    const name = screen.getByLabelText("Name");
+    expect(name).toHaveFocus();
+    expect(name).toHaveValue("");
+    expect(screen.getByLabelText("What's it about?")).toHaveValue("");
+    expect(name).not.toHaveAttribute("aria-invalid");
+    expect(stored()).toBeNull();
+
+    await fill(user);
+    await user.click(sendButton());
+    await screen.findByRole("heading", { name: "Message sent" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/I'll read it properly/)).toBeInTheDocument();
+    expect(stored()).not.toBeNull();
+  });
+
+  it("shows the form as before when storage is blocked", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new DOMException("The operation is insecure.", "SecurityError");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("The operation is insecure.", "SecurityError");
+    });
+    const { user } = setup(async () => ({ ok: true }));
+
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
+    await fill(user);
+    await user.click(sendButton());
+    expect(
+      await screen.findByRole("heading", { name: "Message sent" }),
+    ).toBeInTheDocument();
+  });
+});

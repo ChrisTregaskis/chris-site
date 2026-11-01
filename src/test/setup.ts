@@ -49,6 +49,8 @@ if (typeof window !== "undefined") {
 
 afterEach(() => {
   cleanup();
+  // Remembered flags (finished forms) must not leak between tests.
+  if (typeof window !== "undefined") window.localStorage.clear();
   vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
