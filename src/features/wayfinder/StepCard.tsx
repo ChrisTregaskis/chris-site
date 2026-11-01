@@ -61,11 +61,14 @@ export function StepCard({
         ref={cardRef}
         onClick={onCardClick}
         className={cn(
-          "w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] transition-[border-color,opacity] duration-state motion-reduce:transition-none wide:w-auto wide:bg-panel",
+          "tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto",
           demo
             ? "cursor-auto wide:max-w-[460px]"
             : "cursor-pointer wide:max-w-[430px]",
-          on ? "border-accent-strong" : "border-line wide:opacity-[0.45]",
+          // Side by side, the others dim: b3's 45% frame, with quieter text that still reads at 4.5:1.
+          on
+            ? "border-accent-strong wide:bg-panel"
+            : "border-line wide:tone-dim wide:border-line/[0.45] wide:bg-panel/[0.45]",
         )}
       >
         <button

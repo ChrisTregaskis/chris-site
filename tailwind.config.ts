@@ -10,6 +10,7 @@ const COLOUR_TOKENS = [
   "line",
   "line-strong",
   "line-hover",
+  "line-field",
   "ink",
   "muted",
   "accent",

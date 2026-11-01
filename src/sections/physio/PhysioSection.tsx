@@ -170,10 +170,10 @@ export function PhysioSection() {
                 <div
                   ref={cardRef(n)}
                   className={cn(
-                    "w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] transition-[border-color,opacity] duration-state motion-reduce:transition-none wide:w-auto wide:max-w-[430px] wide:bg-panel",
+                    "tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto wide:max-w-[430px]",
                     on
-                      ? "border-accent-strong"
-                      : "border-line wide:opacity-[0.45]",
+                      ? "border-accent-strong wide:bg-panel"
+                      : "border-line wide:tone-dim wide:border-line/[0.45] wide:bg-panel/[0.45]",
                   )}
                 >
                   <span

@@ -38,3 +38,34 @@ describe("motion tokens", () => {
     }
   });
 });
+
+/** WCAG contrast between two `--color-*` tokens (RGB channel triplets). */
+function contrast(a: string, b: string): number {
+  const colours = cssVars("color");
+  const luminance = (name: string) => {
+    const [r, g, bl] = colours[name].split(/\s+/).map((channel) => {
+      const v = Number(channel) / 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+describe("colour tokens", () => {
+  it("keeps a dimmed step card's text at AA (4.5:1) on the card", () => {
+    // The dimmed card is panel at 45% over surface: between the two.
+    for (const text of ["dim-ink", "dim-muted"]) {
+      expect(contrast(text, "panel"), text).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(text, "surface"), text).toBeGreaterThanOrEqual(4.5);
+    }
+    // Chips and badges keep their raised fill.
+    expect(contrast("dim-ink", "raised")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("draws form field borders at 3:1 against the drawer and the field", () => {
+    expect(contrast("line-field", "panel")).toBeGreaterThanOrEqual(3);
+    expect(contrast("line-field", "surface")).toBeGreaterThanOrEqual(3);
+  });
+});

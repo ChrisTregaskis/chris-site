@@ -20,6 +20,12 @@
   --color-danger: 255 138 138; /* #FF8A8A */
   --color-danger-ink: 255 176 176; /* #FFB0B0 */
   --color-scrim: 8 9 24; /* #080918, used at 66% */
+  /* Form field borders: at least 3:1 on panel (5.1 on surface is the fill) */
+  --color-line-field: 101 105 180; /* #6569B4, 3.2:1 on panel, 3.6:1 on surface */
+  /* Inactive (dimmed) step cards (the .tone-dim class): ink and muted text one
+     tone quieter, both still at least 4.5:1 on the card */
+  --color-dim-ink: 164 166 207; /* #A4A6CF, the muted tone */
+  --color-dim-muted: 138 140 189; /* #8A8CBD, 5.0:1 on panel */
 
   /* Product mock: the Wayfinder isometric figure (faces of each part) */
   --color-figure-top: 54 58 128; /* #363A80 */

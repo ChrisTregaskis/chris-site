@@ -27,3 +27,23 @@
     outline-offset: 3px;
   }
 }
+
+@layer components {
+  /* Text in a step card eases between its active and dimmed tones. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tone-ease :where(*) {
+      transition: color var(--duration-state) var(--ease-enter);
+    }
+  }
+}
+
+@layer utilities {
+  /*
+   * An inactive step card: its text one tone quieter rather than see-through,
+   * so every line still meets 4.5:1 (b3 faded the whole card to 45%).
+   */
+  .tone-dim {
+    --color-ink: var(--color-dim-ink);
+    --color-muted: var(--color-dim-muted);
+  }
+}
