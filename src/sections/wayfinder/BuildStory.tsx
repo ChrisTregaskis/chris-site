@@ -34,7 +34,7 @@ const stroke = {
 
 /**
  * The eval bench: a companion note under the lane, not a step on it. Side by
- * side it sits in the pinned section under the build, review and ship steps;
+ * side it sits in the pinned section, centred under the plan, build and review steps;
  * stacked, it follows the pinned run (so the lane still fits a phone's
  * screen), lined up with the steps' text. It rises in as the lane reaches
  * Review gates (static under reduced motion, where the lane is lit from the
@@ -54,7 +54,7 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
         initial={false}
         animate={shown ? preset.animate : preset.initial}
         transition={preset.transition}
-        className="flex max-w-[640px] flex-col gap-3 rounded-card sheet:flex-row sheet:gap-4 border border-dashed border-line-strong bg-panel px-5 py-4 wide:col-span-3 wide:col-start-3"
+        className="flex max-w-[640px] flex-col gap-3 rounded-card sheet:flex-row sheet:gap-4 border border-dashed border-line-strong bg-panel px-5 py-4 wide:col-span-3 wide:col-start-2"
       >
         <span
           aria-hidden="true"
