@@ -74,7 +74,7 @@ export default {
       },
       fontSize: {
         "display-xl": [
-          "clamp(38px, 6.4vw, 84px)",
+          "clamp(min(38px, 6svh), min(6.4vw, 9.4svh), 84px)",
           { lineHeight: "1.02", letterSpacing: "-0.025em" },
         ],
         "display-lg": [
