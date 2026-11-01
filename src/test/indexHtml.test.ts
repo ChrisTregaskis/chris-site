@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -18,6 +18,32 @@ describe("index.html", () => {
   it("describes the page for search and link previews", () => {
     expect(read("index.html")).toMatch(
       /<meta\s+name="description"\s+content="[^"]{50,160}"/,
+    );
+  });
+
+  it("links icons that exist in public/", () => {
+    const icons = [
+      ...read("index.html").matchAll(
+        /<link\s+rel="(?:icon|apple-touch-icon)"\s+href="\/([^"]+)"/g,
+      ),
+    ].map((match) => match[1]);
+    expect(icons).toEqual([
+      "favicon.ico",
+      "favicon.svg",
+      "apple-touch-icon.png",
+    ]);
+    for (const icon of icons) {
+      expect(existsSync(resolve(__dirname, "../../public", icon))).toBe(true);
+    }
+  });
+
+  it("tints the browser chrome with the surface token", () => {
+    const surface = read("src/ui/tokens/tokens.css").match(
+      /--color-surface: [^;]+; \/\* (#[0-9A-F]{6}) \*\//,
+    )?.[1];
+    expect(surface).toBe("#13142E");
+    expect(read("index.html")).toContain(
+      `<meta name="theme-color" content="${surface}" />`,
     );
   });
 });
