@@ -119,7 +119,8 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
 
   return (
     <div data-no-select="">
-      <div className="mt-[14px] flex h-[320px] flex-col overflow-hidden rounded-[16px] bg-chat-surface text-chat-ink shadow-float wide:h-[380px]">
+      {/* The page's amber focus ring is too faint on the white widget (1.6:1), so it draws in the widget's ink here. */}
+      <div className="mt-[14px] flex h-[320px] flex-col overflow-hidden rounded-[16px] bg-chat-surface text-chat-ink shadow-float wide:h-[380px] [&_:focus-visible]:outline-chat-strong">
         <div className="flex items-center gap-[10px] border-b border-chat-line px-3 py-[10px]">
           <span
             aria-hidden="true"
@@ -145,7 +146,8 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
           ))}
           {typing ? (
             <div className={BOT}>
-              <span className="inline-flex gap-[3px]" aria-label="Typing">
+              <span className="sr-only">Typing</span>
+              <span className="inline-flex gap-[3px]" aria-hidden="true">
                 {[0, 150, 300].map((delay) => (
                   <i
                     key={delay}
@@ -171,7 +173,7 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
         </div>
         <form
           onSubmit={submit}
-          className="flex border-t border-chat-line focus-within:shadow-ring-accent"
+          className="flex border-t border-chat-line focus-within:shadow-[inset_0_0_0_1.5px_rgb(var(--color-accent-strong))]"
         >
           <input
             aria-label="Message"

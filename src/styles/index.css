@@ -9,6 +9,13 @@
     -webkit-text-size-adjust: 100%;
     /* In-page links land below the sticky top bar. */
     scroll-padding-top: var(--size-nav);
+    /* Locking scroll (below) mustn't shift the page sideways. */
+    scrollbar-gutter: stable;
+  }
+
+  /* The page behind a modal dialog (the CV drawer) doesn't scroll. */
+  html:has(dialog[open]) {
+    overflow: hidden;
   }
 
   body {

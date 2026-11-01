@@ -3,6 +3,7 @@ import { CV_VIEW_URL } from "./cvLink";
 import { Button } from "@/ui/atoms/Button";
 import { ButtonLink } from "@/ui/atoms/ButtonLink";
 import { Icon } from "@/ui/atoms/Icon";
+import { VisuallyHidden } from "@/ui/atoms/VisuallyHidden";
 import { TextField } from "@/ui/molecules/TextField";
 
 export const CV_TITLE_ID = "cv-title";
@@ -55,6 +56,7 @@ export function CVRequestForm({ onDone }: CVRequestFormProps) {
         <div className="flex flex-wrap gap-3">
           <ButtonLink href={CV_VIEW_URL} target="_blank" rel="noopener">
             View CV
+            <VisuallyHidden> (opens in a new tab)</VisuallyHidden>
           </ButtonLink>
           <Button variant="ghost" onClick={onDone}>
             Back to the site

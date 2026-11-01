@@ -92,6 +92,6 @@ describe("App", () => {
     expect(screen.getByRole("dialog", { name: "CV unlocked" })).toHaveAttribute(
       "open",
     );
-    expect(screen.getByRole("link", { name: "View CV" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^View CV/ })).toBeInTheDocument();
   });
 });

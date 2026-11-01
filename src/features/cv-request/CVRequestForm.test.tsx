@@ -60,7 +60,9 @@ describe("CVRequestForm", () => {
     await fill(user);
     await user.click(submitButton());
 
-    const view = await screen.findByRole("link", { name: "View CV" });
+    const view = await screen.findByRole("link", {
+      name: /^View CV.*\(opens in a new tab\)$/,
+    });
     expect(view).toHaveAttribute("href", CV_URL);
     expect(view).toHaveAttribute("target", "_blank");
     await user.click(screen.getByRole("button", { name: "Back to the site" }));
