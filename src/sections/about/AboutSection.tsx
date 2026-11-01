@@ -19,16 +19,24 @@ export function AboutSection() {
   const clipRef = useRef<SVGPathElement>(null);
   const ringRef = useRef<SVGPathElement>(null);
 
+  const drawn = useRef(-1);
   const onFrame = useCallback(() => {
     const splash = splashRef.current;
     if (!splash) return;
     const rect = splash.getBoundingClientRect();
-    const t = viewportProgress(rect.top, rect.height, window.innerHeight);
+    // A thousandth of the way through is finer than a pixel of drift: skip
+    // rewriting the transform and both paths when nothing would change.
+    const t =
+      Math.round(
+        viewportProgress(rect.top, rect.height, window.innerHeight) * 1000,
+      ) / 1000;
+    if (t === drawn.current) return;
+    drawn.current = t;
     splash.style.transform = `translateY(${(t - 0.5) * -18}px)`;
     clipRef.current?.setAttribute("d", blobPath(t));
     ringRef.current?.setAttribute("d", blobPath(1 - t));
   }, []);
-  useScrollFrame(onFrame, !still);
+  useScrollFrame(onFrame, !still, splashRef);
 
   return (
     <Section id="about" labelledBy="about-title" spacing="roomy">

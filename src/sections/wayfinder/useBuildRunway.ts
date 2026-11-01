@@ -52,6 +52,7 @@ export function useBuildRunway(steps: number, still: boolean) {
     return () => window.removeEventListener("resize", size);
   }, [size]);
 
+  const drawn = useRef(-1);
   const onFrame = useCallback(() => {
     const run = runRef.current;
     const track = trackRef.current;
@@ -63,11 +64,14 @@ export function useBuildRunway(steps: number, still: boolean) {
           layout.runway,
         )
       : 1;
-    track.style.setProperty("--p", String(progress));
+    if (progress !== drawn.current) {
+      drawn.current = progress;
+      track.style.setProperty("--p", String(progress));
+    }
     setLit(milestonesPassed(progress, steps));
   }, [layout, steps]);
 
-  useScrollFrame(onFrame);
+  useScrollFrame(onFrame, true, runRef);
 
   return { runRef, sectionRef, trackRef, layout, lit };
 }

@@ -38,23 +38,31 @@ export function BurpeesSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [reps, setReps] = useState(still ? 100 : 0);
+  const stickTop = useRef(0);
   const { figureRef, pose, count } = useSealBeat(still);
 
-  const onFrame = useCallback(() => {
+  const onFrame = useCallback((resized: boolean) => {
     const section = sectionRef.current;
     const stage = stageRef.current;
     if (!section || !stage) return;
+    // Phones pin the stage under the sticky bar; side by side it pins at the
+    // top (b3). Only a resize can change which, so it's measured only then.
+    if (resized) {
+      stickTop.current = parseFloat(getComputedStyle(stage).top) || 0;
+    }
     const rect = section.getBoundingClientRect();
-    // Phones pin the stage under the sticky bar; side by side it pins at the top (b3).
-    const stickTop = parseFloat(getComputedStyle(stage).top) || 0;
     setReps(
       Math.round(
-        stickyProgress(rect.top, rect.height, window.innerHeight, stickTop) *
-          100,
+        stickyProgress(
+          rect.top,
+          rect.height,
+          window.innerHeight,
+          stickTop.current,
+        ) * 100,
       ),
     );
   }, []);
-  useScrollFrame(onFrame, !still);
+  useScrollFrame(onFrame, !still, sectionRef);
 
   const readout = setReadout((still ? 100 : reps) / 100);
 
@@ -69,7 +77,7 @@ export function BurpeesSection() {
         <div
           ref={stageRef}
           className={cn(
-            "grid grid-cols-1 content-center gap-[18px] wide:grid-cols-2 wide:items-center wide:gap-[clamp(24px,5vw,72px)]",
+            "grid grid-cols-1 content-center gap-[18px] [@media(max-width:860px)_and_(max-height:620px)]:gap-[6px] wide:grid-cols-2 wide:items-center wide:gap-[clamp(24px,5vw,72px)]",
             still
               ? "py-[clamp(40px,6vw,80px)]"
               : "sticky top-nav h-[calc(100svh-var(--size-nav))] wide:top-0 wide:h-screen",
@@ -78,7 +86,7 @@ export function BurpeesSection() {
           <div>
             <h2
               id="burpees-title"
-              className="m-0 mb-[14px] font-display text-display-lg font-semibold"
+              className="m-0 mb-[14px] font-display text-display-lg font-semibold [@media(max-width:860px)_and_(max-height:620px)]:mb-[6px]"
             >
               Badass Burpees
             </h2>
@@ -97,7 +105,7 @@ export function BurpeesSection() {
                 ]}
               />
             </div>
-            <p className="m-0 mb-4 mt-5">
+            <p className="m-0 mb-4 mt-5 [@media(max-width:860px)_and_(max-height:620px)]:mb-0 [@media(max-width:860px)_and_(max-height:620px)]:mt-[6px]">
               <ButtonLink
                 variant="ghost"
                 href="https://badass-burpees.app/"
@@ -110,7 +118,11 @@ export function BurpeesSection() {
             </p>
           </div>
 
-          <div className="mx-auto aspect-[9/18.5] w-[min(220px,60vw)] rounded-[38px] bg-bb-bezel p-[10px] shadow-phone wide:w-[min(280px,72vw)]">
+          <div
+            role="group"
+            aria-label="Badass Burpees app screen"
+            className="mx-auto aspect-[9/18.5] w-[min(220px,60vw)] rounded-[38px] bg-bb-bezel p-[10px] shadow-phone wide:w-[min(280px,72vw)]"
+          >
             <div className="flex h-full flex-col items-center justify-between gap-2 rounded-[30px] bg-bb-screen px-4 pb-[18px] pt-[22px] text-center font-display text-bb-ink">
               <p className="m-0 self-stretch text-left text-[24px] font-extrabold leading-[0.9] tracking-[0.01em]">
                 BADASS
@@ -154,7 +166,11 @@ export function BurpeesSection() {
                 ) : null}
               </div>
               <div className="relative size-[118px]">
-                <svg viewBox="0 0 100 100" className="size-full -rotate-90">
+                <svg
+                  viewBox="0 0 100 100"
+                  aria-hidden="true"
+                  className="size-full -rotate-90"
+                >
                   <circle
                     cx="50"
                     cy="50"
@@ -175,7 +191,13 @@ export function BurpeesSection() {
                     className="stroke-bb-yellow"
                   />
                 </svg>
-                <div className="absolute inset-0 grid place-content-center text-[34px] font-extrabold leading-none">
+                <VisuallyHidden>
+                  {readout.reps} of 100 burpees done
+                </VisuallyHidden>
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 grid place-content-center text-[34px] font-extrabold leading-none"
+                >
                   <span>{readout.reps}</span>
                   <small className="mt-1 font-body text-[10px] font-semibold tracking-[0.04em] opacity-70">
                     OF 100
