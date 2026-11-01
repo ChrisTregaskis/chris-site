@@ -118,7 +118,7 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
   return (
     <div data-no-select="">
       {/* The page's amber focus ring is too faint on the white widget (1.6:1), so it draws in the widget's ink here. */}
-      <div className="mt-[14px] flex h-[360px] flex-col overflow-hidden rounded-[16px] bg-chat-surface text-chat-ink shadow-float wide:h-[clamp(380px,calc(100svh-280px),480px)] [&_:focus-visible]:outline-chat-strong">
+      <div className="mt-[14px] flex h-[360px] flex-col overflow-hidden rounded-[16px] bg-chat-surface text-chat-ink shadow-float wide:h-[clamp(320px,calc(100svh-280px),480px)] [&_:focus-visible]:outline-chat-strong">
         <div className="flex items-center gap-[10px] border-b border-chat-line px-3 py-[10px]">
           <span
             aria-hidden="true"
