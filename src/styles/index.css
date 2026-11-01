@@ -4,19 +4,46 @@
 @tailwind components;
 @tailwind utilities;
 
-.key--darker {
-  @apply bg-gray-800 border-gray-700 shadow-gray-900;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* In-page links land below the sticky top bar. */
+    scroll-padding-top: var(--size-nav);
+    /* Locking scroll (below) mustn't shift the page sideways. */
+    scrollbar-gutter: stable;
+  }
+
+  /* The page behind a modal dialog (the CV drawer) doesn't scroll. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-surface font-body text-body text-ink;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-signal));
+    outline-offset: 3px;
+  }
 }
 
-.key--medium {
-  @apply col-span-2;
+@layer components {
+  /* Text in a step card eases between its active and dimmed tones. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tone-ease :where(*) {
+      transition: color var(--duration-state) var(--ease-enter);
+    }
+  }
 }
 
-/* Legacy variables for the terminal-era UI (retired in 3c). Single theme. */
-:root {
-  --bgColor: #030712;
-  --textColorPrimary: #f0f8ff;
-  --textColorSecondary: hsl(0, 83.87%, 63.53%);
-  --buttonPrimary: #320064;
-  --buttonSecondary: #7d3c98;
+@layer utilities {
+  /*
+   * An inactive step card: its text one tone quieter rather than see-through,
+   * so every line still meets 4.5:1 (b3 faded the whole card to 45%).
+   */
+  .tone-dim {
+    --color-ink: var(--color-dim-ink);
+    --color-muted: var(--color-dim-muted);
+  }
 }

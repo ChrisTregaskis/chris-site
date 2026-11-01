@@ -1,90 +1,193 @@
-import { act, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
-const CV_URL =
-  "https://drive.google.com/file/d/1AZSv0lZslUnKFXBZXfNR6NeZ1FUkLonj/view";
-const FILE_ID_PLACEHOLDER =
-  "[ To access file id, please first click PDF icon and complete form request. ]";
-
-const keyFor = (tip: string) => {
-  const button = screen.getByText(tip).closest("button");
-  if (!button) throw new Error(`No key with tooltip ${tip}`);
-  return button;
-};
-
 describe("App", () => {
-  it("auto-advances the terminal to the hidden file id", async () => {
-    vi.useFakeTimers();
+  it("leads with who Chris is and what he does", () => {
     renderWithProviders(<App />);
-
-    expect(screen.getByText("yourcomputer ~/ $")).toBeInTheDocument();
-    expect(screen.queryByText(FILE_ID_PLACEHOLDER)).not.toBeInTheDocument();
-
-    await act(async () => {
-      vi.advanceTimersByTime(5000);
-    });
-    await act(async () => {
-      vi.advanceTimersByTime(5000);
-    });
-    expect(screen.getByText(FILE_ID_PLACEHOLDER)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: /I build whole products, end to end/,
+      }),
+    ).toBeInTheDocument();
+    const nav = screen.getByRole("navigation", { name: "Primary" });
+    expect(
+      within(nav)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["#work", "#about", "#contact"]);
   });
 
-  it("toggles between the terminal and About", async () => {
+  it("tells the story in order: the work, how it's built, about and contact", () => {
+    renderWithProviders(<App />);
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
+    ).toEqual([
+      "Wayfinder, an AI guide for a global automotive brand",
+      "A multi-tenant SaaS for physio and wellness practices",
+      "Badass Burpees",
+      "About",
+      "Let's work together.",
+    ]);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "How it was built" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", {
+        name: "Chris with his son on his shoulders, out walking through the ferns",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /GitHub/ })).toHaveAttribute(
+      "href",
+      "https://github.com/ChrisTregaskis",
+    );
+    expect(screen.getByRole("link", { name: /Articles/ })).toHaveAttribute(
+      "href",
+      "https://medium.com/@c.tregaskis",
+    );
+  });
+
+  it("describes Chris's own build as AI-assisted, one step at a time, never parallel agents", () => {
+    renderWithProviders(<App />);
+    const page = document.body.textContent;
+    expect(page).not.toMatch(
+      /agents build|agents implement|in parallel|several at once|subagent|fleet/i,
+    );
+    const lane = screen.getByRole("region", { name: "How it was built" });
+    expect(within(lane).getByText("AI-assisted build")).toBeInTheDocument();
+  });
+
+  it("leads with Get in touch: the bar, the hero and Contact each open the enquiry", async () => {
+    vi.stubEnv("VITE_CHRIS_API", "https://api.test");
     const user = userEvent.setup();
     renderWithProviders(<App />);
 
-    await user.click(keyFor("About Me"));
+    const bar = screen
+      .getByRole("navigation", { name: "Primary" })
+      .closest("header") as HTMLElement;
+    const hero = screen.getByRole("region", { name: /I build whole products/ });
+    const contact = screen.getByRole("region", {
+      name: "Let's work together.",
+    });
+    // The bar has one action, and it's Get in touch.
     expect(
-      screen.getByRole("heading", { name: "Chris Tregaskis" }),
-    ).toBeInTheDocument();
+      within(bar)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Get in touch"]);
+    // Hero and Contact: Get in touch first, Request my CV second.
+    for (const region of [hero, contact]) {
+      expect(
+        within(region)
+          .getAllByRole("button")
+          .map((b) => b.textContent),
+      ).toEqual(["Get in touch", "Request my CV"]);
+    }
     expect(
-      screen.getByRole("heading", { name: "Software Developer" }),
-    ).toBeInTheDocument();
+      within(contact)
+        .getAllByRole("link")
+        .map((link) => link.textContent.replace(" (opens in a new tab)", "")),
+    ).toEqual(["LinkedIn", "GitHub", "Articles"]);
 
-    await user.click(keyFor("Terminal"));
-    expect(
-      screen.queryByRole("heading", { name: "Chris Tregaskis" }),
-    ).not.toBeInTheDocument();
+    const opensTheEnquiry = async (region: HTMLElement) => {
+      const opener = within(region).getByRole("button", {
+        name: "Get in touch",
+      });
+      await user.click(opener);
+      const drawer = screen.getByRole("dialog", { name: "Get in touch" });
+      expect(drawer).toHaveAttribute("open");
+      expect(
+        screen.queryByRole("dialog", { name: "Request my CV" }),
+      ).not.toBeInTheDocument();
+
+      // Escape: jsdom's dialog has no key handling, so fire what it sends.
+      fireEvent(drawer, new Event("cancel", { cancelable: true }));
+      expect(drawer).not.toHaveAttribute("open");
+      expect(opener).toHaveFocus();
+    };
+    await opensTheEnquiry(bar);
+    await opensTheEnquiry(hero);
+    await opensTheEnquiry(contact);
   });
 
-  it("opens the CV form until the CV is unlocked, then opens Drive", async () => {
+  it("opens the CV drawer from any Request my CV button and closes it again", async () => {
+    vi.stubEnv("VITE_CHRIS_API", "https://api.test");
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+
+    const buttons = screen.getAllByRole("button", { name: "Request my CV" });
+    expect(buttons).toHaveLength(2);
+
+    await user.click(buttons[0]);
+    const drawer = screen.getByRole("dialog", { name: "Request my CV" });
+    expect(drawer).toHaveAttribute("open");
+
+    expect(
+      screen.queryByRole("dialog", { name: "Get in touch" }),
+    ).not.toBeInTheDocument();
+    await user.click(within(drawer).getByRole("button", { name: "Close" }));
+    expect(drawer).not.toHaveAttribute("open");
+    expect(buttons[0]).toHaveFocus();
+
+    await user.click(buttons[1]);
+    expect(drawer).toHaveAttribute("open");
+  });
+
+  it("keeps the enquiry sent when the drawer is opened again", async () => {
     vi.stubEnv("VITE_CHRIS_API", "https://api.test");
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({ ok: true })),
     );
-    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
     const user = userEvent.setup();
     renderWithProviders(<App />);
 
-    await user.click(keyFor("Request CV"));
+    const [open] = screen.getAllByRole("button", { name: "Get in touch" });
+    await user.click(open);
+    const enquiry = within(
+      screen.getByRole("dialog", { name: "Get in touch" }),
+    );
+    await user.type(enquiry.getByLabelText("Name"), "Ada");
+    await user.type(enquiry.getByLabelText("Email address"), "ada@example.com");
+    await user.type(enquiry.getByLabelText("What's it about?"), "Hello");
+    await user.click(enquiry.getByRole("button", { name: "Send message" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Back to the site" }),
+    );
+    expect(open).toHaveFocus();
+
+    await user.click(open);
     expect(
-      screen.getByRole("heading", { name: "Unlock Chris's CV" }),
-    ).toBeInTheDocument();
-    expect(openSpy).not.toHaveBeenCalled();
-
-    await user.type(screen.getByLabelText("First Name"), "Ada");
-    await user.type(screen.getByLabelText("Email Address"), "ada@example.com");
-    await user.click(screen.getByRole("button", { name: "Submit" }));
-    await screen.findByRole("heading", { name: "CV Unlocked!" });
-
-    await user.click(keyFor("Request CV"));
-    expect(openSpy).toHaveBeenCalledWith(CV_URL);
+      screen.getByRole("dialog", { name: "Message sent" }),
+    ).toHaveAttribute("open");
   });
 
-  it("shows the Enter key only on the terminal view", async () => {
+  it("keeps the CV unlocked when the drawer is opened again", async () => {
+    vi.stubEnv("VITE_CHRIS_API", "https://api.test");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true })),
+    );
     const user = userEvent.setup();
     renderWithProviders(<App />);
 
-    expect(
-      screen.getByText("Press enter to toggle commands"),
-    ).toBeInTheDocument();
-    await user.click(keyFor("About Me"));
-    expect(
-      screen.queryByText("Press enter to toggle commands"),
-    ).not.toBeInTheDocument();
+    const [open] = screen.getAllByRole("button", { name: "Request my CV" });
+    await user.click(open);
+    const cv = within(screen.getByRole("dialog", { name: "Request my CV" }));
+    await user.type(cv.getByLabelText("First name"), "Ada");
+    await user.type(cv.getByLabelText("Email address"), "ada@example.com");
+    await user.click(cv.getByRole("button", { name: "Unlock the CV" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Back to the site" }),
+    );
+
+    await user.click(open);
+    expect(screen.getByRole("dialog", { name: "CV unlocked" })).toHaveAttribute(
+      "open",
+    );
+    expect(screen.getByRole("link", { name: /^View CV/ })).toBeInTheDocument();
   });
 });

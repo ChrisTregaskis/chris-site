@@ -43,4 +43,17 @@ describe("TopNav", () => {
     expect(within(nav).getAllByRole("link")).toHaveLength(2);
     expect(consoleError).not.toHaveBeenCalled();
   });
+
+  it("keeps its action visible beside the links", () => {
+    renderWithProviders(
+      <TopNav
+        name="Ada Lovelace"
+        links={[{ href: "#work", label: "Work" }]}
+        action={<button type="button">Request my CV</button>}
+      />,
+    );
+    const nav = screen.getByRole("navigation", { name: "Primary" });
+    const action = screen.getByRole("button", { name: "Request my CV" });
+    expect(nav).not.toContainElement(action);
+  });
 });

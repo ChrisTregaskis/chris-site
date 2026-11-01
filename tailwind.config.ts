@@ -10,6 +10,7 @@ const COLOUR_TOKENS = [
   "line",
   "line-strong",
   "line-hover",
+  "line-field",
   "ink",
   "muted",
   "accent",
@@ -19,21 +20,49 @@ const COLOUR_TOKENS = [
   "danger",
   "danger-ink",
   "scrim",
+  "figure-top",
+  "figure-left",
+  "figure-right",
+  "figure-on-left",
+  "figure-base-left",
+  "figure-base-right",
+  "figure-base-on",
+  "chat-surface",
+  "chat-ink",
+  "chat-strong",
+  "chat-muted",
+  "chat-line",
+  "chat-field",
+  "chat-card-line",
+  "chat-bubble",
+  "chat-media-from",
+  "chat-media-to",
+  "chat-typing",
+  "bb-bezel",
+  "bb-bezel-edge",
+  "bb-screen",
+  "bb-glow",
+  "bb-ink",
+  "bb-track",
+  "bb-yellow",
+  "bb-cadence",
+  "bb-dark",
+  "tenant-teal",
 ] as const;
 
+// The showcase is a dev-only entry, never built into dist/, so production
+// CSS skips its utilities.
+const SHOWCASE_IN_CSS = process.env.NODE_ENV !== "production";
+
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    ...(SHOWCASE_IN_CSS ? [] : ["!./src/showcase/**"]),
+  ],
   theme: {
     extend: {
       colors: {
-        // Legacy terminal-era keys (retired in 3c).
-        dark: "#141414",
-        light: "#f0f8ff",
-        bgColor: "var(--bgColor)",
-        textColorPrimary: "var(--textColorPrimary)",
-        textColorSecondary: "var(--textColorSecondary)",
-        buttonPrimary: "var(--buttonPrimary)",
-        buttonSecondary: "var(--buttonSecondary)",
         // Design tokens (src/ui/tokens/tokens.css).
         ...Object.fromEntries(
           COLOUR_TOKENS.map((name) => [name, colour(name)]),
@@ -46,7 +75,7 @@ export default {
       },
       fontSize: {
         "display-xl": [
-          "clamp(38px, 6.4vw, 84px)",
+          "clamp(min(38px, 6svh), min(6.4vw, 9.4svh), 84px)",
           { lineHeight: "1.02", letterSpacing: "-0.025em" },
         ],
         "display-lg": [
@@ -75,6 +104,7 @@ export default {
         gutter: "var(--space-gutter)",
         section: "var(--space-section)",
         "section-lg": "var(--space-section-lg)",
+        nav: "var(--size-nav)",
       },
       maxWidth: {
         container: "var(--size-container)",
@@ -92,11 +122,13 @@ export default {
       },
       boxShadow: {
         popover: "var(--shadow-popover)",
-        raised: "var(--shadow-raised)",
+        float: "var(--shadow-float)",
+        phone: "var(--shadow-phone)",
         drawer: "var(--shadow-drawer)",
         "focus-glow": "var(--shadow-focus-glow)",
         "ring-line": "var(--shadow-ring-line)",
         "ring-accent": "var(--shadow-ring-accent)",
+        "ring-signal": "var(--shadow-ring-signal)",
       },
       screens: {
         sheet: `${BREAKPOINT.sheet}px`,
@@ -115,8 +147,24 @@ export default {
         lift: "var(--ease-lift)",
         tick: "var(--ease-tick)",
       },
+      keyframes: {
+        // The CV drawer (from the right) and phone bottom sheet (from below),
+        // as the enterFromRight / enterFromBelow motion presets.
+        "drawer-in": {
+          from: { transform: "translateX(40px)", opacity: "0" },
+        },
+        "sheet-up": {
+          from: { transform: "translateY(40px)", opacity: "0" },
+        },
+        // The chat mock's typing dots (b3 "bl").
+        "typing-dot": {
+          "50%": { opacity: "0.25" },
+        },
+      },
       animation: {
-        "spin-fast": "spin 0.5s linear infinite",
+        "drawer-in": "drawer-in var(--duration-enter) var(--ease-enter)",
+        "sheet-up": "sheet-up var(--duration-enter) var(--ease-enter)",
+        "typing-dot": "typing-dot 1s infinite",
       },
     },
   },

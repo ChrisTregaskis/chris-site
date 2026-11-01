@@ -2,6 +2,7 @@ import { ActionsSection } from "./sections/ActionsSection";
 import { FormSection } from "./sections/FormSection";
 import { LayoutSection } from "./sections/LayoutSection";
 import { MotionSection } from "./sections/MotionSection";
+import { OrganismsSection } from "./sections/OrganismsSection";
 import { TokensSection } from "./sections/TokensSection";
 
 /**
@@ -18,8 +19,8 @@ export function Showcase() {
             Design system
           </h1>
           <p className="mt-5 max-w-measure text-lede text-muted">
-            Tokens, motion presets, atoms and molecules from the locked look.
-            Placeholder copy throughout.
+            Tokens, motion presets, atoms, molecules and organisms from the
+            locked look. Placeholder copy throughout.
           </p>
         </header>
         <TokensSection />
@@ -27,6 +28,7 @@ export function Showcase() {
         <ActionsSection />
         <LayoutSection />
         <FormSection />
+        <OrganismsSection />
       </div>
     </div>
   );

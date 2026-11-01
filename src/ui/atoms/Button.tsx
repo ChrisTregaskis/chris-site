@@ -1,9 +1,14 @@
 import {
   type ButtonHTMLAttributes,
+  forwardRef,
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { type ButtonVariant, buttonClasses } from "./buttonClasses";
+import {
+  type ButtonSize,
+  type ButtonVariant,
+  buttonClasses,
+} from "./buttonClasses";
 import { Spinner } from "./Spinner";
 import { VisuallyHidden } from "./VisuallyHidden";
 import { cn } from "@/lib/cn";
@@ -13,6 +18,7 @@ export interface ButtonProps extends Omit<
   "type"
 > {
   variant?: ButtonVariant;
+  size?: ButtonSize;
   type?: "button" | "submit" | "reset";
   /**
    * Busy state: the button keeps its accessible name and focus, announces
@@ -25,44 +31,55 @@ export interface ButtonProps extends Omit<
   pressed?: boolean;
 }
 
-export function Button({
-  variant = "primary",
-  type = "button",
-  loading = false,
-  loadingText,
-  pressed,
-  className,
-  children,
-  onClick,
-  ...rest
-}: ButtonProps) {
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (loading) {
-      event.preventDefault();
-      return;
-    }
-    onClick?.(event);
-  };
+/** Forwards its ref, so a form can hand focus back to it (b3 "Try again"). */
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  function Button(
+    {
+      variant = "primary",
+      size = "md",
+      type = "button",
+      loading = false,
+      loadingText,
+      pressed,
+      className,
+      children,
+      onClick,
+      ...rest
+    },
+    ref,
+  ) {
+    const ariaDisabled = rest["aria-disabled"];
+    // A caller's aria-disabled blocks clicks too, not just the look.
+    const blocked = loading || ariaDisabled === true || ariaDisabled === "true";
+    const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+      if (blocked) {
+        event.preventDefault();
+        return;
+      }
+      onClick?.(event);
+    };
 
-  return (
-    <button
-      {...rest}
-      type={type}
-      onClick={handleClick}
-      aria-busy={loading || undefined}
-      aria-disabled={loading || rest["aria-disabled"]}
-      aria-pressed={pressed}
-      className={cn(buttonClasses(variant), className)}
-    >
-      {loading ? (
-        <>
-          <Spinner />
-          {loadingText ? <span aria-hidden="true">{loadingText}</span> : null}
-          <VisuallyHidden>{children}</VisuallyHidden>
-        </>
-      ) : (
-        children
-      )}
-    </button>
-  );
-}
+    return (
+      <button
+        ref={ref}
+        {...rest}
+        type={type}
+        onClick={handleClick}
+        aria-busy={loading || undefined}
+        aria-disabled={blocked || undefined}
+        aria-pressed={pressed}
+        className={cn(buttonClasses(variant, size), className)}
+      >
+        {loading ? (
+          <>
+            <Spinner />
+            {loadingText ? <span aria-hidden="true">{loadingText}</span> : null}
+            <VisuallyHidden>{children}</VisuallyHidden>
+          </>
+        ) : (
+          children
+        )}
+      </button>
+    );
+  },
+);

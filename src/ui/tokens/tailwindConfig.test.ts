@@ -3,16 +3,6 @@ import { describe, expect, it } from "vitest";
 import config from "../../../tailwind.config";
 import { TOKEN_MERGE_KEYS } from "@/lib/cn";
 
-const LEGACY_COLOUR_KEYS = [
-  "dark",
-  "light",
-  "bgColor",
-  "textColorPrimary",
-  "textColorSecondary",
-  "buttonPrimary",
-  "buttonSecondary",
-];
-
 const extend = config.theme.extend as Record<string, object>;
 
 // Resolved, so groups Tailwind defines as functions (colors, maxWidth…) are
@@ -36,12 +26,12 @@ describe("tailwind config", () => {
     expect(shadowed).toEqual([]);
   });
 
-  it("keeps the legacy colour keys", () => {
-    const colours = extend.colors as Record<string, unknown>;
-    for (const key of LEGACY_COLOUR_KEYS) {
-      expect(colours).toHaveProperty(key);
-    }
-    expect(extend.animation).toHaveProperty("spin-fast");
+  it("names no shadow after a colour (Tailwind would emit both rules)", () => {
+    const colours = Object.keys(extend.colors);
+    const clashes = Object.keys(extend.boxShadow).filter((key) =>
+      colours.includes(key),
+    );
+    expect(clashes).toEqual([]);
   });
 
   it("tells tailwind-merge about every token size, shadow and radius", () => {

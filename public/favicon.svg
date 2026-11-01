@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- 1 · CT ligature: the C's top stroke runs on into the T's crossbar. Ink on lilac. -->
+  <rect width="32" height="32" rx="7" fill="#B8A6FF"/>
+  <g transform="translate(1.5 0)" fill="none" stroke="#14122E" stroke-width="4.5">
+    <path d="M14 7.5 A8.5 8.5 0 1 0 18.25 23.36"/>
+    <path d="M13 7.5 H27.5 M23 7.5 V26.75" stroke-linecap="butt"/>
+  </g>
+</svg>

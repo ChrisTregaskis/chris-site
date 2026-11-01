@@ -20,6 +20,48 @@
   --color-danger: 255 138 138; /* #FF8A8A */
   --color-danger-ink: 255 176 176; /* #FFB0B0 */
   --color-scrim: 8 9 24; /* #080918, used at 66% */
+  /* Form field borders: at least 3:1 on panel (5.1 on surface is the fill) */
+  --color-line-field: 101 105 180; /* #6569B4, 3.2:1 on panel, 3.6:1 on surface */
+  /* Inactive (dimmed) step cards (the .tone-dim class): ink and muted text one
+     tone quieter, both still at least 4.5:1 on the card */
+  --color-dim-ink: 164 166 207; /* #A4A6CF, the muted tone */
+  --color-dim-muted: 138 140 189; /* #8A8CBD, 5.0:1 on panel */
+
+  /* Product mock: the Wayfinder isometric figure (faces of each part) */
+  --color-figure-top: 54 58 128; /* #363A80 */
+  --color-figure-left: 41 44 102; /* #292C66 */
+  --color-figure-right: 31 33 80; /* #1F2150 */
+  --color-figure-on-left: 143 124 235; /* #8F7CEB */
+  --color-figure-base-left: 24 26 58; /* #181A3A */
+  --color-figure-base-right: 21 23 51; /* #151733 */
+  --color-figure-base-on: 44 39 102; /* #2C2766 */
+
+  /* Product mock: the Wayfinder chat widget (a white brand widget) */
+  --color-chat-surface: 255 255 255; /* #FFFFFF */
+  --color-chat-ink: 27 27 34; /* #1B1B22 */
+  --color-chat-strong: 29 29 36; /* #1D1D24 */
+  --color-chat-muted: 107 107 120; /* #6B6B78 */
+  --color-chat-line: 230 230 236; /* #E6E6EC */
+  --color-chat-field: 138 138 150; /* #8A8A96, 3.4:1 on chat-surface: the input bar's edge */
+  --color-chat-card-line: 226 226 234; /* #E2E2EA */
+  --color-chat-bubble: 240 240 244; /* #F0F0F4 */
+  --color-chat-media-from: 237 237 243; /* #EDEDF3 */
+  --color-chat-media-to: 207 208 220; /* #CFD0DC */
+  --color-chat-typing: 136 136 136; /* #888888 */
+
+  /* Product mock: the Badass Burpees app screen and phone */
+  --color-bb-bezel: 11 10 9; /* #0B0A09 */
+  --color-bb-bezel-edge: 58 58 74; /* #3A3A4A */
+  --color-bb-screen: 26 23 20; /* #1A1714 */
+  --color-bb-glow: 42 36 30; /* #2A241E */
+  --color-bb-ink: 244 239 230; /* #F4EFE6 */
+  --color-bb-track: 58 52 44; /* #3A342C */
+  --color-bb-yellow: 255 210 26; /* #FFD21A */
+  --color-bb-cadence: 138 121 216; /* #8A79D8 */
+  --color-bb-dark: 20 20 20; /* #141414 */
+
+  /* Product mock: the physio and wellness SaaS third practice */
+  --color-tenant-teal: 127 214 194; /* #7FD6C2 */
 
   /* Type */
   --font-display:
@@ -34,6 +76,7 @@
   --size-container: 1200px;
   --measure: 33em;
   --measure-narrow: 30em;
+  --size-nav: 68px; /* the sticky top bar (b3 .top: 22px + 24px line + 22px) */
 
   /* Radii */
   --radius-badge: 8px;
@@ -46,11 +89,14 @@
 
   /* Shadows */
   --shadow-popover: 0 24px 60px -16px rgb(0 0 0);
-  --shadow-raised: 0 20px 50px -20px rgb(0 0 0);
+  --shadow-float: 0 20px 50px -20px rgb(0 0 0);
+  --shadow-phone:
+    0 30px 70px -30px rgb(0 0 0), 0 0 0 1.5px rgb(var(--color-bb-bezel-edge));
   --shadow-drawer: -30px 0 80px -30px rgb(0 0 0);
   --shadow-focus-glow: 0 0 0 3px rgb(var(--color-accent) / 0.22);
   --shadow-ring-line: inset 0 0 0 1.5px rgb(var(--color-line));
   --shadow-ring-accent: inset 0 0 0 1.5px rgb(var(--color-accent));
+  --shadow-ring-signal: inset 0 0 0 1.5px rgb(var(--color-signal));
 
   /* Motion */
   --duration-fast: 200ms;

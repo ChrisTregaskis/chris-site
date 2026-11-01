@@ -1,10 +1,8 @@
 import { createContext, useContext } from "react";
-import { type ApiStatus } from "@/lib/api";
+import { type DrawerFormState } from "@/hooks/useDrawerFormState";
 
-export interface CVRequestContextValue {
-  status: ApiStatus;
-  setStatus: React.Dispatch<React.SetStateAction<ApiStatus>>;
-}
+/** The CV request's status and drawer state. Any "Request my CV" button opens it. */
+export type CVRequestContextValue = DrawerFormState;
 
 export const CVRequestContext = createContext<
   CVRequestContextValue | undefined

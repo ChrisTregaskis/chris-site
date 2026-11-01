@@ -1,15 +1,13 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode } from "react";
 import { CVRequestContext } from "./CVRequestContext";
-import { type ApiStatus } from "@/lib/api";
+import { useDrawerFormState } from "@/hooks/useDrawerFormState";
 
 interface CVRequestProviderProps {
   children: ReactNode;
 }
 
 export function CVRequestProvider({ children }: CVRequestProviderProps) {
-  const [status, setStatus] = useState<ApiStatus>("idle");
-
-  const value = useMemo(() => ({ status, setStatus }), [status]);
+  const value = useDrawerFormState();
 
   return (
     <CVRequestContext.Provider value={value}>
