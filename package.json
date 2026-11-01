@@ -23,7 +23,6 @@
     "framer-motion": "^11.11.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-toastify": "^11.0.2",
     "sst": "^3.17.37",
     "tailwind-merge": "^2.5.2"
   },

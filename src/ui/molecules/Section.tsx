@@ -9,8 +9,8 @@ export interface SectionProps {
   children: ReactNode;
   /** Top rule in `line`, as between b3 chapters. */
   divided?: boolean;
-  /** `chapter`: b3 chapter top spacing; `roomy`: About and Contact. */
-  spacing?: "chapter" | "roomy";
+  /** `chapter`: b3 chapter top spacing; `roomy`: About; `closing`: Contact (roomy top, short bottom). */
+  spacing?: "chapter" | "roomy" | "closing";
 }
 
 export function Section({
@@ -27,7 +27,9 @@ export function Section({
         aria-labelledby={labelledBy}
         className={cn(
           divided && "border-t border-line",
-          spacing === "chapter" ? "pt-section" : "py-section-lg",
+          spacing === "chapter" && "pt-section",
+          spacing === "roomy" && "py-section-lg",
+          spacing === "closing" && "pb-10 pt-section-lg",
         )}
       >
         {children}

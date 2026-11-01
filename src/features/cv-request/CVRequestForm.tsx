@@ -1,165 +1,167 @@
-import React, { useState } from "react";
+import { useCVRequestForm } from "./useCVRequestForm";
 import { CV_VIEW_URL } from "./cvLink";
-import { useCVRequest } from "./CVRequestContext";
-import { Button } from "@/ui/legacy/Button";
-import { useActiveContent } from "@/app/ActiveContentContext";
-import { useToast } from "@/hooks/useToast";
+import { Button } from "@/ui/atoms/Button";
+import { ButtonLink } from "@/ui/atoms/ButtonLink";
+import { Icon } from "@/ui/atoms/Icon";
+import { TextField } from "@/ui/molecules/TextField";
 
-export const CVRequestForm: React.FC = () => {
-  const { status: requestCVStatus, setStatus } = useCVRequest();
-  const { setActiveContent } = useActiveContent();
-  const { showToast } = useToast();
-  const [formSubmitted, setFormSubmitted] = useState(false);
+export const CV_TITLE_ID = "cv-title";
 
-  const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
-    event.preventDefault();
-    const formData = new FormData(event.target as HTMLFormElement);
-    const values = Object.fromEntries(formData.entries());
-    setStatus("loading");
+interface CVRequestFormProps {
+  /** "Back to the site" on the unlocked view. */
+  onDone: () => void;
+}
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_CHRIS_API}/resume`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+/** The b3 CV request: the form, its failure banner, and the unlocked view. */
+export function CVRequestForm({ onDone }: CVRequestFormProps) {
+  const { status, delivered, fieldProps, submit, submitRef, doneRef } =
+    useCVRequestForm();
+  const sending = status === "loading";
 
-      if (response.ok) {
-        // Request successful, do something here
-        showToast("Chris's CV unlocked.", { scheme: "SUCCESS" });
-      } else {
-        // Request failed, handle errors here
-        showToast(
-          "Oh no! Couldn't send the email... don't worry, CV now available.",
-          { scheme: "WARN" },
-        );
-      }
-
-      // What ever happens, allow user to have access to CV
-      setStatus("success");
-      setFormSubmitted(true);
-    } catch (error) {
-      showToast("Oh no! request failed.", { scheme: "ERROR" });
-      console.error("An error occurred:", error);
-    }
-  }, []);
+  if (status === "success") {
+    return (
+      <div
+        ref={doneRef}
+        tabIndex={-1}
+        aria-labelledby="cv-done-title"
+        className="flex flex-col gap-[18px] focus:outline-none"
+      >
+        <span
+          aria-hidden="true"
+          className="grid size-16 place-items-center rounded-pill bg-signal text-on-accent"
+        >
+          <svg viewBox="0 0 24 24" className="size-[30px]">
+            <path
+              d="M5 12.5l4.5 4.5L19 7.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <h2
+          id="cv-done-title"
+          className="m-0 font-display text-[clamp(30px,4vw,40px)] font-semibold leading-[1.05] tracking-[-0.02em]"
+        >
+          CV unlocked
+        </h2>
+        <p className="m-0 text-[16px] text-muted">
+          {delivered
+            ? "Thanks for asking. It's yours to view or download, and I'll be in touch if it looks like a fit."
+            : "It's yours to view or download. Your note didn't reach me this time, so if you'd like a chat, LinkedIn is the quickest way."}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <ButtonLink href={CV_VIEW_URL} target="_blank" rel="noopener">
+            View CV
+          </ButtonLink>
+          <Button variant="ghost" onClick={onDone}>
+            Back to the site
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full w-full flex items-center justify-center p-2 mt-[70px] md:mt-0">
-      <div
-        className={`
-          bg-gray-950 
-          rounded-lg shadow-lg h-full md:w-3/4 w-full max-w-7xl flex flex-col p-4 text-textColorPrimary
-        `}
+    <div>
+      <h2
+        id={CV_TITLE_ID}
+        className="m-0 font-display text-[clamp(30px,4vw,40px)] font-semibold leading-[1.05] tracking-[-0.02em]"
       >
-        {!formSubmitted && requestCVStatus !== "success" ? (
-          <>
-            <div className="flex flex-col items-center">
-              <h1 className="text-4xl font-serif mb-4">Unlock Chris's CV</h1>
-              <p className="mb-4">
-                Simply fill in your name and email and my CV will be unlocked
-                for download. If you fancy a bit of fun; once you've done this,
-                head back to the terminal and the file id will be accessible -
-                you can download my CV now directly from the terminal.
-                Alternatively, a button will appear and you can view/download
-                directly from here.
+        Request my CV
+      </h2>
+      <p className="mb-[22px] mt-[10px] text-[16px] text-muted">
+        Leave your name and email and the CV unlocks straight away, ready to
+        view or download. I&apos;ll get a note that you asked, and that&apos;s
+        all your details are used for.
+      </p>
+      <form
+        noValidate
+        onSubmit={submit}
+        aria-labelledby={CV_TITLE_ID}
+        className="grid grid-cols-1 gap-x-[14px] gap-y-4 sheet:grid-cols-2"
+      >
+        {status === "error" ? (
+          <div
+            role="alert"
+            className="col-span-full flex items-start gap-3 rounded-control border-[1.5px] border-danger/50 bg-danger/10 px-4 py-[14px]"
+          >
+            <span className="mt-px text-danger">
+              <Icon size={24}>
+                <svg viewBox="0 0 24 24">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M12 7v6M12 16.5v.5"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </Icon>
+            </span>
+            <div>
+              <b className="block font-semibold">That didn&apos;t go through</b>
+              <p className="m-0 mt-[2px] text-[14.5px] text-muted">
+                Something went wrong reaching the server. Your details are still
+                here, so you can try again.
               </p>
             </div>
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col gap-4 text-dark"
-            >
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex flex-col w-full">
-                  <label
-                    htmlFor="firstName"
-                    className="mb-2 text-textColorPrimary"
-                  >
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    required
-                    className="p-2 border rounded-md"
-                  />
-                </div>
-                <div className="flex flex-col w-full">
-                  <label
-                    htmlFor="lastName"
-                    className="mb-2 text-textColorPrimary"
-                  >
-                    Last Name (optional)
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    className="p-2 border rounded-md"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="email" className="mb-2 text-textColorPrimary">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  className="p-2 border rounded-md"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="message" className="mb-2 text-textColorPrimary">
-                  Additional Message (optional)
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  className="p-2 border rounded-md"
-                  rows={4}
-                ></textarea>
-              </div>
-              <div>
-                <div className="flex justify-center">
-                  <Button
-                    htmlType="submit"
-                    text="Submit"
-                    loading={requestCVStatus === "loading"}
-                  />
-                </div>
-              </div>
-            </form>
-          </>
-        ) : (
-          <>
-            <div className="flex flex-col items-center">
-              <h1 className="text-4xl font-serif mb-4">CV Unlocked!</h1>
-              <p className="mb-8">
-                Thanks for unlocking my CV. You can now click "View CV" below
-                or, if you fancy it... can follow the commands back on the
-                terminal as the fileId will now be showing.
-              </p>
-            </div>
-            <div className="flex w-full">
-              <Button
-                text="Back To Terminal"
-                type="secondary"
-                handleClick={() => setActiveContent("terminal")}
-              />
-              <Button
-                text="View CV"
-                handleClick={() => window.open(CV_VIEW_URL)}
-              />
-            </div>
-          </>
-        )}
-      </div>
+          </div>
+        ) : null}
+        <TextField
+          label="First name"
+          autoComplete="given-name"
+          required
+          {...fieldProps("firstName")}
+        />
+        <TextField
+          label="Last name"
+          autoComplete="family-name"
+          optional
+          {...fieldProps("lastName")}
+        />
+        <div className="col-span-full">
+          <TextField
+            label="Email address"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            required
+            {...fieldProps("email")}
+          />
+        </div>
+        <div className="col-span-full">
+          <TextField
+            label="Message"
+            multiline
+            optional
+            {...fieldProps("message")}
+          />
+        </div>
+        <div className="col-span-full mt-1 flex flex-wrap items-center gap-[14px]">
+          <Button
+            ref={submitRef}
+            type="submit"
+            loading={sending}
+            loadingText="Unlocking"
+            className="min-w-[168px]"
+          >
+            {status === "error" ? "Try again" : "Unlock the CV"}
+          </Button>
+          <span role="status" className="text-caption text-muted">
+            {sending ? "Sending your request" : ""}
+          </span>
+        </div>
+      </form>
     </div>
   );
-};
+}

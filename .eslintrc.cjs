@@ -16,7 +16,6 @@ module.exports = {
   plugins: ["react-hooks"],
   rules: {
     "react-hooks/rules-of-hooks": "error",
-    // Turning this on means behaviour-affecting dependency-array fixes; deferred to 3b.
-    "react-hooks/exhaustive-deps": "off",
+    "react-hooks/exhaustive-deps": "error",
   },
 };

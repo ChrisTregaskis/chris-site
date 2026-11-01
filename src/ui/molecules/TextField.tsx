@@ -15,8 +15,11 @@ export interface TextFieldProps {
   /** Marks the field required for the browser and assistive tech. */
   required?: boolean;
   disabled?: boolean;
+  /** Keeps the value visible but unchangeable, e.g. while a form is sending. */
+  readOnly?: boolean;
   multiline?: boolean;
   type?: "text" | "email";
+  inputMode?: "text" | "email";
   autoComplete?: string;
   value?: string;
   defaultValue?: string;

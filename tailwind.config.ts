@@ -61,14 +61,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Legacy terminal-era keys (retired in 3c).
-        dark: "#141414",
-        light: "#f0f8ff",
-        bgColor: "var(--bgColor)",
-        textColorPrimary: "var(--textColorPrimary)",
-        textColorSecondary: "var(--textColorSecondary)",
-        buttonPrimary: "var(--buttonPrimary)",
-        buttonSecondary: "var(--buttonSecondary)",
         // Design tokens (src/ui/tokens/tokens.css).
         ...Object.fromEntries(
           COLOUR_TOKENS.map((name) => [name, colour(name)]),
@@ -152,8 +144,19 @@ export default {
         lift: "var(--ease-lift)",
         tick: "var(--ease-tick)",
       },
+      keyframes: {
+        // The CV drawer (from the right) and phone bottom sheet (from below),
+        // as the enterFromRight / enterFromBelow motion presets.
+        "drawer-in": {
+          from: { transform: "translateX(40px)", opacity: "0" },
+        },
+        "sheet-up": {
+          from: { transform: "translateY(40px)", opacity: "0" },
+        },
+      },
       animation: {
-        "spin-fast": "spin 0.5s linear infinite",
+        "drawer-in": "drawer-in var(--duration-enter) var(--ease-enter)",
+        "sheet-up": "sheet-up var(--duration-enter) var(--ease-enter)",
       },
     },
   },

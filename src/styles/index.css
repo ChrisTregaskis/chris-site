@@ -20,20 +20,3 @@
     outline-offset: 3px;
   }
 }
-
-.key--darker {
-  @apply bg-gray-800 border-gray-700 shadow-gray-900;
-}
-
-.key--medium {
-  @apply col-span-2;
-}
-
-/* Legacy variables for the terminal-era UI (retired in 3c). Single theme. */
-:root {
-  --bgColor: #030712;
-  --textColorPrimary: #f0f8ff;
-  --textColorSecondary: hsl(0, 83.87%, 63.53%);
-  --buttonPrimary: #320064;
-  --buttonSecondary: #7d3c98;
-}
