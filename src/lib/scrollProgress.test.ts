@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  milestoneAt,
   milestonesPassed,
   pinTopFor,
   runwayProgress,
+  segmentProgress,
   stickyProgress,
   viewportProgress,
 } from "./scrollProgress";
@@ -47,5 +49,18 @@ describe("scroll progress", () => {
     expect(pinTopFor(568, 576, 68)).toBe(-24);
     // No bar: centred, as before.
     expect(pinTopFor(600, 500)).toBe(50);
+  });
+
+  it("plays a branch out between two points of a run", () => {
+    // The build lane's third step lights at 0.44; a branch off it runs to 0.7.
+    expect(milestoneAt(2, 5)).toBeCloseTo(0.44);
+    expect(segmentProgress(0.3, 0.44, 0.7)).toBe(0);
+    expect(segmentProgress(0.44, 0.44, 0.7)).toBe(0);
+    expect(segmentProgress(0.57, 0.44, 0.7)).toBeCloseTo(0.5);
+    expect(segmentProgress(0.7, 0.44, 0.7)).toBe(1);
+    expect(segmentProgress(1, 0.44, 0.7)).toBe(1);
+    // A zero-length stretch is a step.
+    expect(segmentProgress(0.49, 0.5, 0.5)).toBe(0);
+    expect(segmentProgress(0.5, 0.5, 0.5)).toBe(1);
   });
 });

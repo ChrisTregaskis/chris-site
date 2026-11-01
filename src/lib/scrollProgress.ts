@@ -33,7 +33,7 @@ export function stickyProgress(
 export function milestonesPassed(progress: number, count: number): number {
   let passed = 0;
   for (let i = 0; i < count; i++) {
-    if (progress >= (i + 0.2) / count - 0.001) passed = i + 1;
+    if (progress >= milestoneAt(i, count) - 0.001) passed = i + 1;
   }
   return passed;
 }
@@ -65,4 +65,23 @@ export function pinTopFor(
   return top + height > viewportHeight - 16
     ? viewportHeight - height - 16
     : top;
+}
+
+/** Where milestone `index` (0-based) of `count` lights, as a 0 to 1 progress. */
+export function milestoneAt(index: number, count: number): number {
+  return (index + 0.2) / count;
+}
+
+/**
+ * Progress through one stretch of a run: 0 until `progress` reaches `from`,
+ * 1 from `to` on (a branch that plays out between two milestones).
+ */
+export function segmentProgress(
+  progress: number,
+  from: number,
+  to: number,
+): number {
+  return to > from
+    ? clamp01((progress - from) / (to - from))
+    : +(progress >= to);
 }
