@@ -12,10 +12,11 @@ import { useValidatedForm } from "@/hooks/useValidatedForm";
  * sending through `sendEnquiry`. Any failure, including an API error, keeps
  * the details and offers a retry, since an enquiry must never look sent when
  * it wasn't. A visitor who sent one on an earlier visit lands on the sent
- * view (`remembered`), and `sendAnother` takes them back to an empty form.
+ * view (`remembered`), and `sendAnother` takes them back to an empty form for
+ * this visit only: the stored flag stays until a new send replaces it.
  */
 export function useEnquiryForm() {
-  const { status, setStatus, remembered, forget } = useEnquiry();
+  const { status, setStatus, remembered, dismissRemembered } = useEnquiry();
   const form = useValidatedForm({
     fields: ENQUIRY_FIELDS,
     initialValues: EMPTY_ENQUIRY_VALUES,
@@ -27,7 +28,7 @@ export function useEnquiryForm() {
   });
 
   const sendAnother = () => {
-    forget();
+    dismissRemembered();
     form.reset();
   };
 

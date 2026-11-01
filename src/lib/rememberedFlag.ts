@@ -34,11 +34,3 @@ export function writeRememberedFlag(key: string, now: Date = new Date()) {
     // Storage is unavailable; the site works as it does without the flag.
   }
 }
-
-export function clearRememberedFlag(key: string) {
-  try {
-    window.localStorage.removeItem(key);
-  } catch {
-    // Storage is unavailable, so there is nothing stored to clear.
-  }
-}

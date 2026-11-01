@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  clearRememberedFlag,
-  readRememberedFlag,
-  writeRememberedFlag,
-} from "./rememberedFlag";
+import { readRememberedFlag, writeRememberedFlag } from "./rememberedFlag";
 
 const KEY = "ct:test-flag:v1";
 
@@ -14,14 +10,6 @@ describe("rememberedFlag", () => {
 
     expect(localStorage.getItem(KEY)).toBe('{"at":"2026-11-01T09:30:00.000Z"}');
     expect(readRememberedFlag(KEY)).toBe(true);
-  });
-
-  it("clears the flag", () => {
-    writeRememberedFlag(KEY);
-    clearRememberedFlag(KEY);
-
-    expect(localStorage.getItem(KEY)).toBeNull();
-    expect(readRememberedFlag(KEY)).toBe(false);
   });
 
   it("treats anything malformed as not set", () => {
@@ -37,10 +25,8 @@ describe("rememberedFlag", () => {
     };
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(blocked);
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(blocked);
-    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(blocked);
 
     expect(() => writeRememberedFlag(KEY)).not.toThrow();
-    expect(() => clearRememberedFlag(KEY)).not.toThrow();
     expect(readRememberedFlag(KEY)).toBe(false);
   });
 });

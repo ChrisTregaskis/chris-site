@@ -31,13 +31,17 @@ describe("useRememberedFlag", () => {
     ).toBe(true);
   });
 
-  it("forgets the flag", () => {
-    localStorage.setItem(KEY, JSON.stringify({ at: "2026-11-01T09:30:00Z" }));
+  it("dismisses the flag for this visit only, keeping it stored", () => {
+    const value = JSON.stringify({ at: "2026-11-01T09:30:00Z" });
+    localStorage.setItem(KEY, value);
     const { result } = renderHook(() => useRememberedFlag(KEY));
-    act(() => result.current.forget());
+    act(() => result.current.dismiss());
 
     expect(result.current.remembered).toBe(false);
-    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(localStorage.getItem(KEY)).toBe(value);
+    expect(
+      renderHook(() => useRememberedFlag(KEY)).result.current.remembered,
+    ).toBe(true);
   });
 
   it("falls back to not remembered when storage throws", () => {

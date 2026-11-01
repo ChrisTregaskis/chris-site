@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  clearRememberedFlag,
-  readRememberedFlag,
-  writeRememberedFlag,
-} from "@/lib/rememberedFlag";
+import { readRememberedFlag, writeRememberedFlag } from "@/lib/rememberedFlag";
 
 export interface RememberedFlag {
-  /** True when the flag was already stored from an earlier visit, until `forget` clears it. */
+  /** True when the flag was already stored from an earlier visit, until `dismiss` sets it aside. */
   remembered: boolean;
   /** Stores the flag for next time. Doesn't change `remembered` on this visit. */
   remember: () => void;
-  /** Clears the stored flag and `remembered`. */
-  forget: () => void;
+  /**
+   * Sets `remembered` aside for this visit only. The stored flag stays, so the
+   * next visit is still remembered; only a new `remember` replaces it.
+   */
+  dismiss: () => void;
 }
 
 /**
@@ -27,13 +26,10 @@ export function useRememberedFlag(key: string): RememberedFlag {
   }, [key]);
 
   const remember = useCallback(() => writeRememberedFlag(key), [key]);
-  const forget = useCallback(() => {
-    clearRememberedFlag(key);
-    setRemembered(false);
-  }, [key]);
+  const dismiss = useCallback(() => setRemembered(false), []);
 
   return useMemo(
-    () => ({ remembered, remember, forget }),
-    [remembered, remember, forget],
+    () => ({ remembered, remember, dismiss }),
+    [remembered, remember, dismiss],
   );
 }

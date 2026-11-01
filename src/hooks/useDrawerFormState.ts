@@ -18,8 +18,11 @@ export interface DrawerFormState {
   setStatus: Dispatch<SetStateAction<ApiStatus>>;
   /** True while showing the done view because an earlier visit finished the form, not this one. */
   remembered: boolean;
-  /** Clears what an earlier visit left, so the form shows again. */
-  forget: () => void;
+  /**
+   * Sets aside what an earlier visit left, so the form shows again on this
+   * visit. The stored flag stays until a new send replaces it.
+   */
+  dismissRemembered: () => void;
   /** Whether the form's drawer is open. */
   drawerOpen: boolean;
   openDrawer: () => void;
@@ -39,7 +42,7 @@ export function useDrawerFormState(rememberKey: string): DrawerFormState {
   const {
     remembered: storedFlag,
     remember,
-    forget,
+    dismiss: dismissRemembered,
   } = useRememberedFlag(rememberKey);
   const openDrawer = useCallback(() => setDrawerOpen(true), []);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
@@ -57,11 +60,18 @@ export function useDrawerFormState(rememberKey: string): DrawerFormState {
       status,
       setStatus,
       remembered,
-      forget,
+      dismissRemembered,
       drawerOpen,
       openDrawer,
       closeDrawer,
     }),
-    [status, remembered, forget, drawerOpen, openDrawer, closeDrawer],
+    [
+      status,
+      remembered,
+      dismissRemembered,
+      drawerOpen,
+      openDrawer,
+      closeDrawer,
+    ],
   );
 }
