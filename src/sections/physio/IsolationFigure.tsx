@@ -1,10 +1,23 @@
-import { DepthStack } from "./depth/DepthStack";
-import { FlatStack } from "./flat/FlatStack";
+import { lazy, Suspense } from "react";
+import { STACK_H } from "./depth/depthGeometry";
+import { FLAT_H } from "./flat/flatGeometry";
 import { LeakTestControls } from "./LeakTestControls";
 import { QueryLines } from "./QueryLines";
 import { SignedInPicker } from "./SignedInPicker";
 import { type LeakTest } from "./useLeakTest";
 import { cn } from "@/lib/cn";
+
+/*
+ * The drawings load on their own, after the page's first paint, and draw
+ * only as the visitor nears them; until then their room is kept, at their
+ * exact height, so nothing moves when they arrive.
+ */
+const DepthStack = lazy(() =>
+  import("./depth/DepthStack").then((m) => ({ default: m.DepthStack })),
+);
+const FlatStack = lazy(() =>
+  import("./flat/FlatStack").then((m) => ({ default: m.FlatStack })),
+);
 
 interface IsolationFigureProps {
   test: LeakTest;
@@ -12,6 +25,8 @@ interface IsolationFigureProps {
   drawing: "depth" | "flat";
   /** The picker and the leak test's buttons live in the figure (side by side), or with the last step (stacked). */
   controlsInside: boolean;
+  /** Draw the stack (the visitor is near); until then its room is kept empty. */
+  drawn: boolean;
   still: boolean;
 }
 
@@ -24,9 +39,18 @@ export function IsolationFigure({
   test,
   drawing,
   controlsInside,
+  drawn,
   still,
 }: IsolationFigureProps) {
   const { view, attempt, pressing } = test;
+  const room = (
+    <div
+      aria-hidden="true"
+      className={drawing === "depth" ? "mt-5" : "mt-2 wide:mt-3"}
+      style={{ height: drawing === "depth" ? STACK_H : FLAT_H }}
+    />
+  );
+  const Stack = drawing === "depth" ? DepthStack : FlatStack;
   return (
     <figure
       className={cn(
@@ -54,10 +78,12 @@ export function IsolationFigure({
       <p className="sr-only" aria-live="polite">
         {test.spoken}
       </p>
-      {drawing === "depth" ? (
-        <DepthStack view={view} attempt={attempt} still={still} />
+      {drawn ? (
+        <Suspense fallback={room}>
+          <Stack view={view} attempt={attempt} still={still} />
+        </Suspense>
       ) : (
-        <FlatStack view={view} attempt={attempt} still={still} />
+        room
       )}
       {controlsInside ? (
         <LeakTestControls
