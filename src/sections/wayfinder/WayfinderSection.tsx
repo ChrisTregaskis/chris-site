@@ -2,6 +2,7 @@ import { BuildStory } from "./BuildStory";
 import { Wayfinder } from "@/features/wayfinder";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
+import { ChapterRail } from "@/features/scroll-feel";
 
 /** Chapter 1: Wayfinder, the AI guide, told part by part. */
 export function WayfinderSection() {
@@ -11,6 +12,7 @@ export function WayfinderSection() {
       labelledBy="wayfinder-title"
       tone={{ from: "base", to: "wayfinder" }}
     >
+      <ChapterRail numeral="1" />
       <ChapterHeading
         id="wayfinder-title"
         numeral="1"

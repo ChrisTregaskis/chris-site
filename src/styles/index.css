@@ -70,6 +70,88 @@
   }
 }
 
+@layer components {
+  /*
+   * Scroll-feel prototype b, chapter progress (?scroll=b; ChapterRail). Each
+   * case study carries its numeral at the window's left edge, a book's thumb
+   * index, over a hairline rail that fills as the chapter is read: empty as
+   * the chapter reaches the top bar, full as its end reaches the bottom of
+   * the window. It keeps to the edge because the Wayfinder figure grows into
+   * the margin (to within 24px of the edge) while apart. The column spans
+   * the whole chapter (its view timeline is the chapter's progress); the
+   * numeral and rail inside it stay pinned below the top bar while the
+   * chapter is on screen. A CSS scroll-driven animation (a transform, so it
+   * runs on the compositor); without support the rail isn't drawn at all.
+   * Under reduced motion it shows the same progress in quarters.
+   */
+  .chapter-rail {
+    display: none;
+  }
+  @supports (animation-timeline: view()) {
+    .chapter-rail {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      /* From the chapter's centre out to the window's edge, then back in. */
+      left: calc(50% - 50vw + clamp(8px, 1vw, 12px));
+      display: block;
+      width: 0;
+      pointer-events: none;
+      view-timeline: --chapter-rail block;
+      view-timeline-inset: var(--size-nav) 0px;
+    }
+  }
+  .chapter-rail__pin {
+    position: sticky;
+    top: calc(var(--size-nav) + 24px);
+    display: flex;
+    width: 24px;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    transform: translateX(-50%);
+  }
+  .chapter-rail__numeral {
+    font-family: var(--font-display);
+    /* Phones keep it inside their 16px gutter. */
+    font-size: clamp(12px, 1vw + 8px, 15px);
+    font-weight: 700;
+    line-height: 1;
+    color: rgb(var(--color-accent));
+  }
+  .chapter-rail__track {
+    position: relative;
+    width: 2px;
+    height: min(56svh, 520px);
+    border-radius: 2px;
+    background: rgb(var(--color-line) / 0.7);
+    overflow: hidden;
+  }
+  .chapter-rail__fill {
+    position: absolute;
+    inset: 0;
+    transform-origin: top;
+    transform: scaleY(0);
+    background: rgb(var(--color-accent));
+    animation: chapter-rail-fill linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: contain 0% contain 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chapter-rail__fill {
+      animation-timing-function: steps(4, end);
+    }
+  }
+  @keyframes chapter-rail-fill {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+}
+
 @layer utilities {
   /*
    * An inactive step card: its text one tone quieter rather than see-through,

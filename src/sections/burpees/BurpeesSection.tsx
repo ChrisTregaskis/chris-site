@@ -8,6 +8,7 @@ import { useStageReady } from "./useStageReady";
 import { cn } from "@/lib/cn";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
+import { ChapterRail } from "@/features/scroll-feel";
 
 /*
  * The set is its own chunk, fetched after the page's first paint and drawn
@@ -36,6 +37,7 @@ export function BurpeesSection() {
       labelledBy="burpees-title"
       tone={{ from: "physio", to: "burpees", feather: "70vh" }}
     >
+      <ChapterRail numeral="3" />
       <ChapterHeading
         id="burpees-title"
         numeral="3"
