@@ -1,3 +1,4 @@
+import { type CSSProperties } from "react";
 import { EmptyResult } from "../EmptyResult";
 import { type LeakView, spotOf } from "../leakTest";
 import { ORGS } from "../organisations";
@@ -21,6 +22,11 @@ interface DepthStackProps {
   view: LeakView;
   attempt: number;
   still: boolean;
+  /**
+   * Exploration: draw it shrunk by `scale` as a whole, its type grown by
+   * `boost` to make up. Without it, the stack is exactly as shipped.
+   */
+  fit?: { scale: number; boost: number } | null;
 }
 
 /**
@@ -31,13 +37,16 @@ interface DepthStackProps {
  * screen. Decorative (the query and its line say it all) and never in the
  * way of a click: its 3D wrappers project over the controls below it.
  */
-export function DepthStack({ view, attempt, still }: DepthStackProps) {
-  return (
+export function DepthStack({ view, attempt, still, fit }: DepthStackProps) {
+  const scene = (
     <div
       aria-hidden="true"
       data-testid="sessions-stack"
       data-drawing="depth"
-      className="pointer-events-none relative mt-5 [perspective:1800px]"
+      className={cn(
+        "pointer-events-none relative [perspective:1800px]",
+        !fit && "mt-5",
+      )}
       style={{
         width: SHEET.w,
         height: STACK_H,
@@ -68,7 +77,7 @@ export function DepthStack({ view, attempt, still }: DepthStackProps) {
             transform: `translate3d(0, ${TABLE.y}px, ${TABLE.z - 2}px)`,
           }}
         >
-          <TableColumns className="absolute inset-x-5 top-[12px] pl-[22px] text-[17px]" />
+          <TableColumns className="absolute inset-x-5 top-[12px] pl-[22px] text-[length:calc(17px*var(--k,1))]" />
         </div>
         {ORGS.map((org) => (
           <DepthSheet
@@ -87,13 +96,33 @@ export function DepthStack({ view, attempt, still }: DepthStackProps) {
         />
         <EmptyResult
           shown={view.asked && view.returned === null}
-          className="left-0 top-0 rounded-[14px] text-[19px]"
+          className="left-0 top-0 rounded-[14px] text-[length:calc(19px*var(--k,1))]"
           style={{
             width: SHEET.w,
             height: EMPTY_H,
             transform: `translate3d(0, ${RESULT.y}px, ${RESULT.z}px)`,
           }}
         />
+      </div>
+    </div>
+  );
+  if (!fit) return scene;
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none relative mt-3"
+      style={{ width: SHEET.w * fit.scale, height: STACK_H * fit.scale }}
+    >
+      <div
+        className="absolute left-0 top-0 origin-top-left"
+        style={
+          {
+            transform: `scale(${fit.scale})`,
+            "--k": fit.boost,
+          } as CSSProperties
+        }
+      >
+        {scene}
       </div>
     </div>
   );
