@@ -186,7 +186,7 @@ describe("Wayfinder", () => {
       "2.1Sessions",
       "2.2Rate limits",
       "2.3PII redaction layer",
-      "2.4Card shaper",
+      "2.4Card shaping",
     ]);
 
     // Pressing a piece selects its part and picks the piece out.

@@ -114,7 +114,7 @@ export function numeralForStep(step: number): number {
 export const INTRO = {
   name: "Taken apart",
   heading: "Nine parts, opened up",
-  text: "The board lifts apart and every part opens into its numbered pieces. Walk through them one at a time; it all goes back together for the live demo.",
+  text: "Each part opens up as you reach it, its pieces numbered in the drawing and named in the text. It all goes back together for the live demo.",
 } as const;
 
 /** The picker's options: the intro, every part, then the demo. */
