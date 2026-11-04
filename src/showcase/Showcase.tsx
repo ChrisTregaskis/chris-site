@@ -8,20 +8,21 @@ import { TokensSection } from "./sections/TokensSection";
 
 /**
  * The design system on one page: tokens first, then every component. Served
- * by `pnpm dev` at /showcase.html; never built into dist/.
+ * by `pnpm dev` at /showcase.html and, built, at /showcase: public but
+ * unlisted (linked from nowhere, noindex).
  */
 export function Showcase() {
   return (
     <div className="min-h-screen bg-surface font-body text-body text-ink">
       <div className="mx-auto max-w-container px-gutter pb-section-lg">
         <header className="py-section">
-          <p className="text-eyebrow uppercase text-muted">chris-site</p>
+          <p className="text-eyebrow uppercase text-muted">Chris Tregaskis</p>
           <h1 className="mt-3 font-display text-display-xl font-semibold">
             Design system
           </h1>
           <p className="mt-5 max-w-measure text-lede text-muted">
-            Tokens, motion presets, atoms, molecules and organisms from the
-            locked look. Placeholder copy throughout.
+            The tokens, motion presets, atoms, molecules and organisms this site
+            is built from. Placeholder copy throughout.
           </p>
         </header>
         <TokensSection />

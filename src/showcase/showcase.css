@@ -1,0 +1,6 @@
+/*
+ * The showcase's stylesheet: the page's global styles, compiled against a
+ * Tailwind config that also scans the showcase (the page's own skips it).
+ */
+@import "../styles/index.css";
+@config "../../tailwind.showcase.config.ts";
