@@ -238,27 +238,38 @@ export function WayfinderFigure({
       className="block h-auto w-full overflow-visible wide:max-h-[66vh]"
     >
       {group("cloud")}
-      <g>
+      {/* Pipes in two layers: every casing first, then every lit line on
+          top, so pipes that share a run (the three specialists' runs to
+          MCP) never paint over a lit one. */}
+      <g className="fill-none [stroke-linecap:round] [stroke-linejoin:round]">
         {ROUTE_KEYS.map((key) => {
           const d = routePath(key);
           return (
-            <g
-              key={key}
-              className="fill-none [stroke-linecap:round] [stroke-linejoin:round]"
-            >
-              <path d={d} className="stroke-line-strong stroke-[5]" />
-              <path d={d} className="stroke-surface stroke-[2.4]" />
+            <g key={key}>
               <path
                 d={d}
-                data-route={key}
-                className={cn(
-                  "stroke-signal stroke-[2.6] transition-opacity duration-state motion-reduce:transition-none",
-                  lit.has(key) ? "opacity-100" : "opacity-0",
-                )}
+                data-casing=""
+                className="stroke-line-strong stroke-[5]"
+              />
+              <path
+                d={d}
+                data-casing=""
+                className="stroke-surface stroke-[2.4]"
               />
             </g>
           );
         })}
+        {ROUTE_KEYS.map((key) => (
+          <path
+            key={key}
+            d={routePath(key)}
+            data-route={key}
+            className={cn(
+              "stroke-signal stroke-[2.6] transition-opacity duration-state motion-reduce:transition-none",
+              lit.has(key) ? "opacity-100" : "opacity-0",
+            )}
+          />
+        ))}
       </g>
       <PartGroup id="ai" selected={selected} hot={hot} onPart={onPart}>
         {(state) => (
