@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
-import { STACK_H } from "./depth/depthGeometry";
-import { FLAT_H } from "./flat/flatGeometry";
+import { type Drawing, drawingPlan } from "./explore/drawingPlan";
+import { type DepthFit } from "./explore/fitDepth";
 import { LeakTestControls } from "./LeakTestControls";
 import { QueryLines } from "./QueryLines";
 import { SignedInPicker } from "./SignedInPicker";
@@ -18,11 +18,19 @@ const DepthStack = lazy(() =>
 const FlatStack = lazy(() =>
   import("./flat/FlatStack").then((m) => ({ default: m.FlatStack })),
 );
+/* Exploration: the phone drafts, each its own lazy chunk too. */
+const PHONE_STACKS = {
+  a: lazy(() =>
+    import("./explore/tray/TrayStack").then((m) => ({ default: m.TrayStack })),
+  ),
+} as const;
 
 interface IsolationFigureProps {
   test: LeakTest;
-  /** `depth`: the 3D stack, where there's room for it; `flat`: phones and narrow screens. */
-  drawing: "depth" | "flat";
+  /** `depth`: the 3D stack, where there's room for it; `flat`: phones and narrow screens; or a phone draft (exploration). */
+  drawing: Drawing;
+  /** Exploration: the 3D stack shrunk to fit, its query a size down. */
+  fit?: DepthFit | null;
   /** The picker and the leak test's buttons live in the figure (side by side), or with the last step (stacked). */
   controlsInside: boolean;
   /** Draw the stack (the visitor is near); until then its room is kept empty. */
@@ -41,22 +49,35 @@ export function IsolationFigure({
   controlsInside,
   drawn,
   still,
+  fit = null,
 }: IsolationFigureProps) {
   const { view, attempt, pressing } = test;
+  const plan = drawingPlan(drawing, fit);
   const room = (
     <div
       aria-hidden="true"
-      className={drawing === "depth" ? "mt-5" : "mt-3"}
-      style={{ height: drawing === "depth" ? STACK_H : FLAT_H }}
+      className={plan.room.className}
+      style={{ height: plan.room.height }}
     />
   );
-  const Stack = drawing === "depth" ? DepthStack : FlatStack;
+  let stack = <FlatStack view={view} attempt={attempt} still={still} />;
+  if (plan.draft) {
+    const PhoneStack = PHONE_STACKS[plan.draft];
+    stack = <PhoneStack view={view} attempt={attempt} still={still} />;
+  } else if (drawing === "depth") {
+    stack = (
+      <DepthStack
+        view={view}
+        attempt={attempt}
+        still={still}
+        fit={plan.shrunk}
+      />
+    );
+  }
   return (
     <figure
-      className={cn(
-        "m-0 w-full",
-        drawing === "depth" ? "max-w-[560px]" : "max-w-[480px]",
-      )}
+      className={cn("m-0 w-full", plan.figure.className)}
+      style={plan.figure.style}
       aria-label="One sessions table holding every organisation's rows, drawn as one sheet per organisation under the query that reads it"
     >
       {controlsInside ? (
@@ -72,19 +93,14 @@ export function IsolationFigure({
       ) : null}
       <QueryLines
         view={view}
-        size={drawing === "depth" ? "large" : "compact"}
+        size={plan.query}
         still={still}
+        steady={plan.steady}
       />
       <p className="sr-only" aria-live="polite">
         {test.spoken}
       </p>
-      {drawn ? (
-        <Suspense fallback={room}>
-          <Stack view={view} attempt={attempt} still={still} />
-        </Suspense>
-      ) : (
-        room
-      )}
+      {drawn ? <Suspense fallback={room}>{stack}</Suspense> : room}
       {controlsInside ? (
         <LeakTestControls
           live={view.testing}
@@ -98,7 +114,7 @@ export function IsolationFigure({
           onPause={test.pause}
           onPlay={test.play}
           focusProps={test.focusProps}
-          className={drawing === "flat" ? "mt-4" : "mt-3"}
+          className={drawing === "depth" ? "mt-3" : "mt-4"}
         />
       ) : null}
     </figure>

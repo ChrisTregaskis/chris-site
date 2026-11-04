@@ -1,6 +1,8 @@
 import { useReducedMotion } from "framer-motion";
 import { useCallback, useRef } from "react";
 import { DEPTH_QUERY } from "./depth/depthGeometry";
+import { useDepthFit } from "./explore/useDepthFit";
+import { PHONE_DRAFT } from "./explore/variant";
 import { IsolationFigure } from "./IsolationFigure";
 import { LeakTestControls } from "./LeakTestControls";
 import { PHYSIO_STEPS } from "./organisations";
@@ -25,6 +27,14 @@ const SHORT_PHONE_CARD =
   "[@media(max-width:860px)_and_(max-height:700px)]:py-3";
 const SHORT_PHONE_NUMERAL =
   "[@media(max-width:860px)_and_(max-height:700px)]:text-[40px]";
+/*
+ * Exploration: the 3D phone drawings' panel is a little taller, so short
+ * phones tighten the cards a little more (the last one still fits whole).
+ */
+const SHORT_PHONE_CARD_3D =
+  "[@media(max-width:860px)_and_(max-height:700px)]:py-2";
+const SHORT_PHONE_TEXT_3D =
+  "[@media(max-width:860px)_and_(max-height:700px)]:text-[16px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.5]";
 
 /**
  * Chapter 2: the physio and wellness platform's tenant isolation. Three
@@ -64,7 +74,11 @@ export function PhysioSection() {
   const stage = still ? 3 : Math.max(1, current);
   const test = useLeakTest(stage, { still, watch: stageRef });
   const { view, pressing } = test;
-  const drawing = roomy && !stacked ? "depth" : "flat";
+  // Exploration (`?physiom=`): the 3D stack wherever it fits, shrunk if need be, and a phone draft elsewhere.
+  const fit = useDepthFit(stageRef, stacked, PHONE_DRAFT !== null);
+  let drawing: "depth" | "flat" | NonNullable<typeof PHONE_DRAFT> =
+    roomy && !stacked ? "depth" : "flat";
+  if (PHONE_DRAFT) drawing = fit?.depth ? "depth" : PHONE_DRAFT;
   const drawn = useNearScreen(stageRef, still);
 
   return (
@@ -94,6 +108,7 @@ export function PhysioSection() {
           <IsolationFigure
             test={test}
             drawing={drawing}
+            fit={fit}
             controlsInside={!stacked}
             drawn={drawn}
             still={still}
@@ -124,7 +139,7 @@ export function PhysioSection() {
                   ref={cardRef(n)}
                   className={cn(
                     "tone-ease w-full max-w-[34em] py-[22px] text-ink wide:w-auto wide:max-w-[430px]",
-                    SHORT_PHONE_CARD,
+                    PHONE_DRAFT ? SHORT_PHONE_CARD_3D : SHORT_PHONE_CARD,
                     !on && "wide:tone-dim",
                   )}
                 >
@@ -134,7 +149,14 @@ export function PhysioSection() {
                   <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
                     {step.title}
                   </h3>
-                  <p className="m-0 text-[17px] text-muted">{step.text}</p>
+                  <p
+                    className={cn(
+                      "m-0 text-[17px] text-muted",
+                      PHONE_DRAFT && SHORT_PHONE_TEXT_3D,
+                    )}
+                  >
+                    {step.text}
+                  </p>
                   {last && stacked ? (
                     <div
                       data-testid="leak-test-card"
