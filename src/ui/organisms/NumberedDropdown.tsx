@@ -3,8 +3,10 @@ import { useNumberedDropdown } from "./useNumberedDropdown";
 import { cn } from "@/lib/cn";
 
 export interface NumberedOption {
-  /** 1-based; shown zero-padded in the badge. */
+  /** 1-based; shown zero-padded in the badge unless `numeral` is given. */
   value: number;
+  /** The number shown, when it isn't the value (a list that starts at 00). */
+  numeral?: number;
   label: string;
   /** Draw a rule above this option (b3: before "Try it"). */
   separated?: boolean;
@@ -41,6 +43,7 @@ export function NumberedDropdown({
   const optionId = (index: number) => `${id}-option-${index}`;
   const dropdown = useNumberedDropdown({
     count: options.length,
+    numerals: options.map((option) => option.numeral ?? option.value),
     selectedIndex: options.findIndex((option) => option.value === value),
     onPick: (index) => onSelect(options[index].value),
   });
@@ -132,7 +135,7 @@ export function NumberedDropdown({
                   selected ? "text-accent" : "text-muted",
                 )}
               >
-                {pad2(option.value)}
+                {pad2(option.numeral ?? option.value)}
               </span>
               {option.label}
             </li>
