@@ -1,14 +1,22 @@
 /**
- * PROTOTYPE: the Wayfinder figure as an exploded assembly. Every part is
- * split into numbered sub-components, each a few plan-space boxes plus an
- * offset for "taken apart" and a further one for "in focus". Pure data and
- * pure maths: `layoutAt` turns the animated amounts into each piece's
- * offset, the seating axes and the paint order.
+ * The Wayfinder figure as an exploded assembly. Every part is split into
+ * numbered sub-components, each a few plan-space boxes plus an offset for
+ * "taken apart" and a further one for "in focus". Pure data and pure maths:
+ * `layoutAt` turns the animated amounts into each piece's offset, the seating
+ * axes and the paint order; `pipeRetract` says how far each pipe has drawn
+ * off.
  *
- * Sub-component names are placeholders at the level the site already
- * discloses (part copy, chips, the demo's trace), pending Chris's copy pass.
+ * Names stay at the level the site already discloses (each part's copy and
+ * chips, the demo's trace): what a piece is for, never how it works.
  */
-import { type Point, box, type BoxFaces, iso } from "./iso";
+import {
+  type Point,
+  box,
+  type BoxFaces,
+  iso,
+  type RouteKey,
+  ROUTE_KEYS,
+} from "./iso";
 import { PART_ORDER, type PartId, type PlatformIndex } from "./parts";
 import { type Aabb, paintOrder } from "@/lib/isoDepth";
 
@@ -29,14 +37,21 @@ export type Detail =
   | { kind: "inlay"; points: string }
   | { kind: "line"; points: string }
   | { kind: "eye"; cx: number; cy: number }
-  | { kind: "text"; x: number; y: number; text: string };
+  | {
+      kind: "text";
+      x: number;
+      y: number;
+      text: string;
+      /** Set above the piece rather than on its face. */
+      above?: boolean;
+    };
 
 /**
- * Which way a piece's number tag leads off: across the page, straight up, or
- * along a plan axis (front and back run along y, east along x), whichever
- * keeps clear of its neighbours as the part comes apart.
+ * Where a part's number tags line up, taken apart: in a column to its left or
+ * right, in a row above or below it, or in front of it along the plan's x
+ * axis (see `tags.ts`).
  */
-export type TagWay = "left" | "right" | "up" | "front" | "back" | "east";
+export type TagSide = "left" | "right" | "above" | "below" | "front";
 
 export interface SubComponent {
   /** Its part number, e.g. "2.3". */
@@ -57,8 +72,8 @@ export interface SubComponent {
   seat: Vec3;
   on?: string;
   tip: Vec3;
-  /** Which way its number tag leads off, if not its part's way. */
-  tagWay?: TagWay;
+  /** Where its number tag lines up, if not where its part's do. */
+  tag?: TagSide;
   /** Proven in the prototype only: drawn dashed while taken apart. */
   prototype?: boolean;
   /** An AI platform cartridge (part 6). */
@@ -72,7 +87,10 @@ interface PartPlan {
   delay: number;
   /** The piece its numbered badge rides on (none: it stays on the plate). */
   badgeOn: string | null;
-  tagWay: TagWay;
+  /** Where its pieces' number tags line up, taken apart. */
+  tags: TagSide;
+  /** Where they line up on phones (opened in place), if not `tags`. */
+  liteTags?: TagSide;
   /** Extra height for its badge while apart, to clear tall pieces. */
   badgeLift?: number;
 }
@@ -95,7 +113,7 @@ const onTop = (z: number, x0: number, x1: number, y0: number, y1: number) =>
 const seg = (a: Vec3, b: Vec3) => pts([iso(...a), iso(...b)]);
 const label = (at: Vec3, text: string, dy = 5): Detail => {
   const [x, y] = iso(...at);
-  return { kind: "text", x, y: y + dy, text };
+  return { kind: "text", x, y: y + dy, text, above: dy < 0 };
 };
 
 /** A z-stack of slabs sharing a footprint, seated one on the next. */
@@ -123,7 +141,6 @@ const chat: SubComponent[] = [
     id: "1.1",
     part: "chat",
     name: "One-tag loader",
-    tagWay: "back",
     boxes: [b3(24, 2, 0, 22, 8, 14)],
     details: [{ kind: "line", points: seg([29, 10, 7], [41, 10, 7]) }],
     apart: [0, -46, 0],
@@ -135,7 +152,6 @@ const chat: SubComponent[] = [
     id: "1.2",
     part: "chat",
     name: "Shadow DOM shell",
-    tagWay: "back",
     boxes: [b3(0, 10, 0, 70, 12, 100)],
     details: [
       { kind: "outline", points: onFront(22, 5, 65, 5, 95), dashed: true },
@@ -440,10 +456,9 @@ const cloud: SubComponent[] = [
 ];
 
 /** The plate is the cloud account itself: 9.4, everything as code. */
+export const PLATE_BOX = b3(-60, -150, -14, 620, 410, 14);
 export const PLATE = box(-60, -150, -14, 620, 410, 14);
 export const PLATE_PIECE = { id: "9.4", name: "Terraform, the whole account" };
-/** The plate's own tag, on its front-right face. */
-export const PLATE_TAG = { at: iso(560, 120, -7), way: [1, 0] as Point };
 
 export const SUBS: SubComponent[] = [
   ...cloud,
@@ -458,19 +473,19 @@ export const SUBS: SubComponent[] = [
 ];
 
 export const PLAN: Record<PartId, PartPlan> = {
-  cloud: { lift: [0, 0, 10], delay: 0, badgeOn: null, tagWay: "front" },
-  tools: { lift: [24, 0, 30], delay: 0.06, badgeOn: "8.1", tagWay: "east" },
-  spec: { lift: [0, 26, 36], delay: 0.11, badgeOn: "4.1", tagWay: "front" },
-  mcp: { lift: [10, 16, 54], delay: 0.16, badgeOn: "7.1", tagWay: "right" },
-  chat: { lift: [-6, 14, 30], delay: 0.21, badgeOn: "1.2", tagWay: "up" },
-  bff: { lift: [0, -4, 84], delay: 0.26, badgeOn: "2.4", tagWay: "left" },
-  sup: { lift: [0, -8, 100], delay: 0.31, badgeOn: "3.1", tagWay: "right" },
-  adp: { lift: [6, -10, 112], delay: 0.36, badgeOn: "5.3", tagWay: "right" },
+  cloud: { lift: [0, 0, 10], delay: 0, badgeOn: null, tags: "front" },
+  tools: { lift: [24, 0, 30], delay: 0.06, badgeOn: "8.1", tags: "below" },
+  spec: { lift: [0, 26, 36], delay: 0.11, badgeOn: "4.1", tags: "below" },
+  mcp: { lift: [10, 16, 54], delay: 0.16, badgeOn: "7.1", tags: "right" },
+  chat: { lift: [-6, 14, 30], delay: 0.21, badgeOn: "1.2", tags: "above" },
+  bff: { lift: [0, -4, 84], delay: 0.26, badgeOn: "2.4", tags: "left" },
+  sup: { lift: [0, -8, 100], delay: 0.31, badgeOn: "3.1", tags: "right" },
+  adp: { lift: [6, -10, 112], delay: 0.36, badgeOn: "5.3", tags: "right" },
   ai: {
     lift: [10, -24, 150],
     delay: 0.41,
     badgeOn: "6.1",
-    tagWay: "up",
+    tags: "above",
     badgeLift: 46,
   },
 };
@@ -571,6 +586,16 @@ const segmentAabb = (a: Vec3, b: Vec3): Aabb => ({
 /** Lifted cartridges (not the live one) stand this much higher, as in b3. */
 export const CARTRIDGE_LIFT = 22;
 
+/** How far each AI platform cartridge is lifted, 0 (seated) to 1. */
+export type CartridgeLifts = readonly [number, number, number];
+
+/** Every cartridge lifted but the live one. */
+export const liftsFor = (live: PlatformIndex): CartridgeLifts => [
+  live === 0 ? 0 : 1,
+  live === 1 ? 0 : 1,
+  live === 2 ? 0 : 1,
+];
+
 /** One thing the painter sorts: a piece, or the axis in the gap below it. */
 export type DrawItem = { kind: "piece" | "axis"; sub: SubComponent };
 
@@ -581,8 +606,10 @@ export const DRAW_ITEMS: DrawItem[] = [
 export const itemKey = (item: DrawItem) => `${item.kind}:${item.sub.id}`;
 
 export interface Layout {
-  /** Each piece's plan-space offset from where it seats. */
+  /** Each piece's plan-space offset from where it seats (a cartridge's lift included). */
   offset: Map<string, Vec3>;
+  /** The same, before any cartridge's lift: what a badge riding it follows. */
+  base: Map<string, Vec3>;
   /** Each seating axis, from seat to tip, in plan space. */
   axis: Map<string, [Vec3, Vec3]>;
   /** Indexes into DRAW_ITEMS, back to front. */
@@ -591,12 +618,19 @@ export interface Layout {
   boxes: Aabb[];
 }
 
-/** Where everything is for the given amounts, and the order to paint it. */
+/**
+ * Where everything is for the given amounts, and the order to paint it.
+ * `platform` is the live AI platform (the others' cartridges lifted), or how
+ * far each cartridge is lifted while a swap is under way.
+ */
 export function layoutAt(
   amounts: ExplodeAmounts,
-  platform: PlatformIndex = 1,
+  platform: PlatformIndex | CartridgeLifts = 1,
 ): Layout {
+  const lifts = typeof platform === "number" ? liftsFor(platform) : platform;
+  const base = new Map<string, Vec3>();
   const offset = new Map<string, Vec3>();
+  const apartOf = new Map<string, number>();
   const focusSum = Math.min(
     1,
     PART_ORDER.reduce((sum, part) => sum + amounts.focus[part], 0),
@@ -615,13 +649,29 @@ export function layoutAt(
     const lift = amounts.lite ? 0 : each;
     let o = add(add([0, 0, 0], plan.lift, lift), sub.apart, each * spread);
     o = add(o, sub.focus, focus * each);
-    offset.set(sub.id, o);
+    base.set(sub.id, o);
+    offset.set(
+      sub.id,
+      sub.platform === undefined
+        ? o
+        : add(o, [0, 0, CARTRIDGE_LIFT * lifts[sub.platform]]),
+    );
+    apartOf.set(sub.id, each);
   }
 
+  // An axis spans the gap a piece leaves, so a cartridge's own lift joins it
+  // only as the piece comes apart (assembled, a lifted cartridge has none).
   const axis = new Map<string, [Vec3, Vec3]>();
   for (const sub of SUBS) {
-    const base: Vec3 = sub.on ? must(offset, sub.on) : [0, 0, 0];
-    axis.set(sub.id, [add(sub.seat, base), add(sub.tip, must(offset, sub.id))]);
+    const from: Vec3 = sub.on ? must(base, sub.on) : [0, 0, 0];
+    const raised =
+      sub.platform === undefined
+        ? 0
+        : CARTRIDGE_LIFT * lifts[sub.platform] * must(apartOf, sub.id);
+    axis.set(sub.id, [
+      add(sub.seat, from),
+      add(add(sub.tip, must(base, sub.id)), [0, 0, raised]),
+    ]);
   }
 
   const boxes = DRAW_ITEMS.map(({ kind, sub }) => {
@@ -629,43 +679,119 @@ export function layoutAt(
       const [a, b] = must(axis, sub.id);
       return segmentAabb(a, b);
     }
-    const o = must(offset, sub.id);
-    const lifted =
-      sub.platform !== undefined && sub.platform !== platform
-        ? add(o, [0, 0, CARTRIDGE_LIFT])
-        : o;
-    return aabbOf(sub.boxes, lifted);
+    return aabbOf(sub.boxes, must(offset, sub.id));
   });
 
-  return { offset, axis, order: paintOrder(boxes), boxes };
+  return { offset, base, axis, order: paintOrder(boxes), boxes };
 }
 
 /** A box's three faces (re-exported for the figure). */
 export const facesOf = (b: Box3): BoxFaces => box(b.x, b.y, b.z, b.w, b.d, b.h);
 
-const WAYS: Record<TagWay, Point> = {
-  left: [-1, 0],
-  right: [1, 0],
-  up: [0, -1],
-  front: [-0.866, 0.5],
-  back: [0.866, -0.5],
-  east: [0.866, 0.5],
+/** The amounts once everything has settled: taken apart or not, `part` in focus. */
+export function settled(
+  part: PartId | null,
+  lite: boolean,
+  apart = true,
+): ExplodeAmounts {
+  const focus = Object.fromEntries(
+    PART_ORDER.map((p) => [p, p === part ? 1 : 0]),
+  ) as Record<PartId, number>;
+  return { apart: apart ? 1 : 0, focus, lite };
+}
+
+// ------------------------------------------------------------------ pipes
+
+/** The two parts each pipe joins. */
+export const ROUTE_PARTS: Record<RouteKey, readonly [PartId, PartId]> = {
+  "chat-bff": ["chat", "bff"],
+  "bff-sup": ["bff", "sup"],
+  "sup-adp": ["sup", "adp"],
+  "adp-ai0": ["adp", "ai"],
+  "adp-ai1": ["adp", "ai"],
+  "adp-ai2": ["adp", "ai"],
+  "sup-s0": ["sup", "spec"],
+  "sup-s1": ["sup", "spec"],
+  "sup-s2": ["sup", "spec"],
+  "s0-mcp": ["spec", "mcp"],
+  "s1-mcp": ["spec", "mcp"],
+  "s2-mcp": ["spec", "mcp"],
+  "mcp-t0": ["mcp", "tools"],
+  "mcp-t1": ["mcp", "tools"],
+  "mcp-t2": ["mcp", "tools"],
 };
 
-/** Where a piece's number tag starts (assembled) and which way it leads. */
-export function tagOf(sub: SubComponent): { at: Point; way: Point } {
-  const way = sub.tagWay ?? PLAN[sub.part].tagWay;
-  const b = sub.boxes[0];
-  const mid = b.z + b.h / 2;
-  const at: Vec3 =
-    way === "left"
-      ? [b.x, b.y + b.d, mid]
-      : way === "up"
-        ? [b.x + b.w / 2, b.y + b.d / 2, b.z + b.h]
-        : way === "front"
-          ? [b.x + b.w / 2, b.y + b.d, mid]
-          : way === "east"
-            ? [b.x + b.w, b.y + b.d / 2, mid]
-            : [b.x + b.w, b.y, mid];
-  return { at: iso(...at), way: WAYS[way] };
+/** A pipe is fully drawn off once its parts are this far into coming apart. */
+const PIPE_OFF_BY = 1 / 3;
+
+/**
+ * How far a part has come away from its seat, as far as its pipes care: the
+ * whole run when every part comes apart, only its own focus on phones (where
+ * just the part in focus opens).
+ */
+export function partOpen(amounts: ExplodeAmounts, part: PartId): number {
+  return amounts.lite ? amounts.apart * amounts.focus[part] : amounts.apart;
+}
+
+/**
+ * How far each pipe has drawn off, 0 (drawn) to 1 (gone): it goes as either
+ * of its parts starts to lift, over the first third of the run, and draws
+ * back on in the last third of coming back. A pipe whose parts both stay
+ * seated (on a phone, any pipe away from the open part) stays drawn.
+ */
+export function pipeRetract(amounts: ExplodeAmounts): Record<RouteKey, number> {
+  return Object.fromEntries(
+    ROUTE_KEYS.map((key) => {
+      const [a, b] = ROUTE_PARTS[key];
+      const open = Math.max(partOpen(amounts, a), partOpen(amounts, b));
+      return [key, Math.min(1, open / PIPE_OFF_BY)];
+    }),
+  ) as Record<RouteKey, number>;
+}
+
+// ----------------------------------------------------------------- bounds
+
+/** A box's drawing on the page, offset by `o` (plan units). */
+export function drawnBounds(b: Box3, o: Vec3 = [0, 0, 0]) {
+  const xs: number[] = [];
+  const ys: number[] = [];
+  for (const dx of [0, b.w]) {
+    for (const dy of [0, b.d]) {
+      for (const dz of [0, b.h]) {
+        const [px, py] = iso(b.x + dx + o[0], b.y + dy + o[1], b.z + dz + o[2]);
+        xs.push(px);
+        ys.push(py);
+      }
+    }
+  }
+  return {
+    left: Math.min(...xs),
+    right: Math.max(...xs),
+    top: Math.min(...ys),
+    bottom: Math.max(...ys),
+  };
+}
+
+export type Bounds = ReturnType<typeof drawnBounds>;
+
+export const unionBounds = (list: readonly Bounds[]): Bounds => ({
+  left: Math.min(...list.map((b) => b.left)),
+  right: Math.max(...list.map((b) => b.right)),
+  top: Math.min(...list.map((b) => b.top)),
+  bottom: Math.max(...list.map((b) => b.bottom)),
+});
+
+/** Where a part's numbered badge is drawn for the given amounts (its centre). */
+export function badgeOffset(
+  part: PartId,
+  layout: Layout,
+  amounts: ExplodeAmounts,
+): Vec3 {
+  const on = PLAN[part].badgeOn;
+  if (!on) return [0, 0, 0];
+  const extra =
+    (PLAN[part].badgeLift ?? 0) *
+    pieceApart(amounts.apart, must(DELAY, on)) *
+    (amounts.lite ? 0 : 1);
+  return add(must(layout.base, on), [0, 0, extra]);
 }

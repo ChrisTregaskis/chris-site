@@ -1,4 +1,3 @@
-import { animate, type AnimationPlaybackControls } from "framer-motion";
 import {
   useCallback,
   useEffect,
@@ -7,31 +6,45 @@ import {
   useState,
 } from "react";
 import {
+  badgeOffset,
+  type CartridgeLifts,
   DELAY,
+  type ExplodeAmounts,
   layoutAt,
+  liftsFor,
   must,
-  PLAN,
   pieceApart,
+  pipeRetract,
   project,
   SUBS,
   type Vec3,
 } from "./explode";
-import { iso } from "./iso";
+import { iso, ROUTE_KEYS, type Point } from "./iso";
 import { PART_ORDER, type PartId, type PlatformIndex } from "./parts";
-import { EASE } from "@/ui/tokens/motion";
+import { type TagLayout, tierShift } from "./tags";
+import { cubicBezier, linear, tween } from "@/lib/tween";
+import { DURATION, EASE } from "@/ui/tokens/motion";
 
-/** Seconds for the whole explode (staggered) and the reassembly. */
-const APART_S = 1.5;
-const TOGETHER_S = 1.0;
-const FOCUS_S = 0.7;
+const LIFT = cubicBezier(...EASE.lift);
+/** The figure's growth follows the whole run, easing in and out. */
+const easeInOut = (t: number) => t * t * (3 - 2 * t);
 
 export interface ExplodeOptions {
+  /** Taken apart (the target; the hook animates to it). */
   apart: boolean;
+  /** The part in focus, if any. */
   focus: PartId | null;
-  /** Phone-lite: only the part in focus comes apart. */
+  /** Phones: only the part in focus comes apart, in place. */
   lite: boolean;
+  /** The live AI platform (the other cartridges stand lifted). */
   platform: PlatformIndex;
+  /** How much the figure grows while taken apart (1: not at all). */
+  zoom: number;
+  /** Go back together quickly (the demo is waiting). */
+  quick: boolean;
   reducedMotion: boolean;
+  /** Where each number tag settles (see `tags.ts`). */
+  placed: TagLayout;
 }
 
 type Focus = Record<PartId, number>;
@@ -41,109 +54,165 @@ const focusFor = (part: PartId | null): Focus =>
 const sameOrder = (a: readonly number[], b: readonly number[]) =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
-const add3 = (a: Vec3, b: Vec3): Vec3 => [
-  a[0] + b[0],
-  a[1] + b[1],
-  a[2] + b[2],
-];
-
+const fixed = (n: number) => n.toFixed(2);
 const translate = (offset: Vec3) => {
   const [x, y] = project(offset);
-  return `translate(${x.toFixed(2)},${y.toFixed(2)})`;
+  return `translate(${fixed(x)},${fixed(y)})`;
 };
+const plus = ([x, y]: Point, [dx, dy]: Point): Point => [x + dx, y + dy];
+
+interface Amounts {
+  apart: number;
+  focus: Focus;
+  lifts: [number, number, number];
+}
 
 /**
- * PROTOTYPE: drives the exploded figure. Two kinds of animated amount (taken
- * apart, and each part's focus) tween with Framer Motion's `animate`, which
- * retargets from wherever they are if the state changes mid-flight. Each
- * frame turns them into a layout (pure, in `explode.ts`), writes transforms
- * straight to the registered SVG nodes, and re-sorts paint order, setting
- * React state only when the order actually changes.
+ * Drives the exploded figure. Three kinds of animated amount (taken apart,
+ * each part's focus, and each AI cartridge's lift) tween over
+ * requestAnimationFrame, retargeting from wherever they are if the state
+ * changes mid-flight. Each frame turns them into a layout (pure, in
+ * `explode.ts`), writes transforms and positions straight to the registered
+ * SVG nodes (skipping any that wouldn't change), and re-sorts the paint
+ * order, setting React state only when the order actually changes.
  */
 export function useExplode({
   apart,
   focus,
   lite,
   platform,
+  zoom,
+  quick,
   reducedMotion,
+  placed,
 }: ExplodeOptions) {
-  const amounts = useRef({ apart: apart ? 1 : 0, focus: focusFor(focus) });
+  const amounts = useRef<Amounts>({
+    apart: apart ? 1 : 0,
+    focus: focusFor(focus),
+    lifts: [...liftsFor(platform)],
+  });
   const nodes = useRef(new Map<string, SVGElement>());
+  const written = useRef(new Map<string, string>());
   const [order, setOrder] = useState(
-    () => layoutAt({ ...amounts.current, lite }, platform).order,
+    () => layoutAt({ ...amounts.current, lite }, amounts.current.lifts).order,
   );
-  const settings = useRef({ lite, platform });
-  settings.current = { lite, platform };
+  const settings = useRef({ lite, zoom, placed });
+  settings.current = { lite, zoom, placed };
   const waiters = useRef<(() => void)[]>([]);
   const frame = useRef(0);
 
   const draw = useCallback(() => {
     frame.current = 0;
-    const { lite: isLite, platform: live } = settings.current;
-    const now = { ...amounts.current, lite: isLite };
-    const layout = layoutAt(now, live);
-    const get = (key: string) => nodes.current.get(key);
+    const { lite: isLite, zoom: grow, placed: tags } = settings.current;
+    const { lifts } = amounts.current;
+    const now: ExplodeAmounts = { ...amounts.current, lite: isLite };
+    const layout = layoutAt(now, lifts as CartridgeLifts);
+    const cache = written.current;
+
+    /** Sets an attribute (or, with `style`, a style) unless it already has that value. */
+    const set = (key: string, name: string, value: string, style = false) => {
+      const node = nodes.current.get(key);
+      if (!node) return;
+      const id = `${key}|${name}`;
+      if (cache.get(id) === value) return;
+      cache.set(id, value);
+      if (style) node.style.setProperty(name, value);
+      else node.setAttribute(name, value);
+    };
 
     for (const sub of SUBS) {
       const offset = must(layout.offset, sub.id);
       const each =
         pieceApart(now.apart, must(DELAY, sub.id)) *
         (isLite ? now.focus[sub.part] : 1);
-      get(`piece:${sub.id}`)?.setAttribute("transform", translate(offset));
+      set(`piece:${sub.id}`, "transform", translate(offset));
 
       const [from, to] = must(layout.axis, sub.id);
-      const line = get(`axis:${sub.id}`);
-      if (line) {
-        const [x1, y1] = iso(...from);
-        const [x2, y2] = iso(...to);
-        line.setAttribute("x1", x1.toFixed(2));
-        line.setAttribute("y1", y1.toFixed(2));
-        line.setAttribute("x2", x2.toFixed(2));
-        line.setAttribute("y2", y2.toFixed(2));
-        line.style.opacity = Math.hypot(x2 - x1, y2 - y1) > 2 ? "1" : "0";
-      }
-
-      const foot = get(`foot:${sub.id}`);
-      if (foot) foot.style.opacity = String(each);
-
-      const tag = get(`tag:${sub.id}`);
-      if (tag) {
-        tag.setAttribute("transform", translate(offset));
-        // Numbers show for the part in focus only: all of them at once
-        // read as noise.
-        tag.style.opacity = String(each * now.focus[sub.part] ** 2);
-      }
+      const [x1, y1] = iso(...from);
+      const [x2, y2] = iso(...to);
+      set(`axis:${sub.id}`, "x1", fixed(x1));
+      set(`axis:${sub.id}`, "y1", fixed(y1));
+      set(`axis:${sub.id}`, "x2", fixed(x2));
+      set(`axis:${sub.id}`, "y2", fixed(y2));
+      set(
+        `axis:${sub.id}`,
+        "opacity",
+        Math.hypot(x2 - x1, y2 - y1) > 2 ? "1" : "0",
+        true,
+      );
+      set(`foot:${sub.id}`, "opacity", fixed(each), true);
     }
 
-    const plateTag = get("tag:9.4");
-    if (plateTag) {
-      plateTag.style.opacity = String(now.apart * now.focus.cloud ** 2);
+    // Number tags: shown for the part in focus only (all of them at once
+    // read as noise). The dot rides its piece, the number its part's tier.
+    // The part's badge steps aside for them: they carry its number now.
+    const tagsShown = new Map<PartId, number>();
+    for (const tag of tags.tags.values()) {
+      const key = tag.id;
+      const each = tag.sub
+        ? pieceApart(now.apart, must(DELAY, tag.sub)) *
+          (isLite ? now.focus[tag.part] : 1)
+        : now.apart;
+      const shown = each * now.focus[tag.part] ** 2;
+      tagsShown.set(tag.part, Math.max(tagsShown.get(tag.part) ?? 0, shown));
+      set(`tag:${key}`, "opacity", fixed(shown), true);
+      if (shown === 0) continue;
+      const dot = tag.sub
+        ? plus(tag.at, project(must(layout.offset, tag.sub)))
+        : tag.at;
+      const shift = tierShift(tag.part, now);
+      const [ex, ey] = plus(tag.end, shift);
+      const [tx, ty] = plus(tag.text, shift);
+      set(`dot:${key}`, "cx", fixed(dot[0]));
+      set(`dot:${key}`, "cy", fixed(dot[1]));
+      set(`lead:${key}`, "x1", fixed(dot[0]));
+      set(`lead:${key}`, "y1", fixed(dot[1]));
+      set(`lead:${key}`, "x2", fixed(ex));
+      set(`lead:${key}`, "y2", fixed(ey));
+      set(`num:${key}`, "x", fixed(tx));
+      set(`num:${key}`, "y", fixed(ty));
     }
 
     for (const part of PART_ORDER) {
-      const on = PLAN[part].badgeOn;
-      const badge = get(`badge:${part}`);
-      if (badge && on) {
-        const extra =
-          (PLAN[part].badgeLift ?? 0) *
-          pieceApart(now.apart, must(DELAY, on)) *
-          (isLite ? 0 : 1);
-        badge.setAttribute(
-          "transform",
-          translate(add3(must(layout.offset, on), [0, 0, extra])),
-        );
-      }
+      set(
+        `badge:${part}`,
+        "transform",
+        translate(badgeOffset(part, layout, now)),
+      );
+      // Another part's tags may cover it too: it steps aside for them.
+      const covered = PART_ORDER.reduce(
+        (most, other) =>
+          tags.covers[other].includes(part)
+            ? Math.max(most, tagsShown.get(other) ?? 0)
+            : most,
+        tagsShown.get(part) ?? 0,
+      );
+      set(`badge-face:${part}`, "opacity", fixed(1 - covered), true);
     }
 
-    // Pipes draw off in the first third of coming apart, and back on in the
-    // last third of going together (they join nothing while apart).
-    const pipes = get("pipes");
-    if (pipes) {
-      const off = isLite ? 0 : Math.min(1, now.apart * 3);
-      pipes.style.strokeDasharray = off > 0 ? "1 1" : "";
-      pipes.style.strokeDashoffset = off > 0 ? String(off) : "";
-      pipes.style.opacity = off >= 1 ? "0" : "1";
+    // Pipes draw off as the parts they join lift (on phones, only the open
+    // part's), and back on as they seat; lit lines and the travelling
+    // message only belong on the whole board.
+    const retract = pipeRetract(now);
+    let anyOff = 0;
+    for (const key of ROUTE_KEYS) {
+      const off = retract[key];
+      anyOff = Math.max(anyOff, off);
+      set(`route:${key}`, "stroke-dasharray", off > 0 ? "1 1" : "none", true);
+      set(`route:${key}`, "stroke-dashoffset", fixed(off), true);
+      set(`route:${key}`, "opacity", off >= 1 ? "0" : "1", true);
     }
+    set("lit", "opacity", fixed(1 - anyOff), true);
+    set("pulse", "opacity", anyOff > 0 ? "0" : "1", true);
+
+    // Grows on wide screens while taken apart, from its bottom-right corner.
+    const scale = isLite ? 1 : 1 + (grow - 1) * easeInOut(now.apart);
+    set(
+      "zoom",
+      "transform",
+      scale === 1 ? "none" : `scale(${scale.toFixed(4)})`,
+      true,
+    );
 
     setOrder((previous) =>
       sameOrder(previous, layout.order) ? previous : layout.order,
@@ -160,52 +229,51 @@ export function useExplode({
     if (!frame.current) frame.current = requestAnimationFrame(draw);
   }, [draw]);
 
+  // Drawn before the first paint, and again (without animating) when
+  // phone-lite, the zoom or the tags' places change.
   useLayoutEffect(() => {
+    written.current.clear();
     draw();
-    return () => cancelAnimationFrame(frame.current);
-  }, [draw]);
+  }, [lite, zoom, placed, draw]);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
-  // The platform or phone-lite changing re-lays without animating.
-  useEffect(schedule, [lite, platform, schedule]);
-
-  const apartAnim = useRef<AnimationPlaybackControls | null>(null);
+  const stopApart = useRef<() => void>(() => {});
   useEffect(() => {
     const target = apart ? 1 : 0;
-    apartAnim.current?.stop();
+    stopApart.current();
     const from = amounts.current.apart;
     if (from === target) return;
-    if (reducedMotion) {
-      amounts.current.apart = target;
-      schedule();
-      return;
-    }
-    const span = apart ? APART_S : TOGETHER_S;
-    apartAnim.current = animate(from, target, {
-      duration: span * Math.abs(target - from),
-      ease: "linear",
+    const span = apart
+      ? DURATION.apart
+      : quick
+        ? DURATION.state
+        : DURATION.together;
+    stopApart.current = tween({
+      from,
+      to: target,
+      duration: reducedMotion ? 0 : span * 1000 * Math.abs(target - from),
+      ease: linear,
       onUpdate: (value) => {
         amounts.current.apart = value;
         schedule();
       },
     });
-  }, [apart, reducedMotion, schedule]);
+  }, [apart, quick, reducedMotion, schedule]);
 
-  const focusAnims = useRef(new Map<PartId, AnimationPlaybackControls>());
+  const stopFocus = useRef(new Map<PartId, () => void>());
   useEffect(() => {
     for (const part of PART_ORDER) {
       const target = part === focus ? 1 : 0;
-      focusAnims.current.get(part)?.stop();
+      stopFocus.current.get(part)?.();
       const from = amounts.current.focus[part];
       if (from === target) continue;
-      if (reducedMotion) {
-        amounts.current.focus[part] = target;
-        continue;
-      }
-      focusAnims.current.set(
+      stopFocus.current.set(
         part,
-        animate(from, target, {
-          duration: FOCUS_S,
-          ease: [...EASE.lift],
+        tween({
+          from,
+          to: target,
+          duration: reducedMotion ? 0 : DURATION.flash * 1000,
+          ease: LIFT,
           onUpdate: (value) => {
             amounts.current.focus[part] = value;
             schedule();
@@ -213,14 +281,35 @@ export function useExplode({
         }),
       );
     }
-    schedule();
   }, [focus, reducedMotion, schedule]);
 
+  const stopLifts = useRef<(() => void)[]>([]);
   useEffect(() => {
-    const anims = focusAnims.current;
+    const targets = liftsFor(platform);
+    stopLifts.current.forEach((stop) => stop());
+    stopLifts.current = targets.map((target, index) =>
+      tween({
+        from: amounts.current.lifts[index],
+        to: target,
+        duration:
+          reducedMotion || amounts.current.lifts[index] === target
+            ? 0
+            : DURATION.slow * 1000,
+        ease: LIFT,
+        onUpdate: (value) => {
+          amounts.current.lifts[index] = value;
+          schedule();
+        },
+      }),
+    );
+  }, [platform, reducedMotion, schedule]);
+
+  useEffect(() => {
+    const focusStops = stopFocus.current;
     return () => {
-      apartAnim.current?.stop();
-      anims.forEach((anim) => anim.stop());
+      stopApart.current();
+      focusStops.forEach((stop) => stop());
+      stopLifts.current.forEach((stop) => stop());
     };
   }, []);
 

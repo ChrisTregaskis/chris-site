@@ -1,6 +1,8 @@
-import { render } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { demoPlan, SUGGESTIONS } from "./demo";
+import { PLATE_PIECE, SUBS } from "./explode";
 import { ROUTE_KEYS, type RouteKey } from "./iso";
 import { PLATFORM_INDEXES } from "./parts";
 import { WayfinderFigure } from "./WayfinderFigure";
@@ -49,5 +51,63 @@ describe("WayfinderFigure", () => {
         unmount();
       }
     }
+  });
+});
+
+describe("WayfinderFigure taken apart", () => {
+  it("draws every piece, and a number tag for each (and the plate), out of the way of assistive tech", () => {
+    const { container } = render(
+      <WayfinderFigure
+        selected="bff"
+        hot={new Set()}
+        lit={new Set()}
+        platform={1}
+        onPart={() => {}}
+        onSlot={() => {}}
+        pulseRef={{ current: null }}
+        apart
+        highlight="2.3"
+        reducedMotion
+      />,
+    );
+    const svg = screen.getByRole("img");
+    expect(svg).toHaveAccessibleName(/taken apart/);
+    expect(svg).toHaveAttribute("data-picked", "2.3");
+    expect(container.querySelectorAll("[data-piece]")).toHaveLength(
+      SUBS.length,
+    );
+    const tags = [...container.querySelectorAll("[data-tag]")].map((tag) =>
+      tag.getAttribute("data-tag"),
+    );
+    expect(tags).toHaveLength(SUBS.length + 1);
+    expect(tags).toContain(PLATE_PIECE.id);
+    // Tags and badges sit in a hidden group: the step cards say it in words.
+    expect(
+      container.querySelector("[data-tag]")?.closest("[aria-hidden='true']"),
+    ).not.toBeNull();
+  });
+
+  it("swaps the platform when a cartridge is clicked, taken apart or not", async () => {
+    const user = userEvent.setup();
+    const onSlot = vi.fn();
+    const onPart = vi.fn();
+    const { container } = render(
+      <WayfinderFigure
+        selected="ai"
+        hot={new Set()}
+        lit={new Set()}
+        platform={1}
+        onPart={onPart}
+        onSlot={onSlot}
+        pulseRef={{ current: null }}
+        apart
+        reducedMotion
+      />,
+    );
+    const c = container.querySelector('[data-slot="C"]');
+    if (!c) throw new Error("no cartridge C");
+    await user.click(c);
+    expect(onSlot).toHaveBeenCalledWith(2);
+    expect(onPart).not.toHaveBeenCalled();
   });
 });

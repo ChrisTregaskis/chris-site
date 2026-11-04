@@ -81,23 +81,55 @@ export const PLATFORMS = ["A", "B", "C"] as const;
 export const PLATFORM_INDEXES = [0, 1, 2] as const;
 export type PlatformIndex = (typeof PLATFORM_INDEXES)[number];
 
-/** Steps 1 to 9 are the parts; step 10 is the live demo. */
-export const DEMO_STEP = PART_ORDER.length + 1;
+/**
+ * The story's steps, in scroll order: the board taken apart (step 1), the
+ * nine parts (steps 2 to 10), then the live demo (step 11). Steps count from
+ * 1 because 0 means "none selected yet"; what a visitor sees is each step's
+ * numeral (`numeralForStep`): 00 for the intro, the part's own number, and
+ * 10 for the demo.
+ */
+export const INTRO_STEP = 1;
+export const DEMO_STEP = PART_ORDER.length + 2;
 
-/** The part a step shows, or null for the demo (and for "none yet", 0). */
+/** The part a step shows, or null for the intro, the demo and "none yet" (0). */
 export function partForStep(step: number): PartId | null {
-  return step >= 1 && step <= PART_ORDER.length ? PART_ORDER[step - 1] : null;
+  return step > INTRO_STEP && step < DEMO_STEP ? PART_ORDER[step - 2] : null;
 }
 
 export function stepForPart(id: PartId): number {
+  return PART_ORDER.indexOf(id) + 2;
+}
+
+/** A part's number (1 to 9). */
+export function partNumber(id: PartId): number {
   return PART_ORDER.indexOf(id) + 1;
 }
 
-/** The picker's options: every part, then the demo. */
+/** The number a step goes by: 0 for the intro, 1 to 9 for the parts, 10 for the demo. */
+export function numeralForStep(step: number): number {
+  return Math.max(0, step - 1);
+}
+
+/** The intro step: the board comes apart into its numbered pieces. */
+export const INTRO = {
+  name: "Taken apart",
+  heading: "Nine parts, opened up",
+  text: "The board lifts apart and every part opens into its numbered pieces. Walk through them one at a time; it all goes back together for the live demo.",
+} as const;
+
+/** The picker's options: the intro, every part, then the demo. */
 export const PICKER_OPTIONS = [
+  { value: INTRO_STEP, numeral: 0, label: INTRO.name },
   ...PART_ORDER.map((id, index) => ({
-    value: index + 1,
+    value: stepForPart(id),
+    numeral: index + 1,
     label: PARTS[id].name,
+    separated: index === 0,
   })),
-  { value: DEMO_STEP, label: "Try it, live demo", separated: true },
+  {
+    value: DEMO_STEP,
+    numeral: numeralForStep(DEMO_STEP),
+    label: "Try it, live demo",
+    separated: true,
+  },
 ];

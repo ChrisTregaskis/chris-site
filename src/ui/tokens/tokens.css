@@ -113,6 +113,8 @@
   --duration-state: 450ms;
   --duration-slow: 550ms;
   --duration-flash: 750ms;
+  --duration-together: 900ms; /* the Wayfinder figure going back together */
+  --duration-apart: 1400ms; /* and coming apart, staggered from the plate up */
   --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-lift: cubic-bezier(0.3, 0.7, 0.2, 1);
   --ease-tick: cubic-bezier(0.3, 0.6, 0.3, 1);

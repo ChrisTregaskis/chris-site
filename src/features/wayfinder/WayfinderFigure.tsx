@@ -1,4 +1,11 @@
-import { type ReactNode, type Ref, useEffect, useRef } from "react";
+import {
+  type ReactNode,
+  type Ref,
+  type RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import {
   type Detail,
   DRAW_ITEMS,
@@ -6,24 +13,22 @@ import {
   itemKey,
   PLATE,
   PLATE_PIECE,
-  PLATE_TAG,
   type SubComponent,
   SUBS,
-  tagOf,
 } from "./explode";
 import {
-  AI_BADGE,
   type Badge,
+  BADGES,
   type BoxFaces,
-  FIGURE,
-  type Point,
   type RouteKey,
   ROUTE_KEYS,
   routePath,
   VIEW_BOX,
 } from "./iso";
 import { PART_ORDER, type PartId, type PlatformIndex } from "./parts";
+import { TAG_PX, tagLayout, type TagSpec } from "./tags";
 import { useExplode } from "./useExplode";
+import { useFigureZoom } from "./useFigureZoom";
 import { cn } from "@/lib/cn";
 
 interface FaceState {
@@ -34,6 +39,8 @@ interface FaceState {
   live?: boolean;
   /** Another part is selected: a quieter, still opaque, palette. */
   dim?: boolean;
+  /** Another piece of its part is picked out: it steps back the same way. */
+  quiet?: boolean;
 }
 
 type Face = keyof BoxFaces;
@@ -65,15 +72,16 @@ function faceFill(face: Face, state: FaceState): string {
     if (state.base && state.on) return "fill-figure-base-on";
     if (state.hot) return "fill-signal";
   }
-  if (state.on) return ON[face];
+  if (state.on && !state.quiet) return ON[face];
   if (state.base) return BASE_OFF[face];
   if (state.hot) return OFF[face];
-  return state.dim ? DIM[face] : OFF[face];
+  return state.dim === true || state.quiet === true ? DIM[face] : OFF[face];
 }
 
 function strokeFor(state: FaceState): string {
   if (state.live) return "stroke-ink";
   if (state.hot) return "stroke-signal";
+  if (state.on && state.quiet) return "stroke-accent/60";
   if (state.on) return "stroke-accent";
   if (state.dim && !state.base) return "stroke-line-hover";
   return "stroke-line-strong";
@@ -218,7 +226,10 @@ function Details({
                 x={detail.x}
                 y={detail.y}
                 textAnchor="middle"
-                className={cn(LABEL, on && "fill-on-accent")}
+                className={cn(
+                  LABEL,
+                  on && (detail.above ? "fill-accent" : "fill-on-accent"),
+                )}
               >
                 {detail.text}
               </text>
@@ -263,59 +274,65 @@ function Piece({
   );
 }
 
-const TAG_LEAD = 26;
-
-/** A piece's number, on a short lead off the side of it. */
+/**
+ * A piece's number tag: a dot on the piece, a leader, and its number, set at
+ * a fixed size on screen (`unitsPerPx` user units to the px). Positions are
+ * written by `useExplode` as the pieces move; this only draws the parts.
+ */
 function PieceTag({
-  id,
-  at,
-  way,
+  tag,
+  unitsPerPx: u,
   on,
+  quiet,
   register,
 }: {
-  id: string;
-  at: Point;
-  way: Point;
+  tag: TagSpec;
+  unitsPerPx: number;
+  /** Its part is the one in focus. */
   on: boolean;
-  register?: (node: SVGGElement | null) => void;
+  /** Another piece of its part is picked out: this one steps back. */
+  quiet: boolean;
+  register: (key: string) => (node: SVGElement | null) => void;
 }) {
-  const [x, y] = at;
-  const ex = x + way[0] * TAG_LEAD;
-  const ey = y + way[1] * TAG_LEAD;
-  const anchor =
-    Math.abs(way[0]) < 0.3 ? "middle" : way[0] > 0 ? "start" : "end";
+  const strong = on && !quiet;
   return (
-    <g ref={register} style={{ opacity: 0 }} className="pointer-events-none">
-      <circle
-        cx={x}
-        cy={y}
-        r={3}
-        className={on ? "fill-accent" : "fill-muted"}
-      />
+    <g
+      ref={register(`tag:${tag.id}`)}
+      data-tag={tag.id}
+      style={{ opacity: 0 }}
+      className="pointer-events-none"
+    >
       <line
-        x1={x}
-        y1={y}
-        x2={ex}
-        y2={ey}
-        className={cn("stroke-1", on ? "stroke-accent" : "stroke-muted/60")}
+        ref={register(`lead:${tag.id}`)}
+        strokeWidth={u}
+        className={cn(
+          "transition-[stroke] duration-base motion-reduce:transition-none",
+          strong ? "stroke-accent/70" : "stroke-muted/50",
+        )}
+      />
+      <circle
+        ref={register(`dot:${tag.id}`)}
+        r={TAG_PX.dot * u}
+        className={strong ? "fill-accent" : "fill-muted"}
       />
       <text
-        x={ex + way[0] * 4}
-        y={ey + (way[1] < -0.8 ? -10 : way[1] * 10)}
-        textAnchor={anchor}
+        ref={register(`num:${tag.id}`)}
+        textAnchor={tag.anchor}
         dominantBaseline="central"
+        strokeWidth={4 * u}
+        style={{ fontSize: TAG_PX.font * u }}
         className={cn(
-          "font-body text-[19px] font-semibold tabular-nums [paint-order:stroke] stroke-surface stroke-[5px] [stroke-linejoin:round]",
-          on ? "fill-accent" : "fill-muted",
+          "font-body font-semibold tabular-nums [paint-order:stroke] stroke-tone-wayfinder [stroke-linejoin:round] transition-[fill] duration-base motion-reduce:transition-none",
+          strong ? "fill-accent" : "fill-muted",
         )}
       >
-        {id}
+        {tag.id}
       </text>
     </g>
   );
 }
 
-/** A piece, or an AI platform cartridge (which lifts unless it is live). */
+/** A piece, or an AI platform cartridge (which stands lifted unless live). */
 function PieceBody({
   sub,
   apart,
@@ -340,10 +357,6 @@ function PieceBody({
         event.stopPropagation();
         onSlot(cartridge);
       }}
-      className={cn(
-        "transition-transform duration-slow ease-lift motion-reduce:transition-none",
-        cartridge !== platform && "-translate-y-[22px]",
-      )}
     >
       <Piece
         sub={sub}
@@ -355,13 +368,8 @@ function PieceBody({
 }
 
 /** Where a piece stood on the plate, shown once it has lifted off. */
-const footprintOf = (sub: SubComponent) => {
-  const floor = sub.boxes.filter((b) => b.z === 0);
-  return floor.map((b) => {
-    const faces = facesOf({ ...b, h: 0 });
-    return faces.top;
-  });
-};
+const footprintOf = (sub: SubComponent) =>
+  sub.boxes.filter((b) => b.z === 0).map((b) => facesOf({ ...b, h: 0 }).top);
 
 export interface WayfinderFigureProps {
   /** The part picked by scroll, click or the picker. */
@@ -375,33 +383,36 @@ export interface WayfinderFigureProps {
   onSlot: (index: PlatformIndex) => void;
   /** The travelling message dot; moved by the demo. */
   pulseRef: Ref<SVGGElement>;
-  /** PROTOTYPE: taken apart (the target state; the hook animates to it). */
+  /** Taken apart (the target state; the figure animates to it). */
   apart?: boolean;
-  /** PROTOTYPE: phone-lite, only the part in focus comes apart. */
+  /** Phones: only the part in focus comes apart, in place, and it never grows. */
   lite?: boolean;
+  /** Go back together quickly (a message is waiting to travel). */
+  quick?: boolean;
+  /** A piece picked out from its part's "Inside" list (e.g. "2.3"). */
+  highlight?: string | null;
   reducedMotion?: boolean;
-  /** PROTOTYPE: hands the hook's controls up (to wait for reassembly). */
-  onExplode?: (controls: { whenAssembled: () => Promise<void> }) => void;
+  /**
+   * The sticky stage the figure pins in. Given (and not `lite`), the figure
+   * grows into the room around it while taken apart.
+   */
+  stageRef?: RefObject<HTMLElement | null>;
+  /** Hands up the figure's controls (to wait for it to reassemble). */
+  onExplode?: (controls: ExplodeControls) => void;
 }
 
-const BADGES: Record<PartId, Badge> = {
-  chat: FIGURE.chat.badge,
-  bff: FIGURE.bff.badge,
-  sup: FIGURE.sup.badge,
-  spec: FIGURE.spec.badge,
-  adp: FIGURE.adp.badge,
-  ai: AI_BADGE,
-  mcp: FIGURE.mcp.badge,
-  tools: FIGURE.tools.badge,
-  cloud: FIGURE.cloud.badge,
-};
+export interface ExplodeControls {
+  /** Resolves once the figure is fully back together. */
+  whenAssembled: () => Promise<void>;
+}
 
 /**
  * Wayfinder's architecture as an isometric figure (after the `anatomy` style):
  * nine numbered parts on a cloud base plate, joined by the pipes a message
- * travels. PROTOTYPE: it also comes apart into numbered pieces, each drawn
- * in a paint order re-sorted as they move. Decorative for assistive tech,
- * which uses the picker instead.
+ * travels. Taken apart, every part lifts to its own tier and opens into its
+ * numbered pieces, drawn in a paint order re-sorted as they move; the part in
+ * focus is labelled. Decorative for assistive tech: the picker and each step's
+ * "Inside" list say the same in words.
  */
 export function WayfinderFigure({
   selected,
@@ -413,15 +424,28 @@ export function WayfinderFigure({
   pulseRef,
   apart = false,
   lite = false,
+  quick = false,
+  highlight = null,
   reducedMotion = false,
+  stageRef,
   onExplode,
 }: WayfinderFigureProps) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const { zoom, unitsPerPx } = useFigureZoom(boxRef, stageRef, !lite);
+  const placed = useMemo(
+    () => tagLayout(lite, unitsPerPx, platform),
+    [lite, unitsPerPx, platform],
+  );
+  const focus = apart ? selected : null;
   const { order, register, whenAssembled } = useExplode({
     apart,
-    focus: apart ? selected : null,
+    focus,
     lite,
     platform,
+    zoom: lite ? 1 : zoom,
+    quick,
     reducedMotion,
+    placed,
   });
   const onExplodeRef = useRef(onExplode);
   onExplodeRef.current = onExplode;
@@ -429,167 +453,196 @@ export function WayfinderFigure({
     onExplodeRef.current?.({ whenAssembled });
   }, [whenAssembled]);
 
-  const plateOn = selected === "cloud";
-  const plateHot = hot.has("cloud");
+  // Picked out (from its part's "Inside" list, while that part is in
+  // focus): that piece stays lit and its part's other pieces step back.
+  const highlightPart = highlight
+    ? (SUBS.find((sub) => sub.id === highlight)?.part ??
+      (highlight === PLATE_PIECE.id ? "cloud" : null))
+    : null;
+  const pickedPart =
+    highlightPart !== null && highlightPart === focus ? focus : null;
+  const picked = pickedPart ? highlight : null;
 
   return (
-    <svg
-      viewBox={VIEW_BOX}
-      role="img"
-      aria-label="Wayfinder's architecture as nine parts on a cloud base plate. Use the part picker below to explore each part."
-      className="block h-auto w-full overflow-visible wide:max-h-[66vh]"
-    >
-      <PartGroup id="cloud" selected={selected} hot={hot} onPart={onPart}>
-        {(state) => <Faces faces={PLATE} state={{ ...state, base: true }} />}
-      </PartGroup>
-
-      {/* Where each piece seats, once it has lifted off the plate. */}
-      <g aria-hidden="true" className="pointer-events-none">
-        {SUBS.flatMap((sub) =>
-          footprintOf(sub).map((points, index) => (
-            <polygon
-              key={`${sub.id}-${index}`}
-              ref={index === 0 ? register(`foot:${sub.id}`) : undefined}
-              points={points}
-              style={{ opacity: 0 }}
-              className="fill-accent/[0.06] stroke-accent/50 stroke-1 [stroke-dasharray:3_3]"
-            />
-          )),
-        )}
-      </g>
-
-      {/* Pipes in two layers: every casing first, then every lit line on
-          top, so pipes that share a run (the three specialists' runs to
-          MCP) never paint over a lit one. Taken apart, they draw off. */}
-      <g
-        ref={register("pipes")}
-        className="fill-none [stroke-linecap:round] [stroke-linejoin:round]"
-      >
-        {ROUTE_KEYS.map((key) => {
-          const d = routePath(key);
-          return (
-            <g key={key}>
-              <path
-                d={d}
-                pathLength={1}
-                data-casing=""
-                className="stroke-line-strong stroke-[5]"
-              />
-              <path
-                d={d}
-                pathLength={1}
-                data-casing=""
-                className="stroke-surface stroke-[2.4]"
-              />
-            </g>
-          );
-        })}
-        {ROUTE_KEYS.map((key) => (
-          <path
-            key={key}
-            d={routePath(key)}
-            data-route={key}
-            pathLength={1}
-            className={cn(
-              "stroke-signal stroke-[2.6] transition-opacity duration-state motion-reduce:transition-none",
-              lit.has(key) ? "opacity-100" : "opacity-0",
-            )}
-          />
-        ))}
-      </g>
-
-      {/* Every piece and seating axis, back to front for where they are now. */}
-      {order.map((index) => {
-        const item = DRAW_ITEMS[index];
-        const { sub } = item;
-        const key = itemKey(item);
-        if (item.kind === "axis") {
-          return (
-            <line
-              key={key}
-              ref={register(key)}
-              aria-hidden="true"
-              style={{ opacity: 0 }}
-              className={cn(
-                "pointer-events-none stroke-[1.2] [stroke-dasharray:2_4] [stroke-linecap:round]",
-                selected === sub.part && apart
-                  ? "stroke-accent"
-                  : "stroke-accent/45",
-              )}
-            />
-          );
+    <div ref={boxRef} className="relative">
+      <svg
+        ref={register("zoom")}
+        viewBox={VIEW_BOX}
+        role="img"
+        aria-label={
+          apart
+            ? "Wayfinder's architecture, taken apart: nine parts on a cloud base plate, each opened into its numbered pieces. Each step lists what is inside its part."
+            : "Wayfinder's architecture as nine parts on a cloud base plate. Use the part picker below to explore each part."
         }
-        return (
-          <PartGroup
-            key={key}
-            id={sub.part}
-            selected={selected}
-            hot={hot}
-            onPart={onPart}
-          >
-            {(state) => (
-              <g ref={register(key)} data-piece={sub.id}>
-                <PieceBody
-                  sub={sub}
-                  apart={apart}
-                  state={state}
-                  platform={platform}
-                  onSlot={onSlot}
+        data-apart={apart ? "" : undefined}
+        data-lite={lite ? "" : undefined}
+        data-picked={picked ?? undefined}
+        className="block h-auto w-full origin-bottom-right overflow-visible wide:max-h-[66vh]"
+      >
+        <PartGroup id="cloud" selected={selected} hot={hot} onPart={onPart}>
+          {(state) => (
+            <Faces
+              faces={PLATE}
+              state={{
+                ...state,
+                base: true,
+                quiet: pickedPart === "cloud" && picked !== PLATE_PIECE.id,
+              }}
+            />
+          )}
+        </PartGroup>
+
+        {/* Where each piece seats, once it has lifted off the plate. */}
+        <g aria-hidden="true" className="pointer-events-none">
+          {SUBS.flatMap((sub) =>
+            footprintOf(sub).map((points, index) => (
+              <polygon
+                key={`${sub.id}-${index}`}
+                ref={index === 0 ? register(`foot:${sub.id}`) : undefined}
+                points={points}
+                style={{ opacity: 0 }}
+                className="fill-accent/[0.06] stroke-accent/50 stroke-1 [stroke-dasharray:3_3]"
+              />
+            )),
+          )}
+        </g>
+
+        {/* Pipes in two layers: every casing first, then every lit line on
+            top, so pipes that share a run (the three specialists' runs to
+            MCP) never paint over a lit one. They draw off as their parts
+            lift. */}
+        <g className="fill-none [stroke-linecap:round] [stroke-linejoin:round]">
+          {ROUTE_KEYS.map((key) => {
+            const d = routePath(key);
+            return (
+              <g key={key} ref={register(`route:${key}`)}>
+                <path
+                  d={d}
+                  pathLength={1}
+                  data-casing=""
+                  className="stroke-line-strong stroke-[5]"
+                />
+                <path
+                  d={d}
+                  pathLength={1}
+                  data-casing=""
+                  className="stroke-surface stroke-[2.4]"
                 />
               </g>
-            )}
-          </PartGroup>
-        );
-      })}
-
-      <g
-        ref={pulseRef}
-        transform="translate(-999,-999)"
-        visibility="hidden"
-        aria-hidden="true"
-      >
-        <circle r={13} className="fill-signal opacity-25" />
-        <circle r={6} className="fill-signal" />
-      </g>
-
-      {/* Numbers float above everything: the parts' badges and, taken apart,
-          each piece's own. */}
-      <g aria-hidden="true">
-        {PART_ORDER.map((part) => (
-          <g
-            key={part}
-            ref={register(`badge:${part}`)}
-            onClick={() => onPart(part)}
-            className={cn(
-              "cursor-pointer transition-opacity duration-state motion-reduce:transition-none",
-              selected !== null &&
-                selected !== part &&
-                !hot.has(part) &&
-                "opacity-60",
-            )}
-          >
-            <PartBadge
-              badge={BADGES[part]}
-              on={part === "cloud" ? plateOn || plateHot : selected === part}
-            />
+            );
+          })}
+          <g ref={register("lit")}>
+            {ROUTE_KEYS.map((key) => (
+              <path
+                key={key}
+                d={routePath(key)}
+                data-route={key}
+                pathLength={1}
+                className={cn(
+                  "stroke-signal stroke-[2.6] transition-opacity duration-state motion-reduce:transition-none",
+                  lit.has(key) ? "opacity-100" : "opacity-0",
+                )}
+              />
+            ))}
           </g>
-        ))}
-        {SUBS.map((sub) => (
-          <PieceTag
-            key={sub.id}
-            id={sub.id}
-            {...tagOf(sub)}
-            on={apart && selected === sub.part}
-            register={register(`tag:${sub.id}`)}
-          />
-        ))}
-        <PieceTag
-          id={PLATE_PIECE.id}
-          {...PLATE_TAG}
-          on
-          register={register(`tag:${PLATE_PIECE.id}`)}
-        />
-      </g>
-    </svg>
+        </g>
+
+        {/* Every piece and seating axis, back to front for where they are now. */}
+        {order.map((index) => {
+          const item = DRAW_ITEMS[index];
+          const { sub } = item;
+          const key = itemKey(item);
+          if (item.kind === "axis") {
+            return (
+              <line
+                key={key}
+                ref={register(key)}
+                aria-hidden="true"
+                style={{ opacity: 0 }}
+                className={cn(
+                  "pointer-events-none stroke-[1.2] [stroke-dasharray:2_4] [stroke-linecap:round]",
+                  focus === sub.part ? "stroke-accent" : "stroke-accent/45",
+                )}
+              />
+            );
+          }
+          return (
+            <PartGroup
+              key={key}
+              id={sub.part}
+              selected={selected}
+              hot={hot}
+              onPart={onPart}
+            >
+              {(state) => (
+                <g ref={register(key)} data-piece={sub.id}>
+                  <PieceBody
+                    sub={sub}
+                    apart={apart}
+                    state={{
+                      ...state,
+                      quiet: pickedPart === sub.part && picked !== sub.id,
+                    }}
+                    platform={platform}
+                    onSlot={onSlot}
+                  />
+                </g>
+              )}
+            </PartGroup>
+          );
+        })}
+
+        <g ref={register("pulse")} aria-hidden="true">
+          <g
+            ref={pulseRef}
+            transform="translate(-999,-999)"
+            visibility="hidden"
+          >
+            <circle r={13} className="fill-signal opacity-25" />
+            <circle r={6} className="fill-signal" />
+          </g>
+        </g>
+
+        {/* Numbers float above everything: the parts' badges and, for the
+            part in focus, each piece's own. */}
+        <g aria-hidden="true">
+          {PART_ORDER.map((part) => (
+            <g
+              key={part}
+              ref={register(`badge:${part}`)}
+              onClick={() => onPart(part)}
+              className={cn(
+                "cursor-pointer transition-opacity duration-state motion-reduce:transition-none",
+                selected !== null &&
+                  selected !== part &&
+                  !hot.has(part) &&
+                  "opacity-60",
+              )}
+            >
+              <g ref={register(`badge-face:${part}`)}>
+                <PartBadge
+                  badge={BADGES[part]}
+                  on={
+                    part === "cloud"
+                      ? selected === "cloud" || hot.has("cloud")
+                      : selected === part
+                  }
+                />
+              </g>
+            </g>
+          ))}
+          {[...placed.tags.values()].map((tag) => (
+            <PieceTag
+              key={tag.id}
+              tag={tag}
+              unitsPerPx={unitsPerPx}
+              on={focus === tag.part}
+              quiet={pickedPart === tag.part && picked !== tag.id}
+              register={register}
+            />
+          ))}
+        </g>
+      </svg>
+    </div>
   );
 }

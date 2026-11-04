@@ -1,12 +1,16 @@
 import { useReducedMotion } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import { ChatMock } from "./ChatMock";
+import { type Ask } from "./demo";
 import { INSIDE } from "./explode";
+import { InsideList } from "./InsideList";
 import { StepCard } from "./StepCard";
 import { useWayfinderDemo } from "./useWayfinderDemo";
-import { WayfinderFigure } from "./WayfinderFigure";
+import { type ExplodeControls, WayfinderFigure } from "./WayfinderFigure";
 import {
   DEMO_STEP,
+  INTRO,
+  INTRO_STEP,
   PART_ORDER,
   PARTS,
   PICKER_OPTIONS,
@@ -14,10 +18,10 @@ import {
   PLATFORMS,
   type PartId,
   partForStep,
+  partNumber,
   stepForPart,
 } from "./parts";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useScrollFrame } from "@/hooks/useScrollFrame";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
@@ -39,13 +43,38 @@ const CHAT_BUBBLE = (
   </svg>
 );
 
-const optionText = (n: number) => `${pad2(n)} ${PICKER_OPTIONS[n - 1].label}`;
+/** Taken apart: layers lifting off one another (the intro's badge and the toggle's). */
+const APART_GLYPH = (
+  <svg viewBox="0 0 16 16" aria-hidden="true">
+    <path
+      d="M8 1.6 14 4.4 8 7.2 2 4.4z M2 8.2 8 11 14 8.2 M2 11.6 8 14.4 14 11.6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const option = (step: number) => PICKER_OPTIONS[step - 1];
+const optionText = (step: number) =>
+  `${pad2(option(step).numeral)} ${option(step).label}`;
+
+/** A press of the toggle (or the demo putting it back), for one step only. */
+interface Override {
+  step: number;
+  apart: boolean;
+  /** Back together quickly: a message is waiting to travel. */
+  quick?: boolean;
+}
 
 /**
  * Wayfinder, part by part: the isometric figure pins while a card for each
- * part scrolls past, and scrolling, clicking the figure, a card or the picker
- * all select the same part. The last card is a live (scripted) chat whose
- * messages travel the figure.
+ * step scrolls past, and scrolling, clicking the figure, a card or the picker
+ * all select the same step. The first step takes the figure apart; each part
+ * then opens into its numbered pieces (listed on its card); the last step, a
+ * live (scripted) chat, puts it back together and sends messages round it.
  */
 export function Wayfinder() {
   const reducedMotion = useReducedMotion() ?? false;
@@ -67,8 +96,9 @@ export function Wayfinder() {
     reducedMotion,
   });
   const demo = useWayfinderDemo(reducedMotion);
+  const stacked = useMediaQuery(BELOW_WIDE);
   const selected = partForStep(current);
-  const shown = current || 1;
+  const shown = current || INTRO_STEP;
 
   const selectPart = (id: PartId) => goTo(stepForPart(id));
   // Stacked, the demo card is taller than the room under the figure: bring
@@ -81,70 +111,60 @@ export function Wayfinder() {
         : undefined,
     );
 
-  // PROTOTYPE: the exploded view. Reaching the intro card takes the figure
-  // apart; parts 1 to 9 walk it, focusing each; the demo puts it back
-  // together. The toggle overrides until the step (or intro) changes.
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const introRef = useRef<HTMLDivElement>(null);
-  const [introReached, setIntroReached] = useState(false);
-  useScrollFrame(
-    () => {
-      const intro = introRef.current;
-      if (!intro) return;
-      const box = intro.getBoundingClientRect();
-      const reached = box.top < measure().focusY;
-      setIntroReached((previous) =>
-        previous === reached ? previous : reached,
-      );
-    },
-    true,
-    sectionRef,
-  );
-  const stacked = useMediaQuery(BELOW_WIDE);
-  const stepApart =
-    current !== DEMO_STEP && (introReached || selected !== null);
-  const stepKey = `${current}:${introReached}`;
-  const [manual, setManual] = useState<{ key: string; apart: boolean } | null>(
-    null,
-  );
-  const apart = manual?.key === stepKey ? manual.apart : stepApart;
-  const toggleApart = () => setManual({ key: stepKey, apart: !apart });
-  const explode = useRef<{ whenAssembled: () => Promise<void> } | null>(null);
-  const send = async (
-    question: string,
-    ask?: Parameters<typeof demo.send>[1],
-  ) => {
-    // The demo only runs on the whole board: put it back together first.
+  // Taken apart from the intro to the last part, whole for the demo (and
+  // above the story). The toggle overrides that until the step changes.
+  const [override, setOverride] = useState<Override | null>(null);
+  const own = override?.step === current ? override : null;
+  const apart = own ? own.apart : current >= INTRO_STEP && current < DEMO_STEP;
+  const toggleApart = () => setOverride({ step: current, apart: !apart });
+
+  const explode = useRef<ExplodeControls | null>(null);
+  const send = (question: string, ask?: Ask) => {
+    // The demo runs on the whole board. Taken apart, it goes back together
+    // quickly while the message shows at once, and sets off when it's whole.
+    let ready: Promise<void> | undefined;
     if (apart) {
-      setManual({ key: stepKey, apart: false });
-      await explode.current?.whenAssembled();
+      setOverride({ step: current, apart: false, quick: true });
+      ready = explode.current?.whenAssembled();
     }
-    await demo.send(question, ask);
+    void demo.send(question, ask, ready);
   };
 
-  const announcement = selected
-    ? `Part ${current}, ${PARTS[selected].name}`
-    : current === DEMO_STEP
-      ? "Live demo"
-      : "";
+  // A piece picked out from an "Inside" list: pressed (kept until the step
+  // changes) or previewed while pointed at or focused.
+  const [pressed, setPressed] = useState<{ step: number; id: string } | null>(
+    null,
+  );
+  const [preview, setPreview] = useState<string | null>(null);
+  const pressedId = pressed?.step === current ? pressed.id : null;
+  const press = (step: number, id: string) => {
+    if (step !== current) goTo(step);
+    setPressed(pressedId === id && step === current ? null : { step, id });
+  };
+
+  const announcement =
+    own && !own.quick
+      ? own.apart
+        ? "Taken apart"
+        : "Back together"
+      : selected
+        ? `Part ${partNumber(selected)}, ${PARTS[selected].name}`
+        : current === INTRO_STEP
+          ? "Taken apart, part by part"
+          : current === DEMO_STEP
+            ? "Live demo"
+            : "";
 
   return (
-    <div
-      ref={sectionRef}
-      className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]"
-    >
+    <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
       <div
         ref={stageRef}
         className="sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
       >
-        <div className="relative flex w-full flex-col items-stretch gap-[14px]">
+        {/* Wide, it sits a little low in the stage: taken apart, the figure
+            grows up into the room above (see zoom.ts). */}
+        <div className="flex w-full flex-col items-stretch gap-[14px] wide:pt-[12vh]">
           <WayfinderFigure
-            apart={apart}
-            lite={stacked}
-            reducedMotion={reducedMotion}
-            onExplode={(controls) => {
-              explode.current = controls;
-            }}
             selected={selected}
             hot={demo.hot}
             lit={demo.lit}
@@ -152,6 +172,15 @@ export function Wayfinder() {
             onPart={selectPart}
             onSlot={demo.swapPlatform}
             pulseRef={demo.pulseRef}
+            apart={apart}
+            lite={stacked}
+            quick={own?.quick ?? false}
+            highlight={preview ?? pressedId}
+            reducedMotion={reducedMotion}
+            stageRef={stageRef}
+            onExplode={(controls) => {
+              explode.current = controls;
+            }}
           />
           <div className="flex w-full items-stretch justify-center gap-[10px]">
             <NumberedDropdown
@@ -168,10 +197,10 @@ export function Wayfinder() {
                 renderItem={(n) => (
                   <>
                     <span className="inline-grid h-8 flex-none place-items-center font-display text-[20px] font-semibold tabular-nums tracking-[-0.02em] text-accent wide:h-[34px]">
-                      {pad2(n)}
+                      {pad2(option(n).numeral)}
                     </span>
                     <span className="overflow-hidden text-ellipsis">
-                      {PICKER_OPTIONS[n - 1].label}
+                      {option(n).label}
                     </span>
                   </>
                 )}
@@ -185,16 +214,18 @@ export function Wayfinder() {
               Try it
             </Button>
           </div>
-          <div className="hidden justify-center wide:flex">
-            <Button
-              variant="ghost"
-              pressed={apart}
-              onClick={toggleApart}
-              className="text-[14px]"
-            >
-              {apart ? "Put it back" : "Take it apart"}
-            </Button>
-          </div>
+          {stacked ? null : (
+            <div className="flex justify-center">
+              <Button
+                variant="ghost"
+                onClick={toggleApart}
+                className="gap-2 text-[14px] [&>svg]:size-4 [&>svg]:text-accent"
+              >
+                {APART_GLYPH}
+                {apart ? "Put it back together" : "Take it apart"}
+              </Button>
+            </div>
+          )}
         </div>
         <p className="sr-only" aria-live="polite">
           {announcement}
@@ -202,27 +233,21 @@ export function Wayfinder() {
       </div>
 
       <div className="relative z-[1] pb-[34vh] pt-[4vh] wide:py-[30vh]">
-        <div
-          ref={introRef}
-          data-intro-step=""
-          className="flex min-h-[58vh] items-center wide:min-h-[62vh]"
-        >
-          <div className="w-full max-w-[34em] py-[22px] wide:max-w-[430px]">
-            <span className="mb-[6px] block text-[14px] font-medium text-muted">
-              Taken apart
-            </span>
-            <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
-              Nine parts, and what is inside each
-            </h3>
-            <p className="m-0 text-[17px] text-muted">
-              Every part lifts off the board and opens into its numbered pieces.
-              Scroll on to walk them one at a time; it goes back together for
-              the live demo.
-            </p>
-          </div>
-        </div>
-        {PART_ORDER.map((id, index) => {
-          const n = index + 1;
+        <StepCard
+          n={INTRO_STEP}
+          kicker={INTRO.name}
+          heading={INTRO.heading}
+          text={INTRO.text}
+          on={current === INTRO_STEP}
+          badge={APART_GLYPH}
+          badgeLabel="Show the board taken apart"
+          onSelect={goTo}
+          stepRef={stepRef(INTRO_STEP)}
+          cardRef={cardRef(INTRO_STEP)}
+        />
+        {PART_ORDER.map((id) => {
+          const n = partNumber(id);
+          const step = stepForPart(id);
           const part = PARTS[id];
           const stack =
             id === "ai"
@@ -234,30 +259,25 @@ export function Wayfinder() {
           return (
             <StepCard
               key={id}
-              n={n}
+              n={step}
               kicker={part.name}
               heading={part.heading}
               text={part.text}
               stack={stack}
-              on={current === n}
+              on={current === step}
+              badge={n}
               badgeLabel={`Show part ${n}, ${part.name}`}
               onSelect={goTo}
-              stepRef={stepRef(n)}
-              cardRef={cardRef(n)}
+              stepRef={stepRef(step)}
+              cardRef={cardRef(step)}
             >
-              <ol
-                aria-label={`Inside part ${n}`}
-                className="m-0 mt-4 grid list-none grid-cols-[auto_1fr] gap-x-3 gap-y-[2px] p-0 text-[14px] leading-[1.5]"
-              >
-                {INSIDE[id].map((piece) => (
-                  <li key={piece.id} className="contents">
-                    <span className="font-semibold tabular-nums text-accent">
-                      {piece.id}
-                    </span>
-                    <span className="text-muted">{piece.name}</span>
-                  </li>
-                ))}
-              </ol>
+              <InsideList
+                n={n}
+                pieces={INSIDE[id]}
+                pressed={pressed?.step === step ? pressed.id : null}
+                onPreview={setPreview}
+                onPress={(piece) => press(step, piece)}
+              />
               {id === "ai" ? (
                 <div
                   role="group"
@@ -308,9 +328,7 @@ export function Wayfinder() {
             messages={demo.messages}
             typing={demo.typing}
             trace={demo.trace}
-            onSend={(question, ask) => {
-              void send(question, ask);
-            }}
+            onSend={send}
           />
         </StepCard>
       </div>
