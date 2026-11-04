@@ -15,21 +15,26 @@ interface Layout {
   /** Where the section pins, from the viewport top. */
   pinTop: number;
   runway: number;
-  /** Extra run after the runway, so the next section enters only once the lane has finished. */
+  /** Extra run after the runway, so the next section enters as the line passes Review gates. */
   tail: number;
 }
 
-/** How long the finished lane holds before the next section enters, as a share of the viewport. */
-const HOLD = 0.12;
+/**
+ * How far through the lane's run the next section starts to enter: once
+ * Review gates has lit (0.64) and before Ship does (0.84), so the page keeps
+ * moving while the line finishes and there's no dead stretch after it.
+ */
+const NEXT_ENTERS_AT = 0.7;
 
 /**
  * The b3 build lane: the section pins in the middle of the screen (clear of
  * the sticky bar, or bottom-aligned when it can't fit beneath it) while a
  * runway of 2.5 times the track's height (at least 30% of the viewport) plays
  * the track out, so a quick flick can't skip it. Writes the fill straight to
- * the track (`--p`) and reports how many steps are lit. The run then holds
- * the finished lane pinned until the next section has room to enter, so it
- * never arrives while the line is still drawing. Static (reduced motion): no
+ * the track (`--p`) and reports how many steps are lit. The run is
+ * lengthened just enough that the next section starts to rise into view as
+ * the line passes Review gates, on any screen height, rather than early on
+ * tall screens or after a dead pause. Static (reduced motion): no
  * runway, everything lit.
  */
 export function useBuildRunway(
@@ -58,7 +63,8 @@ export function useBuildRunway(
       window.innerHeight,
       pinTop,
       height,
-      window.innerHeight * HOLD,
+      runway,
+      NEXT_ENTERS_AT,
     );
     const next = { height: height + runway + tail, pinTop, runway, tail };
     // Keep the same object when nothing moved, so a resize that changes

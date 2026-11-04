@@ -41,6 +41,7 @@ export function App() {
         <Container>
           <TopNav
             name="Chris Tregaskis"
+            homeHref="#top"
             links={NAV_LINKS}
             action={<EnquiryButton variant="ghost" size="sm" />}
           />

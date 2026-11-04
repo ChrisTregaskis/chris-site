@@ -160,10 +160,12 @@
   font-size: 14px;
 }
 
-/* Step cards: open text under a large numeral. The selected step's
-   numeral is lilac and its text full tone; the rest step back a tone, and
-   hovering one brings it up and underlines its heading, so the card reads
-   as something to press. */
+/* Step cards: open text under a large numeral. Only the selected step
+   shows its numeral: it comes into focus (from hidden, soft and a touch
+   small to sharp lilac) as the step is selected and fades back out as it
+   passes. The other steps' text steps back a tone; hovering one brings it
+   up, shows its numeral and underlines its heading, so the card reads as
+   something to press. Keyboard focus on a step's number shows it too. */
 :root[data-look="d"] .lk-step-card {
   border-color: transparent;
   background: none;
@@ -177,42 +179,35 @@
   margin-bottom: 8px;
   place-items: start;
   background: none;
-  color: rgb(var(--color-muted));
   font-family: var(--font-display);
   font-size: 56px;
   font-weight: 300;
   line-height: 1;
   letter-spacing: -0.04em;
   text-align: left;
-  transition: color var(--duration-state) var(--ease-enter);
+  color: rgb(var(--color-accent));
+  opacity: 0;
+  filter: blur(3px);
+  transform: scale(0.94);
+  transform-origin: left 70%;
+  transition:
+    opacity var(--duration-slow) var(--ease-enter),
+    filter var(--duration-slow) var(--ease-enter),
+    transform var(--duration-slow) var(--ease-enter),
+    color var(--duration-base) var(--ease-enter);
 }
 :root[data-look="d"] .lk-step-badge > svg {
   width: 30px;
   height: 30px;
   color: rgb(var(--color-accent));
 }
-:root[data-look="d"] .lk-step-card[data-on] .lk-step-badge {
+:root[data-look="d"] .lk-step-card[data-on] .lk-step-badge,
+:root[data-look="d"] #work .lk-step-card:hover .lk-step-badge,
+:root[data-look="d"] .lk-step-badge:focus-visible {
   background: none;
-  color: rgb(var(--color-accent));
-  animation: d-numeral-focus var(--duration-slow) var(--ease-enter) both;
-}
-/* The numeral comes into focus as its step becomes the selected one: from
-   a touch soft, small and faint to sharp and lilac. Only the numeral moves;
-   the step's text eases between its tones as before. */
-@keyframes d-numeral-focus {
-  from {
-    opacity: 0.45;
-    filter: blur(3px);
-    transform: scale(0.94);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: none;
-  }
-}
-:root[data-look="d"] .lk-step-badge {
-  transform-origin: left 70%;
+  opacity: 1;
+  filter: none;
+  transform: none;
 }
 :root[data-look="d"] .lk-step-kicker {
   display: block;
@@ -247,9 +242,6 @@
   :root[data-look="d"] .lk-step-badge,
   :root[data-look="d"] .lk-step-heading {
     transition: none;
-  }
-  :root[data-look="d"] .lk-step-card[data-on] .lk-step-badge {
-    animation: none;
   }
 }
 

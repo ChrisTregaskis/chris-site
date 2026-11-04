@@ -22,6 +22,11 @@ const MS_PER_UNIT = 3.4;
 const MIN_LEG_MS = 240;
 /** Under reduced motion nothing travels, so a flashed part stays lit longer. */
 const STILL_FLASH_MS = 4000;
+/**
+ * Where the pulse waits between messages. The figure's SVG draws outside its
+ * box, so "far away" can still be on screen on a wide window: it is also
+ * hidden while it waits.
+ */
 const OFF_STAGE = "translate(-999,-999)";
 
 /**
@@ -59,8 +64,24 @@ export function useWayfinderDemo(reducedMotion: boolean) {
     };
   }, []);
 
-  const movePulse = (x: number, y: number) =>
-    pulseRef.current?.setAttribute("transform", `translate(${x},${y})`);
+  const movePulse = (x: number, y: number) => {
+    const pulse = pulseRef.current;
+    pulse?.setAttribute("transform", `translate(${x},${y})`);
+    pulse?.setAttribute("visibility", "visible");
+  };
+  const parkPulse = () => {
+    const pulse = pulseRef.current;
+    pulse?.setAttribute("transform", OFF_STAGE);
+    pulse?.setAttribute("visibility", "hidden");
+  };
+
+  /** Pipes lit so far for this message, as `lit` is, but readable mid-render. */
+  const litSoFar = useRef(new Set<RouteKey>());
+  /** A pipe's lit line in the figure (the pulse's SVG), for drawing it on. */
+  const litLine = (route: RouteKey) =>
+    pulseRef.current?.ownerSVGElement?.querySelector<SVGPathElement>(
+      `[data-route="${route}"]`,
+    ) ?? null;
 
   const flash = useCallback(
     (part: PartId) => {
@@ -84,7 +105,9 @@ export function useWayfinderDemo(reducedMotion: boolean) {
   const travel = useCallback(
     (route: RouteKey, reverse = false) =>
       new Promise<void>((resolve) => {
-        setLit((previous) => new Set(previous).add(route));
+        const firstPass = !litSoFar.current.has(route);
+        litSoFar.current.add(route);
+        setLit(new Set(litSoFar.current));
         if (reducedMotion || !alive.current) {
           resolve();
           return;
@@ -92,6 +115,12 @@ export function useWayfinderDemo(reducedMotion: boolean) {
         const points = routePoints(route, reverse);
         const total = polylineLength(points);
         const duration = Math.max(MIN_LEG_MS, total * MS_PER_UNIT);
+        // A pipe lights up behind the pulse the first time it is travelled
+        // (lines are drawn with pathLength 1); on the way back it is lit.
+        const line = firstPass && !reverse ? litLine(route) : null;
+        line?.style.setProperty("transition", "none");
+        line?.style.setProperty("stroke-dasharray", "1 2");
+        line?.style.setProperty("stroke-dashoffset", "1");
         const start = performance.now();
         const frame = (now: number) => {
           if (!alive.current) {
@@ -101,8 +130,19 @@ export function useWayfinderDemo(reducedMotion: boolean) {
           const progress = Math.min(1, (now - start) / duration);
           const [x, y] = pointAlong(points, progress * total);
           movePulse(x, y);
-          if (progress < 1) requestAnimationFrame(frame);
-          else resolve();
+          line?.style.setProperty("stroke-dashoffset", String(1 - progress));
+          if (progress < 1) {
+            requestAnimationFrame(frame);
+            return;
+          }
+          for (const property of [
+            "transition",
+            "stroke-dasharray",
+            "stroke-dashoffset",
+          ]) {
+            line?.style.removeProperty(property);
+          }
+          resolve();
         };
         requestAnimationFrame(frame);
       }),
@@ -123,6 +163,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
         { id: nextId.current++, from: "me", text },
       ]);
       setTyping(true);
+      litSoFar.current = new Set();
       setLit(new Set());
 
       for (const step of demoPlan(ask, platformRef.current)) {
@@ -141,7 +182,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
         }
       }
       if (!alive.current) return;
-      pulseRef.current?.setAttribute("transform", OFF_STAGE);
+      parkPulse();
       setTyping(false);
       setMessages((previous) => [
         ...previous,

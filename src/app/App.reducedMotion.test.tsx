@@ -114,4 +114,16 @@ describe("App under reduced motion", () => {
       screen.getByRole("heading", { name: "Badass Burpees" }),
     ).toHaveFocus();
   });
+
+  it("takes the name in the bar home: to the top, focus on the headline", async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.fn();
+    vi.stubGlobal("scrollTo", scrollTo);
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole("link", { name: "Chris Tregaskis" }));
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: "instant" });
+    expect(window.location.hash).toBe("#top");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveFocus();
+  });
 });

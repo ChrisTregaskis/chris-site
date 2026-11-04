@@ -10,16 +10,27 @@ export interface TopNavProps {
   links: TopNavLink[];
   /** A control at the far right that stays visible at every width (the CV button). */
   action?: ReactNode;
+  /** Where the name links to: the top of the page (`#top`). */
+  homeHref?: string;
 }
 
 /**
  * The b3 `.top` bar: name left, links right (hidden below `wide`), then an
  * optional action. It doesn't position itself; the page makes it sticky.
  */
-export function TopNav({ name, links, action }: TopNavProps) {
+export function TopNav({ name, links, action, homeHref }: TopNavProps) {
   return (
     <header className="lk-topnav flex h-nav items-center justify-between gap-4 text-body-sm leading-[1.6]">
-      <strong className="lk-name font-semibold">{name}</strong>
+      {homeHref ? (
+        <a
+          href={homeHref}
+          className="lk-name font-semibold text-ink no-underline focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal"
+        >
+          {name}
+        </a>
+      ) : (
+        <strong className="lk-name font-semibold">{name}</strong>
+      )}
       <div className="flex items-center gap-[22px]">
         <nav
           aria-label="Primary"

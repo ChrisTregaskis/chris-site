@@ -264,6 +264,7 @@ export function WayfinderFigure({
             key={key}
             d={routePath(key)}
             data-route={key}
+            pathLength={1}
             className={cn(
               "stroke-signal stroke-[2.6] transition-opacity duration-state motion-reduce:transition-none",
               lit.has(key) ? "opacity-100" : "opacity-0",
@@ -303,7 +304,12 @@ export function WayfinderFigure({
         )}
       </PartGroup>
       {PARTS_AFTER_AI.map(group)}
-      <g ref={pulseRef} transform="translate(-999,-999)" aria-hidden="true">
+      <g
+        ref={pulseRef}
+        transform="translate(-999,-999)"
+        visibility="hidden"
+        aria-hidden="true"
+      >
         <circle r={13} className="fill-signal opacity-25" />
         <circle r={6} className="fill-signal" />
       </g>

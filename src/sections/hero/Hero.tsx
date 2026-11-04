@@ -14,6 +14,7 @@ export function Hero() {
   return (
     <Container>
       <section
+        id="top"
         aria-labelledby="hero-title"
         className="box-border flex min-h-[calc(100vh-var(--size-nav))] flex-col justify-center pb-[clamp(16px,min(9vw,32svh_-_178px),110px)] pt-[clamp(16px,min(12vw,45svh_-_255px),150px)] supports-[min-height:100svh]:min-h-[calc(100svh-var(--size-nav))]"
       >

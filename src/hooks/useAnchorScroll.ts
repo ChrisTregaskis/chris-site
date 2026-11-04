@@ -13,7 +13,7 @@ function targetTop(target: HTMLElement): number {
   const offset = Math.max(margin, topClearance());
   const max = document.documentElement.scrollHeight - window.innerHeight;
   const top = target.getBoundingClientRect().top + window.scrollY - offset;
-  return Math.min(max, Math.max(0, top));
+  return Math.max(0, Math.min(max, top));
 }
 
 /**
