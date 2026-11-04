@@ -45,7 +45,12 @@ const FADE = "transition-opacity duration-state motion-reduce:transition-none";
 /**
  * Chapter 2: the physio and wellness SaaS. Three steps scroll past a list of
  * sessions from three practices: all of them, then the practice is set, then
- * row-level security hides everyone else's. Static (reduced motion): the end state.
+ * row-level security hides everyone else's. Side by side, the list pins
+ * beside the steps. Stacked (phones), a compact list (tighter still on short
+ * phones) pins under the top bar on an opaque panel, above the steps, so
+ * each card is read in the room beneath it and then slides under it; the
+ * panel is sized to its list, so nothing spills out of it into the next
+ * chapter. Static (reduced motion): the end state.
  */
 export function PhysioSection() {
   const still = useReducedMotion() ?? false;
@@ -91,7 +96,7 @@ export function PhysioSection() {
             "flex items-center justify-center",
             still
               ? "relative py-6"
-              : "sticky top-nav z-[1] h-[46vh] bg-gradient-to-b from-surface from-85% to-surface/0 py-2 wide:top-[6vh] wide:h-[88vh] wide:bg-none wide:py-0",
+              : "sticky top-nav z-[2] bg-surface py-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:top-[6vh] wide:z-[1] wide:h-[88vh] wide:bg-transparent wide:py-0 wide:after:hidden",
           )}
         >
           <figure
@@ -100,7 +105,7 @@ export function PhysioSection() {
           >
             <p
               className={cn(
-                "m-0 mb-[10px] text-caption text-muted",
+                "m-0 mb-[6px] text-caption text-muted wide:mb-[10px] [@media(max-width:860px)_and_(max-height:700px)]:mb-1",
                 FADE,
                 practiceSet ? "opacity-100" : "opacity-0",
               )}
@@ -109,21 +114,21 @@ export function PhysioSection() {
             </p>
             <div
               className={cn(
-                "mb-[6px] rounded-input border-[1.5px] border-dashed border-muted px-3 py-2 text-caption font-medium text-muted",
+                "mb-[6px] rounded-input border-[1.5px] border-dashed border-muted px-3 py-[6px] text-caption font-medium text-muted wide:py-2 [@media(max-width:860px)_and_(max-height:700px)]:py-1",
                 FADE,
                 practiceSet ? "opacity-100" : "opacity-0",
               )}
             >
               policy: tenant_id = current practice
             </div>
-            <ul className="m-0 grid w-full list-none gap-2 p-0">
+            <ul className="m-0 grid w-full list-none gap-[6px] p-0 wide:gap-2 [@media(max-width:860px)_and_(max-height:700px)]:gap-1">
               {ROWS.map((row) => {
                 const hidden = filtered && row.practice !== "Riverside";
                 return (
                   <li
                     key={row.label}
                     className={cn(
-                      "grid grid-cols-[12px_1fr_auto] items-center gap-[10px] rounded-row border border-line bg-panel px-3 py-[10px] text-[14.5px] leading-[1.6] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none",
+                      "grid grid-cols-[12px_1fr_auto] items-center gap-[10px] rounded-row border border-line bg-panel px-3 py-[5px] text-[14px] leading-[1.5] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none wide:py-[10px] wide:text-[14.5px] wide:leading-[1.6] [@media(max-width:860px)_and_(max-height:700px)]:py-[3px] [@media(max-width:860px)_and_(max-height:700px)]:text-[13px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.4]",
                       hidden && "translate-x-[14px] opacity-[0.12] saturate-0",
                     )}
                   >
@@ -149,8 +154,8 @@ export function PhysioSection() {
         </div>
         <div
           className={cn(
-            "relative z-[2]",
-            still ? "pb-6" : "pb-[20vh] pt-[4vh] wide:py-[30vh]",
+            "relative z-[1] wide:z-[2]",
+            still ? "pb-6" : "pb-6 pt-[4vh] wide:py-[30vh]",
           )}
         >
           {STEPS.map((step, index) => {

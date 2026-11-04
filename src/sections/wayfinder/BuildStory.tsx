@@ -120,13 +120,16 @@ export function BuildStory() {
             ref={trackRef}
             className="relative pl-[34px] wide:pl-0 wide:pt-[34px]"
           >
+            {/* The 3px line runs through the dots' centres: each 21px dot
+                sits at the track's left edge (stacked) or 2px from its top
+                (side by side), so its centre is 10.5px in, or 12.5px down. */}
             <span
               aria-hidden="true"
-              className="absolute left-[6px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-2 wide:h-[3px] wide:w-auto"
+              className="absolute left-[9px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-[11px] wide:h-[3px] wide:w-auto"
             />
             <span
               aria-hidden="true"
-              className="absolute left-[6px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-gradient-to-b from-accent to-signal wide:left-0 wide:top-2 wide:h-[3px] wide:w-[calc(var(--p,0)*100%)] wide:bg-gradient-to-r"
+              className="absolute left-[9px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-gradient-to-b from-accent to-signal wide:left-0 wide:top-[11px] wide:h-[3px] wide:w-[calc(var(--p,0)*100%)] wide:bg-gradient-to-r"
             />
             <ol className="m-0 grid list-none gap-[22px] p-0 wide:grid-cols-5 wide:gap-4">
               {STEPS.map((step, index) => (
