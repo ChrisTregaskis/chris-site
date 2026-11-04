@@ -15,9 +15,9 @@ export function Hero() {
     <Container>
       <section
         aria-labelledby="hero-title"
-        className="lk-hero box-border flex min-h-[calc(100vh-var(--size-nav))] flex-col justify-center pb-[clamp(16px,min(9vw,32svh_-_178px),110px)] pt-[clamp(16px,min(12vw,45svh_-_255px),150px)] supports-[min-height:100svh]:min-h-[calc(100svh-var(--size-nav))]"
+        className="box-border flex min-h-[calc(100vh-var(--size-nav))] flex-col justify-center pb-[clamp(16px,min(9vw,32svh_-_178px),110px)] pt-[clamp(16px,min(12vw,45svh_-_255px),150px)] supports-[min-height:100svh]:min-h-[calc(100svh-var(--size-nav))]"
       >
-        <p className="lk-hero-intro m-0 mb-[clamp(10px,2.6svh,18px)] text-body-sm leading-[1.6] text-muted">
+        <p className="m-0 mb-[clamp(10px,2.6svh,18px)] text-body-sm leading-[1.6] text-muted">
           Chris Tregaskis, senior full-stack TypeScript developer
         </p>
         <h1

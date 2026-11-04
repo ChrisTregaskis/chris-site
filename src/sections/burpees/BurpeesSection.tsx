@@ -94,7 +94,7 @@ export function BurpeesSection() {
         ref={sectionRef}
         id="burpees"
         aria-labelledby="burpees-title"
-        className={cn("lk-burpees relative", !still && "wide:h-[220vh]")}
+        className={cn("relative", !still && "wide:h-[220vh]")}
       >
         <div
           ref={stageRef}
@@ -112,7 +112,7 @@ export function BurpeesSection() {
             >
               Badass Burpees
             </h2>
-            <p className="lk-burpees-lede m-0 mb-4 max-w-measure-narrow text-muted">
+            <p className="m-0 mb-4 max-w-measure-narrow text-muted">
               My own fitness app. Set the reps and the time you have and it
               paces you, counting you through every one. Its interface is built
               from atomic components, atoms up to molecules and organisms. Keep
@@ -128,7 +128,7 @@ export function BurpeesSection() {
                 ]}
               />
             </div>
-            <p className="lk-burpees-links m-0 mb-4 mt-5 flex flex-wrap gap-3">
+            <p className="m-0 mb-4 mt-5 flex flex-wrap gap-3">
               <ButtonLink
                 variant="ghost"
                 href="https://badass-burpees.app/"

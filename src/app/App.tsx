@@ -44,7 +44,7 @@ export function App() {
         <Contact />
       </main>
       <Container as="footer">
-        <p className="lk-footer m-0 pb-[50px] pt-[30px] text-caption text-muted">
+        <p className="m-0 pb-[50px] pt-[30px] text-caption text-muted">
           © {new Date().getFullYear()} Chris Tregaskis
         </p>
       </Container>

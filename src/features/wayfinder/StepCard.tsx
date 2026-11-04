@@ -54,7 +54,7 @@ export function StepCard({
   return (
     <div
       ref={stepRef}
-      className="lk-step flex min-h-[58vh] items-center wide:min-h-[62vh]"
+      className="flex min-h-[58vh] items-center wide:min-h-[62vh]"
     >
       {/* The number button is the keyboard route; the card click is a shortcut. */}
       <div

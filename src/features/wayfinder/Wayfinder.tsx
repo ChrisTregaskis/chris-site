@@ -85,10 +85,10 @@ export function Wayfinder() {
       : "";
 
   return (
-    <div className="lk-story relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
+    <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
       <div
         ref={stageRef}
-        className="lk-stage sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
+        className="sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
       >
         <div className="flex w-full flex-col items-stretch gap-[14px]">
           <WayfinderFigure
@@ -145,7 +145,7 @@ export function Wayfinder() {
         </p>
       </div>
 
-      <div className="lk-steps relative z-[1] pb-[34vh] pt-[4vh] wide:py-[30vh]">
+      <div className="relative z-[1] pb-[34vh] pt-[4vh] wide:py-[30vh]">
         {PART_ORDER.map((id, index) => {
           const n = index + 1;
           const part = PARTS[id];

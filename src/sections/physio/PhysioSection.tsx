@@ -89,11 +89,11 @@ export function PhysioSection() {
           "Turborepo",
         ]}
       />
-      <div className="lk-story relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
+      <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
         <div
           ref={stageRef}
           className={cn(
-            "lk-stage flex items-center justify-center",
+            "flex items-center justify-center",
             still
               ? "relative py-6"
               : "sticky top-nav z-[2] bg-surface py-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:top-[6vh] wide:z-[1] wide:h-[88vh] wide:bg-transparent wide:py-0 wide:after:hidden",
@@ -105,7 +105,7 @@ export function PhysioSection() {
           >
             <p
               className={cn(
-                "lk-signed m-0 mb-[6px] text-caption text-muted wide:mb-[10px] [@media(max-width:860px)_and_(max-height:700px)]:mb-1",
+                "m-0 mb-[6px] text-caption text-muted wide:mb-[10px] [@media(max-width:860px)_and_(max-height:700px)]:mb-1",
                 FADE,
                 practiceSet ? "opacity-100" : "opacity-0",
               )}
@@ -127,7 +127,6 @@ export function PhysioSection() {
                 return (
                   <li
                     key={row.label}
-                    data-hidden={hidden || undefined}
                     className={cn(
                       "lk-row grid grid-cols-[12px_1fr_auto] items-center gap-[10px] rounded-row border border-line bg-panel px-3 py-[5px] text-[14px] leading-[1.5] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none wide:py-[10px] wide:text-[14.5px] wide:leading-[1.6] [@media(max-width:860px)_and_(max-height:700px)]:py-[3px] [@media(max-width:860px)_and_(max-height:700px)]:text-[13px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.4]",
                       hidden && "translate-x-[14px] opacity-[0.12] saturate-0",
@@ -136,7 +135,7 @@ export function PhysioSection() {
                     <i
                       aria-hidden="true"
                       className={cn(
-                        "lk-row-dot size-[10px] rounded-pill",
+                        "size-[10px] rounded-pill",
                         DOT[row.practice],
                       )}
                     />
@@ -155,7 +154,7 @@ export function PhysioSection() {
         </div>
         <div
           className={cn(
-            "lk-steps relative z-[1] wide:z-[2]",
+            "relative z-[1] wide:z-[2]",
             still ? "pb-6" : "pb-6 pt-[4vh] wide:py-[30vh]",
           )}
         >
@@ -167,7 +166,7 @@ export function PhysioSection() {
                 key={step.title}
                 ref={stepRef(n)}
                 className={cn(
-                  "lk-step flex",
+                  "flex",
                   still
                     ? "py-2"
                     : "min-h-[64vh] items-end wide:min-h-[62vh] wide:items-center",

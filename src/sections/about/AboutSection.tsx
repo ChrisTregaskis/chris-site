@@ -40,7 +40,7 @@ export function AboutSection() {
 
   return (
     <Section id="about" labelledBy="about-title" spacing="roomy">
-      <div className="lk-about grid gap-7 wide:grid-cols-[1fr_1.6fr]">
+      <div className="grid gap-7 wide:grid-cols-[1fr_1.6fr]">
         <div>
           <h2
             id="about-title"

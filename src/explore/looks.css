@@ -1,6 +1,6 @@
 /*
- * Design exploration (explore/seamless): three looks over the real page,
- * switched by `?look=a|b|c` (see look.ts). Throwaway: everything here is
+ * Design exploration (explore/seamless): looks over the real page,
+ * switched by `?look=a|b|d` (see look.ts). Throwaway: everything here is
  * scoped to :root[data-look=…], so the baseline is untouched. Components
  * carry `lk-*` marker classes for these selectors to hook onto.
  */
@@ -11,11 +11,12 @@
 }
 
 /* ===================================================================== */
-/* A: Night tones. No outlines anywhere. Each chapter sits on its own     */
+/* A: Night tones. No outlines anywhere. Each chapter sits on its own    */
 /* tonal plate that bleeds edge to edge and melts into the next one over  */
-/* a long gradient; panels are fills a tone or two off the plate.         */
+/* a long gradient; panels are fills a tone or two off the plate. The     */
+/* plates and top bar are shared with D; the fills are A's alone.         */
 /* ===================================================================== */
-:root[data-look="a"] {
+:root:is([data-look="a"], [data-look="d"]) {
   --a-base: 19 20 46; /* #13142E, the hero */
   --a-wayfinder: 25 27 66; /* #191B42, indigo, a step up */
   --a-physio: 17 29 52; /* #111D34, cooler, towards the teal practice */
@@ -26,17 +27,18 @@
 }
 
 /* The plates: full-bleed, behind the section's content. */
-:root[data-look="a"] .lk-section,
-:root[data-look="a"] #burpees {
+:root:is([data-look="a"], [data-look="d"]) .lk-section,
+:root:is([data-look="a"], [data-look="d"]) #burpees {
   position: relative;
   isolation: isolate;
   border-top-color: transparent;
 }
-:root[data-look="a"] .lk-section::before,
-:root[data-look="a"] #burpees::before {
+:root:is([data-look="a"], [data-look="d"]) .lk-section::before,
+:root:is([data-look="a"], [data-look="d"]) #burpees::before {
   content: "";
   position: absolute;
-  inset-block: 0;
+  top: -1px;
+  bottom: 0;
   left: 50%;
   width: 100vw;
   transform: translateX(-50%);
@@ -49,33 +51,33 @@
     rgb(var(--a-to)) 100%
   );
 }
-:root[data-look="a"] #work {
+:root:is([data-look="a"], [data-look="d"]) #work {
   --a-from: var(--a-base);
   --a-to: var(--a-wayfinder);
   --color-surface: var(--a-wayfinder);
 }
-:root[data-look="a"] #physio {
+:root:is([data-look="a"], [data-look="d"]) #physio {
   --a-from: var(--a-wayfinder);
   --a-to: var(--a-physio);
   --color-surface: var(--a-physio);
 }
-:root[data-look="a"] #burpees {
+:root:is([data-look="a"], [data-look="d"]) #burpees {
   --a-from: var(--a-physio);
   --a-to: var(--a-burpees);
   --a-feather: 70vh;
 }
-:root[data-look="a"] #about {
+:root:is([data-look="a"], [data-look="d"]) #about {
   --a-from: var(--a-burpees);
   --a-to: var(--a-about);
 }
-:root[data-look="a"] #contact {
+:root:is([data-look="a"], [data-look="d"]) #contact {
   --a-from: var(--a-about);
   --a-to: var(--a-base);
   --a-feather: 100%;
 }
 
 /* The top bar floats over whichever plate is beneath it. */
-:root[data-look="a"] .lk-topbar {
+:root:is([data-look="a"], [data-look="d"]) .lk-topbar {
   background: linear-gradient(
     to bottom,
     rgb(var(--a-base) / 0.7),
@@ -210,13 +212,15 @@
 /* ===================================================================== */
 /* B: Feature spread. Almost no containers: type, scale, a hanging        */
 /* numeral per chapter and a lot of air carry the hierarchy, like a       */
-/* printed magazine feature. Chapters part by rhythm, not by rules.       */
+/* printed magazine feature. Chapters part by rhythm, not by rules. The   */
+/* open components and numerals are shared with D; the layout moves       */
+/* (bigger titles, offset prose, extra air) are B's alone.                */
 /* ===================================================================== */
-:root[data-look="b"] {
+:root:is([data-look="b"], [data-look="d"]) {
   --b-numeral: 110 91 214; /* accent-strong; decorative, aria-hidden */
 }
 
-:root[data-look="b"] .lk-name {
+:root:is([data-look="b"], [data-look="d"]) .lk-name {
   font-family: var(--font-display);
   font-size: 18px;
   letter-spacing: -0.01em;
@@ -239,7 +243,7 @@
 }
 
 /* Links, not outlined pills. */
-:root[data-look="b"] .lk-btn-ghost {
+:root:is([data-look="b"], [data-look="d"]) .lk-btn-ghost {
   box-shadow: none;
   padding-inline: 2px;
   margin-inline: 10px;
@@ -249,18 +253,18 @@
   text-underline-offset: 7px;
   text-decoration-color: rgb(var(--color-accent));
 }
-:root[data-look="b"] .lk-btn-ghost:hover {
+:root:is([data-look="b"], [data-look="d"]) .lk-btn-ghost:hover {
   color: rgb(var(--color-accent));
 }
-:root[data-look="b"] .lk-topnav .lk-btn-ghost {
+:root:is([data-look="b"], [data-look="d"]) .lk-topnav .lk-btn-ghost {
   margin-inline: 0;
 }
 
 /* Chips become a quiet run of words. */
-:root[data-look="b"] .lk-chips {
+:root:is([data-look="b"], [data-look="d"]) .lk-chips {
   gap: 4px 20px;
 }
-:root[data-look="b"] .lk-chip {
+:root:is([data-look="b"], [data-look="d"]) .lk-chip {
   background: none;
   padding: 0;
   color: rgb(var(--color-muted));
@@ -268,7 +272,7 @@
 }
 
 /* Chapters: no rule, much more air, a hanging numeral and a bigger title. */
-:root[data-look="b"] .lk-section {
+:root:is([data-look="b"], [data-look="d"]) .lk-section {
   border-top-color: transparent;
 }
 :root[data-look="b"] #work,
@@ -280,8 +284,8 @@
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
   column-gap: clamp(32px, 5vw, 72px);
 }
-:root[data-look="b"] .lk-chapter-head::before,
-:root[data-look="b"] .lk-burpees-copy::before {
+:root:is([data-look="b"], [data-look="d"]) .lk-chapter-head::before,
+:root:is([data-look="b"], [data-look="d"]) .lk-burpees-copy::before {
   grid-column: 1 / -1;
   display: block;
   margin-bottom: -0.08em;
@@ -293,13 +297,13 @@
   letter-spacing: -0.06em;
   color: rgb(var(--b-numeral));
 }
-:root[data-look="b"] #work .lk-chapter-head::before {
+:root:is([data-look="b"], [data-look="d"]) #work .lk-chapter-head::before {
   content: "1" / "";
 }
-:root[data-look="b"] #physio .lk-chapter-head::before {
+:root:is([data-look="b"], [data-look="d"]) #physio .lk-chapter-head::before {
   content: "2" / "";
 }
-:root[data-look="b"] .lk-burpees-copy::before {
+:root:is([data-look="b"], [data-look="d"]) .lk-burpees-copy::before {
   content: "3" / "";
   margin-bottom: 8px;
 }
@@ -316,13 +320,13 @@
 
 /* Step cards: open text. The number is set large; the selected step's in
    accent, the rest step back a tone. */
-:root[data-look="b"] .lk-step-card {
+:root:is([data-look="b"], [data-look="d"]) .lk-step-card {
   border-color: transparent;
   background: none;
   padding-inline: 0;
   box-shadow: none;
 }
-:root[data-look="b"] .lk-step-badge {
+:root:is([data-look="b"], [data-look="d"]) .lk-step-badge {
   display: block;
   width: auto;
   height: auto;
@@ -336,32 +340,34 @@
   letter-spacing: -0.04em;
   text-align: left;
 }
-:root[data-look="b"] .lk-step-badge > svg {
+:root:is([data-look="b"], [data-look="d"]) .lk-step-badge > svg {
   width: 30px;
   height: 30px;
   color: rgb(var(--color-accent));
 }
-:root[data-look="b"] .lk-step-card[data-on] .lk-step-badge {
+:root:is([data-look="b"], [data-look="d"])
+  .lk-step-card[data-on]
+  .lk-step-badge {
   background: none;
   color: rgb(var(--color-accent));
 }
-:root[data-look="b"] .lk-step-kicker {
+:root:is([data-look="b"], [data-look="d"]) .lk-step-kicker {
   display: block;
   margin: 0 0 6px;
   font-size: 14px;
 }
-:root[data-look="b"] .lk-step-heading {
+:root:is([data-look="b"], [data-look="d"]) .lk-step-heading {
   font-size: 28px;
   line-height: 1.12;
   letter-spacing: -0.02em;
   margin-bottom: 10px;
 }
-:root[data-look="b"] .lk-step-text {
+:root:is([data-look="b"], [data-look="d"]) .lk-step-text {
   font-size: 17px;
 }
 
 /* The picker: a typographic control, underlined rather than boxed. */
-:root[data-look="b"] .lk-picker {
+:root:is([data-look="b"], [data-look="d"]) .lk-picker {
   border-color: transparent;
   border-bottom-color: rgb(var(--color-line-field));
   border-radius: 0;
@@ -370,23 +376,23 @@
   font-family: var(--font-display);
   font-size: 18px;
 }
-:root[data-look="b"] .lk-picker:hover,
-:root[data-look="b"] .lk-picker[aria-expanded="true"] {
+:root:is([data-look="b"], [data-look="d"]) .lk-picker:hover,
+:root:is([data-look="b"], [data-look="d"]) .lk-picker[aria-expanded="true"] {
   border-color: transparent;
   border-bottom-color: rgb(var(--color-accent));
 }
-:root[data-look="b"] .lk-picker-list {
+:root:is([data-look="b"], [data-look="d"]) .lk-picker-list {
   border-color: transparent;
   background: rgb(var(--color-panel));
 }
-:root[data-look="b"] .lk-platform {
+:root:is([data-look="b"], [data-look="d"]) .lk-platform {
   border-color: transparent;
   background: none;
   color: rgb(var(--color-muted));
   padding-inline: 2px;
   margin-right: 10px;
 }
-:root[data-look="b"] .lk-platform[aria-pressed="true"] {
+:root:is([data-look="b"], [data-look="d"]) .lk-platform[aria-pressed="true"] {
   background: none;
   color: rgb(var(--color-accent));
   text-decoration: underline;
@@ -399,35 +405,35 @@
   font-size: clamp(28px, 3vw, 40px);
   letter-spacing: -0.02em;
 }
-:root[data-look="b"] .lk-bench {
+:root:is([data-look="b"], [data-look="d"]) .lk-bench {
   border-color: transparent;
   background: none;
   padding: 0;
 }
-:root[data-look="b"] .lk-bench-icon {
+:root:is([data-look="b"], [data-look="d"]) .lk-bench-icon {
   background: none;
   width: auto;
   height: auto;
 }
-:root[data-look="b"] .lk-bench-icon > svg {
+:root:is([data-look="b"], [data-look="d"]) .lk-bench-icon > svg {
   width: 30px;
   height: 30px;
 }
-:root[data-look="b"] .lk-bench h4 {
+:root:is([data-look="b"], [data-look="d"]) .lk-bench h4 {
   font-size: 22px;
 }
 
 /* Physio: a typeset list, no row boxes; the policy is a line of accent text. */
-:root[data-look="b"] .lk-row {
+:root:is([data-look="b"], [data-look="d"]) .lk-row {
   border-color: transparent;
   background: none;
   padding-inline: 0;
   font-size: 17px;
 }
-:root[data-look="b"] .lk-rows {
+:root:is([data-look="b"], [data-look="d"]) .lk-rows {
   gap: 2px;
 }
-:root[data-look="b"] .lk-policy {
+:root:is([data-look="b"], [data-look="d"]) .lk-policy {
   border-color: transparent;
   padding-inline: 0;
   color: rgb(var(--color-accent));
@@ -446,7 +452,7 @@
   font-size: 21px;
   line-height: 1.55;
 }
-:root[data-look="b"] .lk-blob-ring {
+:root:is([data-look="b"], [data-look="d"]) .lk-blob-ring {
   stroke: none;
   fill: rgb(var(--color-accent-strong) / 0.28);
 }
@@ -468,358 +474,168 @@
 }
 
 /* Drawers: the page's own ground, underlined fields. */
-:root[data-look="b"] .lk-drawer {
+:root:is([data-look="b"], [data-look="d"]) .lk-drawer {
   border-color: transparent;
   background: rgb(var(--color-surface));
 }
-:root[data-look="b"] .lk-drawer-close {
+:root:is([data-look="b"], [data-look="d"]) .lk-drawer-close {
   border-color: transparent;
 }
-:root[data-look="b"] .lk-field {
+:root:is([data-look="b"], [data-look="d"]) .lk-field {
   border-color: transparent;
   border-bottom-color: rgb(var(--color-line-field));
   border-radius: 0;
   background: none;
   padding-inline: 0;
 }
-:root[data-look="b"] .lk-field:focus {
+:root:is([data-look="b"], [data-look="d"]) .lk-field:focus {
   border-bottom-color: rgb(var(--color-accent));
   box-shadow: none;
 }
 
 /* ===================================================================== */
-/* C: The route. One thread runs down the page from the hero's "watch    */
-/* one of them assemble" to Get in touch. It is lit behind you and dim    */
-/* ahead, with the bright point where you're reading. Chapters are nodes  */
-/* on it; the step stories hang their steps off it; the build lane        */
-/* branches from it. No boxes: lines here only ever carry the route.      */
+/* D: Night chapters. A's composition and its full-bleed chapter tones,   */
+/* with B's open, unfilled components and its numbered journey. With no   */
+/* boxes or fills, what you can press and what is selected is said by     */
+/* type, colour, the numeral, underlines and one small moving marker.     */
 /* ===================================================================== */
-:root[data-look="c"] {
-  /* The thread sits in the gutter, half a gutter left of the content. */
-  --c-x: calc(var(--space-gutter) / -2);
-  /* Where it is in viewport terms, for the fixed backgrounds that light it. */
-  --c-vx: calc(
-    max(0px, (100vw - var(--size-container)) / 2) + var(--space-gutter) / 2
-  );
-  --c-dim: rgb(var(--color-line-strong) / 0.55);
-  --c-lit: linear-gradient(
-    to bottom,
-    rgb(var(--color-accent) / 0.35) 0%,
-    rgb(var(--color-accent)) 30%,
-    rgb(var(--color-signal)) 50%,
-    var(--c-dim) 50.2%,
-    var(--c-dim) 100%
-  );
-  --c-glow: radial-gradient(
-    10px 90px at var(--c-vx) 50%,
-    rgb(var(--color-signal) / 0.75),
-    rgb(var(--color-signal) / 0) 100%
-  );
+:root[data-look="d"] {
+  /* The page's own ink and muted, for undoing a dimmed card on hover. */
+  --d-ink: 236 235 250;
+  --d-muted: 164 166 207;
 }
 
-/* Rail segments: each section draws its stretch of the thread. */
-:root[data-look="c"] .lk-section,
-:root[data-look="c"] #burpees {
-  position: relative;
-  border-top-color: transparent;
-}
-:root[data-look="c"] .lk-hero {
-  overflow-y: clip;
-}
-:root[data-look="c"] .lk-section::before,
-:root[data-look="c"] #burpees::before,
-:root[data-look="c"] .lk-hero-lede::after {
+/* Step cards. The selected step: numeral in lilac, full-tone text, and a
+   short lilac-to-signal marker that draws out under the numeral. The rest
+   step back a tone; hovering one brings it up and underlines its heading,
+   so the card reads as something to press. */
+:root[data-look="d"] .lk-step-badge::after {
   content: "";
-  position: absolute;
-  left: calc(var(--c-x) - 1px);
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--c-lit);
-  background-attachment: fixed;
-  pointer-events: none;
-}
-/* The glow around the reading point, on the same stretch. */
-:root[data-look="c"] .lk-section::after,
-:root[data-look="c"] #burpees::after {
-  content: "";
-  position: absolute;
-  left: calc(var(--c-x) - 12px);
-  top: 0;
-  bottom: 0;
-  width: 24px;
-  background: var(--c-glow);
-  background-attachment: fixed;
-  pointer-events: none;
-  z-index: 0;
-}
-/* The hero's stretch starts at the standfirst, "watch one of them assemble",
-   and runs on until the hero clips it. */
-:root[data-look="c"] .lk-hero-lede::after {
-  top: 0.75em;
-  bottom: auto;
-  height: 100vh;
-}
-/* The figure parks its message pulse off stage up and left, which is on
-   screen once the figure moves right. */
-:root[data-look="c"] g[transform="translate(-999,-999)"] {
-  visibility: hidden;
-}
-/* Contact's stretch stops at its node: the route's destination. */
-:root[data-look="c"] #contact::before,
-:root[data-look="c"] #contact::after {
-  bottom: auto;
-  height: calc(var(--space-section-lg) + 0.5em);
-}
-
-/* Nodes: a dot on the thread, lit by the same light as the thread. */
-:root[data-look="c"] .lk-chapter-title,
-:root[data-look="c"] .lk-burpees-title,
-:root[data-look="c"] .lk-about-title,
-:root[data-look="c"] .lk-contact-title,
-:root[data-look="c"] .lk-build-title,
-:root[data-look="c"] .lk-hero-lede {
-  position: relative;
-}
-:root[data-look="c"] .lk-chapter-title::before,
-:root[data-look="c"] .lk-burpees-title::before,
-:root[data-look="c"] .lk-about-title::before,
-:root[data-look="c"] .lk-build-title::before,
-:root[data-look="c"] .lk-hero-lede::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  left: calc(var(--c-x) - 8px);
-  top: 0.32em;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: var(--c-lit);
-  background-attachment: fixed;
-  box-shadow: 0 0 0 5px rgb(var(--color-surface));
-}
-:root[data-look="c"] .lk-build-title::before {
-  top: 0.4em;
-  width: 12px;
-  height: 12px;
-  left: calc(var(--c-x) - 6px);
-}
-:root[data-look="c"] .lk-hero-lede::before {
-  top: 0.55em;
-  width: 10px;
-  height: 10px;
-  left: calc(var(--c-x) - 5px);
-}
-:root[data-look="c"] .lk-contact-title::before {
-  content: "";
-  position: absolute;
-  left: calc(var(--c-x) - 12px);
-  top: 0.22em;
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  background: rgb(var(--color-signal));
-  box-shadow:
-    0 0 0 6px rgb(var(--color-surface)),
-    0 0 40px 8px rgb(var(--color-signal) / 0.35);
-}
-
-/* Chapters part at a node, not a rule. */
-:root[data-look="c"] #work,
-:root[data-look="c"] #physio {
-  padding-top: clamp(64px, 9vw, 130px);
-}
-
-/* Step stories: steps move to the thread's side and hang off it; the
-   figure and the practice list pin on the right. */
-:root[data-look="c"] .lk-story {
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-}
-:root[data-look="c"] .lk-stage {
-  order: 2;
-}
-:root[data-look="c"] .lk-step-card {
-  position: relative;
-  border-color: transparent;
-  background: none;
-  padding-left: 0;
-  box-shadow: none;
-}
-:root[data-look="c"] .lk-step-badge {
-  position: absolute;
-  left: calc(var(--c-x) - 14px);
-  top: 22px;
-  z-index: 1;
-  background: rgb(var(--color-surface));
-  color: rgb(var(--color-muted));
-  box-shadow: inset 0 0 0 2px rgb(var(--color-line-strong));
-}
-:root[data-look="c"] .lk-step-card[data-on] .lk-step-badge {
-  background: rgb(var(--color-accent));
-  color: rgb(var(--color-on-accent));
-  box-shadow:
-    0 0 0 5px rgb(var(--color-surface)),
-    0 0 26px 4px rgb(var(--color-accent) / 0.45);
-}
-:root[data-look="c"] .lk-step-kicker {
   display: block;
-  margin: 3px 0 6px;
-  font-size: 14px;
-}
-:root[data-look="c"] .lk-step-card[data-on] .lk-step-kicker {
-  color: rgb(var(--color-accent));
-}
-
-/* Lines only where they carry the route: the picker sits on one. */
-:root[data-look="c"] .lk-picker {
-  border-color: transparent;
-  border-bottom-color: rgb(var(--color-line-strong));
-  border-bottom-width: 2px;
-  border-radius: 0;
-  background: none;
-}
-:root[data-look="c"] .lk-picker:hover,
-:root[data-look="c"] .lk-picker[aria-expanded="true"] {
-  border-color: transparent;
-  border-bottom-color: rgb(var(--color-accent));
-}
-:root[data-look="c"] .lk-picker-list {
-  border-color: transparent;
-  background: rgb(var(--color-panel));
-}
-:root[data-look="c"] .lk-platform {
-  border-color: transparent;
-}
-:root[data-look="c"] .lk-platform[aria-pressed="false"] {
-  background: rgb(var(--color-ink) / 0.07);
-}
-
-/* Chips: words joined by short lengths of thread. */
-:root[data-look="c"] .lk-chips {
-  gap: 6px 0;
-  align-items: center;
-}
-:root[data-look="c"] .lk-chip {
-  display: flex;
-  align-items: center;
-  background: none;
-  padding: 0;
-  color: rgb(var(--color-muted));
-  font-size: 14px;
-}
-:root[data-look="c"] .lk-chip + .lk-chip::before {
-  content: "";
-  width: 18px;
-  height: 2px;
-  margin: 0 9px;
-  border-radius: 2px;
-  background: rgb(var(--color-line-strong));
-}
-
-/* Secondary actions: text on a length of thread that lights on hover. */
-:root[data-look="c"] .lk-btn-ghost {
-  box-shadow: none;
-  border-radius: 0;
-  padding-inline: 2px;
-  margin-inline: 8px;
+  width: 32px;
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 3px;
   background: linear-gradient(
-      rgb(var(--color-line-strong)),
-      rgb(var(--color-line-strong))
-    )
-    left bottom / 100% 2px no-repeat;
-}
-:root[data-look="c"] .lk-btn-ghost:hover {
-  background-image: linear-gradient(
     to right,
     rgb(var(--color-accent)),
     rgb(var(--color-signal))
   );
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-state) var(--ease-enter);
 }
-:root[data-look="c"] .lk-topnav .lk-btn-ghost {
-  margin-inline: 0;
+:root[data-look="d"] .lk-step-card[data-on] .lk-step-badge::after {
+  transform: scaleX(1);
+}
+:root[data-look="d"] .lk-step-badge {
+  place-items: start;
+  margin-bottom: 10px;
+  transition: color var(--duration-state) var(--ease-enter);
+}
+:root[data-look="d"] .lk-step-heading {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 6px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--duration-base) var(--ease-enter);
+}
+:root[data-look="d"] #work .lk-step-card:not([data-on]):hover {
+  --color-ink: var(--d-ink);
+  --color-muted: var(--d-muted);
+}
+:root[data-look="d"] #work .lk-step-card:not([data-on]):hover .lk-step-heading {
+  text-decoration-color: rgb(var(--color-accent));
+}
+:root[data-look="d"] #work .lk-step-card:not([data-on]):hover .lk-step-badge {
+  color: rgb(var(--color-ink));
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-look="d"] .lk-step-badge::after,
+  :root[data-look="d"] .lk-step-heading {
+    transition: none;
+  }
 }
 
-/* The build lane branches off the thread. */
-:root[data-look="c"] .lk-track::before {
-  content: "";
-  position: absolute;
-  top: 11px;
-  left: calc(var(--c-x) - 1px);
-  width: calc(var(--space-gutter) / 2 + 1px);
-  height: 3px;
-  border-radius: 3px;
-  background: rgb(var(--color-accent));
+/* The part picker: a line of type on a 3:1 underline with its chevron, the
+   part's number in lilac; the underline turns lilac on hover or open. */
+:root[data-look="d"] .lk-picker {
+  border-bottom-width: 2px;
 }
-:root[data-look="c"] .lk-dot:not([data-lit]) {
-  border-color: rgb(var(--color-line-strong));
-}
-:root[data-look="c"] .lk-bench {
-  border-color: transparent;
-  background: none;
+:root[data-look="d"] .lk-picker-badge {
+  min-width: 0;
   padding: 0;
-}
-:root[data-look="c"] .lk-bench-icon {
-  background: rgb(var(--color-signal) / 0.14);
-  box-shadow: 0 0 24px 2px rgb(var(--color-signal) / 0.18);
-}
-
-/* Physio: the rows hang on their own short thread; hidden rows' dots go hollow. */
-:root[data-look="c"] .lk-rows {
-  position: relative;
-}
-:root[data-look="c"] .lk-rows::before {
-  content: "";
-  position: absolute;
-  left: 16px;
-  top: 18px;
-  bottom: 18px;
-  width: 2px;
-  background: rgb(var(--color-line-strong) / 0.7);
-}
-:root[data-look="c"] .lk-row {
-  position: relative;
-  border-color: transparent;
   background: none;
+  color: rgb(var(--color-accent));
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
-:root[data-look="c"] .lk-row-dot {
-  box-shadow: 0 0 0 4px rgb(var(--color-surface));
+/* Its open list floats over the page, so it keeps a surface; inside, the
+   numbers are type, and the keyboard's place is a signal mark, not a fill. */
+:root[data-look="d"] .lk-picker-list {
+  box-shadow: var(--shadow-popover);
 }
-:root[data-look="c"] .lk-row[data-hidden] {
-  opacity: 0.32;
+:root[data-look="d"] .lk-picker-list [role="option"] {
+  background: none;
+  box-shadow: none;
 }
-:root[data-look="c"] .lk-policy {
-  border-color: transparent;
-  padding-left: 34px;
+:root[data-look="d"] .lk-picker-list [role="option"] > span {
+  min-width: 2.2em;
+  background: none;
+  color: rgb(var(--color-muted));
+  font-size: 15px;
+}
+:root[data-look="d"] .lk-picker-list [role="option"][aria-selected="true"],
+:root[data-look="d"]
+  .lk-picker-list
+  [role="option"][aria-selected="true"]
+  > span {
   color: rgb(var(--color-accent));
 }
-:root[data-look="c"] .lk-signed {
-  padding-left: 34px;
+:root[data-look="d"] .lk-picker-list [role="option"]:hover,
+:root[data-look="d"] .lk-picker-list [role="option"].shadow-ring-signal {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 5px;
+  text-decoration-color: rgb(var(--color-signal));
 }
 
-/* Drawers: the thread runs into them down the left edge. */
-:root[data-look="c"] .lk-drawer {
-  border-color: transparent;
-  background:
-    linear-gradient(
-        to bottom,
-        rgb(var(--color-accent)),
-        rgb(var(--color-signal)) 50%,
-        var(--c-dim) 50.2%
-      )
-      left top / 2px 100% no-repeat,
-    rgb(var(--color-panel));
+/* Platform switch: the live one in lilac on a solid underline; the others
+   on a dotted one, so they still read as choices. */
+:root[data-look="d"] .lk-platform {
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 6px;
+  text-decoration-color: rgb(var(--color-line-field));
 }
-:root[data-look="c"] .lk-drawer-close {
-  border-color: transparent;
+:root[data-look="d"] .lk-platform[aria-pressed="true"] {
+  text-decoration-style: solid;
+  text-decoration-color: rgb(var(--color-accent));
 }
-:root[data-look="c"] .lk-field {
-  border-color: transparent;
-  border-bottom-color: rgb(var(--color-line-field));
-  border-bottom-width: 2px;
-  border-radius: 0;
-  background: rgb(var(--color-surface) / 0.6);
+:root[data-look="d"] .lk-platform:hover {
+  color: rgb(var(--color-ink));
 }
-:root[data-look="c"] .lk-field:focus {
-  border-bottom-color: rgb(var(--color-signal));
-  box-shadow: none;
+
+/* Calls to action: Get in touch (and Try it) stay solid, the one filled
+   thing on the page; every secondary action is a lilac-underlined link
+   whose line thickens on hover. The bar's Get in touch is lilac text. */
+:root[data-look="d"] .lk-btn-ghost {
+  padding-inline: 0;
+  margin-inline: 0;
+  transition:
+    color var(--duration-base) var(--ease-enter),
+    text-decoration-thickness var(--duration-base) var(--ease-enter);
+}
+:root[data-look="d"] * + .lk-btn-ghost {
+  margin-left: 12px;
+}
+:root[data-look="d"] .lk-btn-ghost:hover {
+  text-decoration-thickness: 3px;
+}
+:root[data-look="d"] .lk-topnav .lk-btn-ghost {
+  color: rgb(var(--color-accent));
+}
+:root[data-look="d"] .lk-drawer-close:hover {
+  color: rgb(var(--color-accent));
 }

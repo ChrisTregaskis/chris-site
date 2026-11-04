@@ -8,7 +8,7 @@ interface DrawerHeaderProps {
 export function DrawerHeader({ eyebrow, onClose }: DrawerHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <span className="lk-drawer-eyebrow text-eyebrow font-semibold uppercase text-accent">
+      <span className="text-eyebrow font-semibold uppercase text-accent">
         {eyebrow}
       </span>
       <button

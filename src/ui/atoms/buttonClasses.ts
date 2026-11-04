@@ -23,5 +23,5 @@ export function buttonClasses(
   variant: ButtonVariant,
   size: ButtonSize = "md",
 ): string {
-  return cn(`lk-btn lk-btn-${variant}`, BASE, SIZES[size], VARIANTS[variant]);
+  return cn(`lk-btn-${variant}`, BASE, SIZES[size], VARIANTS[variant]);
 }
