@@ -12,6 +12,8 @@ export type DropdownPlacement = "up" | "down";
 
 interface UseNumberedDropdownOptions {
   count: number;
+  /** The number each option shows, for jumping with the digit keys. */
+  numerals?: readonly number[];
   /** Index of the selected option, or -1 when none is. */
   selectedIndex: number;
   onPick: (index: number) => void;
@@ -24,6 +26,7 @@ interface UseNumberedDropdownOptions {
  */
 export function useNumberedDropdown({
   count,
+  numerals,
   selectedIndex,
   onPick,
 }: UseNumberedDropdownOptions) {
@@ -91,7 +94,7 @@ export function useNumberedDropdown({
   };
 
   const onListKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
-    const action = listboxKey(event.key, active, count);
+    const action = listboxKey(event.key, active, count, numerals);
     if (!action) return;
     if (event.key !== "Tab") event.preventDefault();
     if (action.type === "move") setActive(action.index);

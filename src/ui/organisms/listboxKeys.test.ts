@@ -16,6 +16,18 @@ describe("listboxKey", () => {
     expect(listboxKey("7", 0, 5)).toBeNull();
   });
 
+  it("jumps to the option showing a digit, when the list numbers from 00", () => {
+    const numerals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    expect(listboxKey("0", 5, 11, numerals)).toEqual({
+      type: "move",
+      index: 0,
+    });
+    expect(listboxKey("4", 0, 11, numerals)).toEqual({
+      type: "move",
+      index: 4,
+    });
+  });
+
   it("picks with Enter or Space and closes with Escape or Tab", () => {
     expect(listboxKey("Enter", 3, 10)).toEqual({ type: "pick", index: 3 });
     expect(listboxKey(" ", 3, 10)).toEqual({ type: "pick", index: 3 });

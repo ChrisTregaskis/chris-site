@@ -7,12 +7,15 @@ export type ListboxKeyAction =
  * What a key press does in an open listbox of `count` options, with option
  * `active` highlighted: arrows wrap, Home and End jump, Enter and Space pick,
  * Escape closes back to the button, Tab closes and moves on, and a digit jumps
- * to that option (0 is the tenth). Anything else does nothing (null).
+ * to the option showing that number (given `numerals`, the number each option
+ * shows), or else to that position (0 is the tenth). Anything else does
+ * nothing (null).
  */
 export function listboxKey(
   key: string,
   active: number,
   count: number,
+  numerals?: readonly number[],
 ): ListboxKeyAction | null {
   const move = (index: number): ListboxKeyAction => ({
     type: "move",
@@ -38,6 +41,8 @@ export function listboxKey(
       break;
   }
   if (/^[0-9]$/.test(key)) {
+    const shown = numerals?.indexOf(Number(key)) ?? -1;
+    if (shown >= 0) return move(shown);
     const n = key === "0" ? 10 : Number(key);
     if (n <= count) return move(n - 1);
   }
