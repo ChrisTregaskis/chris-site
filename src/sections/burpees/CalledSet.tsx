@@ -8,6 +8,7 @@ import { SetCount } from "./SetCount";
 import { RUN_HEIGHT } from "./stageRun";
 import { useCalledSet } from "./useCalledSet";
 import { useStageLayout } from "./useStageLayout";
+import { useScrollFeel } from "@/features/scroll-feel";
 import { cn } from "@/lib/cn";
 
 interface CalledSetProps {
@@ -30,7 +31,9 @@ export function CalledSet({ still }: CalledSetProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const rulerRef = useRef<HTMLSpanElement>(null);
   const baselineRef = useRef<HTMLSpanElement>(null);
-  const { reps, called } = useCalledSet(still, runRef, stageRef);
+  // Prototype c: the count strains through the slow last reps.
+  const strain = useScrollFeel() === "c" && !still;
+  const { reps, called } = useCalledSet(still, runRef, stageRef, strain);
   const layout = useStageLayout(gridRef, rulerRef, baselineRef);
   const done = !still && reps >= SET_REPS;
   // Still, the calls are listed under the count, but the count keeps its
@@ -58,7 +61,12 @@ export function CalledSet({ still }: CalledSetProps) {
           )}
           style={{ "--count-fit": layout.fit } as CSSProperties}
         >
-          <SetCount reps={reps} baseline={layout.baseline} still={still} />
+          <SetCount
+            reps={reps}
+            baseline={layout.baseline}
+            still={still}
+            strain={strain}
+          />
           <p className="col-start-1 row-start-2 m-0 mt-3 text-body-sm text-muted">
             of {SET_REPS} Navy SEALs
           </p>

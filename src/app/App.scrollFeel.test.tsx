@@ -16,6 +16,7 @@ describe("App's scroll-feel prototypes", () => {
     const { container } = renderFeel(null);
     expect(container.querySelector(".night-sky")).toBeNull();
     expect(container.querySelector(".chapter-rail")).toBeNull();
+    expect(container.querySelector(".build-head")).toBeNull();
   });
 
   it("a: lays one decorative star field behind the page", () => {
@@ -35,5 +36,13 @@ describe("App's scroll-feel prototypes", () => {
       expect(rail.parentElement).toHaveClass("chapter-tone");
     }
     expect(container.querySelector(".night-sky")).toBeNull();
+  });
+
+  it("c: sends a spark along the build lane's pinned run", () => {
+    const { container } = renderFeel("c");
+    const head = container.querySelector("#how-it-was-built .build-head");
+    expect(head).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".night-sky")).toBeNull();
+    expect(container.querySelector(".chapter-rail")).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useBuildRunway } from "./useBuildRunway";
+import { useScrollFeel } from "@/features/scroll-feel";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/cn";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
@@ -90,6 +91,8 @@ export function BuildStory() {
     stacked,
   );
   const bench = <BenchNote shown={lit >= BENCH_AFTER} stacked={stacked} />;
+  // Prototype c: the lane's pinned run otherwise only grows a 3px line.
+  const head = useScrollFeel() === "c" && layout !== null;
 
   return (
     <>
@@ -157,6 +160,7 @@ export function BuildStory() {
                 </li>
               ))}
             </ol>
+            {head ? <span aria-hidden="true" className="build-head" /> : null}
           </div>
           {stacked ? null : bench}
         </section>
