@@ -1,6 +1,7 @@
 import { useReducedMotion } from "framer-motion";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ChatMock } from "./ChatMock";
+import { INSIDE } from "./explode";
 import { StepCard } from "./StepCard";
 import { useWayfinderDemo } from "./useWayfinderDemo";
 import { WayfinderFigure } from "./WayfinderFigure";
@@ -15,6 +16,8 @@ import {
   partForStep,
   stepForPart,
 } from "./parts";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useScrollFrame } from "@/hooks/useScrollFrame";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
@@ -78,6 +81,47 @@ export function Wayfinder() {
         : undefined,
     );
 
+  // PROTOTYPE: the exploded view. Reaching the intro card takes the figure
+  // apart; parts 1 to 9 walk it, focusing each; the demo puts it back
+  // together. The toggle overrides until the step (or intro) changes.
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const introRef = useRef<HTMLDivElement>(null);
+  const [introReached, setIntroReached] = useState(false);
+  useScrollFrame(
+    () => {
+      const intro = introRef.current;
+      if (!intro) return;
+      const box = intro.getBoundingClientRect();
+      const reached = box.top < measure().focusY;
+      setIntroReached((previous) =>
+        previous === reached ? previous : reached,
+      );
+    },
+    true,
+    sectionRef,
+  );
+  const stacked = useMediaQuery(BELOW_WIDE);
+  const stepApart =
+    current !== DEMO_STEP && (introReached || selected !== null);
+  const stepKey = `${current}:${introReached}`;
+  const [manual, setManual] = useState<{ key: string; apart: boolean } | null>(
+    null,
+  );
+  const apart = manual?.key === stepKey ? manual.apart : stepApart;
+  const toggleApart = () => setManual({ key: stepKey, apart: !apart });
+  const explode = useRef<{ whenAssembled: () => Promise<void> } | null>(null);
+  const send = async (
+    question: string,
+    ask?: Parameters<typeof demo.send>[1],
+  ) => {
+    // The demo only runs on the whole board: put it back together first.
+    if (apart) {
+      setManual({ key: stepKey, apart: false });
+      await explode.current?.whenAssembled();
+    }
+    await demo.send(question, ask);
+  };
+
   const announcement = selected
     ? `Part ${current}, ${PARTS[selected].name}`
     : current === DEMO_STEP
@@ -85,13 +129,22 @@ export function Wayfinder() {
       : "";
 
   return (
-    <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
+    <div
+      ref={sectionRef}
+      className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]"
+    >
       <div
         ref={stageRef}
         className="sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
       >
-        <div className="flex w-full flex-col items-stretch gap-[14px]">
+        <div className="relative flex w-full flex-col items-stretch gap-[14px]">
           <WayfinderFigure
+            apart={apart}
+            lite={stacked}
+            reducedMotion={reducedMotion}
+            onExplode={(controls) => {
+              explode.current = controls;
+            }}
             selected={selected}
             hot={demo.hot}
             lit={demo.lit}
@@ -132,6 +185,16 @@ export function Wayfinder() {
               Try it
             </Button>
           </div>
+          <div className="hidden justify-center wide:flex">
+            <Button
+              variant="ghost"
+              pressed={apart}
+              onClick={toggleApart}
+              className="text-[14px]"
+            >
+              {apart ? "Put it back" : "Take it apart"}
+            </Button>
+          </div>
         </div>
         <p className="sr-only" aria-live="polite">
           {announcement}
@@ -139,6 +202,25 @@ export function Wayfinder() {
       </div>
 
       <div className="relative z-[1] pb-[34vh] pt-[4vh] wide:py-[30vh]">
+        <div
+          ref={introRef}
+          data-intro-step=""
+          className="flex min-h-[58vh] items-center wide:min-h-[62vh]"
+        >
+          <div className="w-full max-w-[34em] py-[22px] wide:max-w-[430px]">
+            <span className="mb-[6px] block text-[14px] font-medium text-muted">
+              Taken apart
+            </span>
+            <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
+              Nine parts, and what is inside each
+            </h3>
+            <p className="m-0 text-[17px] text-muted">
+              Every part lifts off the board and opens into its numbered pieces.
+              Scroll on to walk them one at a time; it goes back together for
+              the live demo.
+            </p>
+          </div>
+        </div>
         {PART_ORDER.map((id, index) => {
           const n = index + 1;
           const part = PARTS[id];
@@ -163,6 +245,19 @@ export function Wayfinder() {
               stepRef={stepRef(n)}
               cardRef={cardRef(n)}
             >
+              <ol
+                aria-label={`Inside part ${n}`}
+                className="m-0 mt-4 grid list-none grid-cols-[auto_1fr] gap-x-3 gap-y-[2px] p-0 text-[14px] leading-[1.5]"
+              >
+                {INSIDE[id].map((piece) => (
+                  <li key={piece.id} className="contents">
+                    <span className="font-semibold tabular-nums text-accent">
+                      {piece.id}
+                    </span>
+                    <span className="text-muted">{piece.name}</span>
+                  </li>
+                ))}
+              </ol>
               {id === "ai" ? (
                 <div
                   role="group"
@@ -214,7 +309,7 @@ export function Wayfinder() {
             typing={demo.typing}
             trace={demo.trace}
             onSend={(question, ask) => {
-              void demo.send(question, ask);
+              void send(question, ask);
             }}
           />
         </StepCard>
