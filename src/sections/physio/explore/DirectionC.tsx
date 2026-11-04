@@ -440,10 +440,10 @@ function Figure({ stage, still }: FigureProps) {
        * filter, so the stack below never moves.
        */}
       <div className="mt-3 min-h-[132px]">
-        <div className="font-display font-medium tracking-[-0.02em]">
+        <div className="font-display text-[28px] font-medium leading-[1.25] tracking-[-0.02em]">
           <p
             className={cn(
-              "m-0 text-[22px] leading-[1.25] transition-opacity duration-slow motion-reduce:transition-none",
+              "m-0 transition-opacity duration-slow motion-reduce:transition-none",
               asked ? "opacity-100" : "opacity-0",
             )}
             aria-hidden={!asked}
@@ -451,7 +451,7 @@ function Figure({ stage, still }: FigureProps) {
             <span className="text-muted">set local</span> organisation ={" "}
             <span className={ORG_TINT[who].text}>&lsquo;{who}&rsquo;</span>
           </p>
-          <p className="m-0 text-[30px] leading-[1.25]">
+          <p className="m-0">
             {/* The query grows in front of the table's name (0fr to 1fr). */}
             <span
               data-testid="query-select"
@@ -479,7 +479,7 @@ function Figure({ stage, still }: FigureProps) {
             )}
           >
             <p
-              className="m-0 overflow-hidden whitespace-nowrap text-[30px] leading-[1.25]"
+              className="m-0 overflow-hidden whitespace-nowrap"
               aria-hidden={!asking}
               data-testid="leak-filter"
             >
