@@ -39,7 +39,7 @@ describe("App", () => {
     renderWithProviders(<App />);
     for (const [region, numeral] of [
       [/^Wayfinder/, "1"],
-      [/^A multi-tenant SaaS/, "2"],
+      [/^A multi-tenant platform/, "2"],
       ["Badass Burpees", "3"],
     ] as const) {
       const section = screen.getByRole("region", { name: region });
@@ -56,7 +56,7 @@ describe("App", () => {
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
     ).toEqual([
       "Wayfinder, an AI guide for a global automotive brand",
-      "A multi-tenant SaaS for physio and wellness practices",
+      "A multi-tenant platform for physio and wellness",
       "Badass Burpees",
       "About",
       "Let's work together.",

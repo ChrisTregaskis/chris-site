@@ -15,7 +15,7 @@ import { type NavMenuItem, NavMenu } from "@/ui/organisms/NavMenu";
 const WORK_ITEMS: NavMenuItem[] = [
   { href: "#work", label: "Wayfinder", numeral: "1" },
   { href: "#how-it-was-built", label: "How it was built", sub: true },
-  { href: "#physio", label: "Physio and wellness SaaS", numeral: "2" },
+  { href: "#physio", label: "Physio and wellness", numeral: "2" },
   { href: "#burpees", label: "Badass Burpees", numeral: "3" },
 ];
 

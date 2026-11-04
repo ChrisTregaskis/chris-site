@@ -1,5 +1,13 @@
 import { useReducedMotion } from "framer-motion";
 import { useCallback, useRef } from "react";
+import { DEPTH_QUERY } from "./depth/depthGeometry";
+import { IsolationFigure } from "./IsolationFigure";
+import { LeakTestControls } from "./LeakTestControls";
+import { PHYSIO_STEPS } from "./organisations";
+import { PHYSIO_HEADING } from "./physioHeading";
+import { SignedInPicker } from "./SignedInPicker";
+import { useLeakTest } from "./useLeakTest";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
@@ -8,53 +16,25 @@ import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
-const STEPS = [
-  {
-    title: "One database, every practice",
-    text: "Sessions from every practice live in the same Postgres tables. Cheap to run and simple to migrate.",
-  },
-  {
-    title: "Every request names its practice",
-    text: "The tRPC context sets the current practice on the connection before a single query runs.",
-  },
-  {
-    title: "Postgres hides the rest",
-    text: "Row-level security filters out other practices' rows in the database itself, so a missed filter in app code can't leak data.",
-  },
-] as const;
-
-type Practice = "Riverside" | "Harbour" | "Moorland";
-
-const ROWS: { label: string; practice: Practice }[] = [
-  { label: "First session", practice: "Riverside" },
-  { label: "Sports massage", practice: "Harbour" },
-  { label: "Mobility plan, week 3", practice: "Riverside" },
-  { label: "Posture check-in", practice: "Moorland" },
-  { label: "Follow-up session", practice: "Harbour" },
-  { label: "Session notes", practice: "Riverside" },
-  { label: "Running form review", practice: "Moorland" },
-];
-
-const DOT: Record<Practice, string> = {
-  Riverside: "bg-accent",
-  Harbour: "bg-signal",
-  Moorland: "bg-tenant-teal",
-};
-
-const FADE = "transition-opacity duration-state motion-reduce:transition-none";
-
 /**
- * Chapter 2: the physio and wellness SaaS. Three steps scroll past a list of
- * sessions from three practices: all of them, then the practice is set, then
- * row-level security hides everyone else's. Side by side, the list pins
- * beside the steps. Stacked (phones), a compact list (tighter still on short
- * phones) pins under the top bar on an opaque panel, above the steps, so
- * each card is read in the room beneath it and then slides under it; the
- * panel is sized to its list, so nothing spills out of it into the next
- * chapter. Static (reduced motion): the end state.
+ * Chapter 2: the physio and wellness platform's tenant isolation. Three
+ * steps scroll past one sessions table under the query that reads it: the
+ * table at rest, holding every organisation's rows; a request signed in as
+ * one organisation, which gets only its own sessions back because the
+ * policy is always on; and the policy named, with a leak test (sign in as
+ * anyone, ask for another organisation's sessions by name, get nothing).
+ *
+ * Side by side, the figure pins beside the steps under the top bar, drawn
+ * in 3D where there's room (`DEPTH_QUERY`) and flat where there isn't.
+ * Stacked (phones), the flat figure pins under the top bar on an opaque
+ * panel sized to it, the cards read beneath it, and the leak test's picker
+ * and buttons move into the last card. Static (reduced motion): the end
+ * state, no pinning, every state change instant.
  */
 export function PhysioSection() {
   const still = useReducedMotion() ?? false;
+  const stacked = useMediaQuery(BELOW_WIDE);
+  const roomy = useMediaQuery(DEPTH_QUERY);
   const stageRef = useRef<HTMLDivElement>(null);
   const measure = useCallback(() => {
     const stage = stageRef.current;
@@ -71,8 +51,9 @@ export function PhysioSection() {
     enabled: !still,
   });
   const stage = still ? 3 : Math.max(1, current);
-  const practiceSet = stage >= 2;
-  const filtered = stage >= 3;
+  const test = useLeakTest(stage, { still, watch: stageRef });
+  const { view, pressing } = test;
+  const drawing = roomy && !stacked ? "depth" : "flat";
 
   return (
     <Section
@@ -83,80 +64,27 @@ export function PhysioSection() {
       <ChapterHeading
         id="physio-title"
         numeral="2"
-        title="A multi-tenant SaaS for physio and wellness practices"
-        lede="Bookings and client notes for many wellness practices, from one codebase and one database. A personal project, built with my own AI-assisted Claude Code workflow."
-        chips={[
-          "React",
-          "tRPC",
-          "Zod",
-          "Drizzle",
-          "Postgres RLS",
-          "SST",
-          "Turborepo",
-        ]}
+        title={PHYSIO_HEADING.title}
+        lede={PHYSIO_HEADING.lede}
+        chips={PHYSIO_HEADING.chips}
       />
       <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
         <div
           ref={stageRef}
+          data-testid="physio-stage"
           className={cn(
             "flex items-center justify-center",
             still
               ? "relative py-6"
-              : "sticky top-nav z-[2] bg-surface py-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:top-[6vh] wide:z-[1] wide:h-[88vh] wide:bg-transparent wide:py-0 wide:after:hidden",
+              : "sticky top-nav z-[2] bg-surface py-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:z-[1] wide:h-[calc(100svh-var(--size-nav))] wide:bg-transparent wide:py-0 wide:after:hidden",
           )}
         >
-          <figure
-            className="m-0 w-full max-w-[440px]"
-            aria-label="Sessions from three practices in one table"
-          >
-            <p
-              className={cn(
-                "m-0 mb-[6px] text-caption text-muted wide:mb-[10px] [@media(max-width:860px)_and_(max-height:700px)]:mb-1",
-                FADE,
-                practiceSet ? "opacity-100" : "opacity-0",
-              )}
-            >
-              Signed in as Riverside Wellness
-            </p>
-            <div
-              className={cn(
-                "mb-[6px] py-[6px] text-caption font-medium text-accent wide:py-2 wide:text-[14px] [@media(max-width:860px)_and_(max-height:700px)]:py-1",
-                FADE,
-                practiceSet ? "opacity-100" : "opacity-0",
-              )}
-            >
-              policy: tenant_id = current practice
-            </div>
-            <ul className="m-0 grid w-full list-none gap-[6px] p-0 wide:gap-[2px] [@media(max-width:860px)_and_(max-height:700px)]:gap-1">
-              {ROWS.map((row) => {
-                const hidden = filtered && row.practice !== "Riverside";
-                return (
-                  <li
-                    key={row.label}
-                    className={cn(
-                      "grid grid-cols-[12px_1fr_auto] items-center gap-[10px] py-[5px] text-[14px] leading-[1.5] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none wide:py-[10px] wide:text-[17px] wide:leading-[1.6] [@media(max-width:860px)_and_(max-height:700px)]:py-[3px] [@media(max-width:860px)_and_(max-height:700px)]:text-[13px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.4]",
-                      hidden && "translate-x-[14px] opacity-[0.12] saturate-0",
-                    )}
-                  >
-                    <i
-                      aria-hidden="true"
-                      className={cn(
-                        "size-[10px] rounded-pill",
-                        DOT[row.practice],
-                      )}
-                    />
-                    {row.label}
-                    <small className="text-[12px] text-muted">
-                      {row.practice}
-                      {hidden ? (
-                        <span className="sr-only">, hidden</span>
-                      ) : null}
-                    </small>
-                  </li>
-                );
-              })}
-            </ul>
-          </figure>
+          <IsolationFigure
+            test={test}
+            drawing={drawing}
+            controlsInside={!stacked}
+            still={still}
+          />
         </div>
         <div
           className={cn(
@@ -164,9 +92,10 @@ export function PhysioSection() {
             still ? "pb-6" : "pb-6 pt-[4vh] wide:py-[30vh]",
           )}
         >
-          {STEPS.map((step, index) => {
+          {PHYSIO_STEPS.map((step, index) => {
             const n = index + 1;
             const on = still || current === n;
+            const last = n === PHYSIO_STEPS.length;
             return (
               <div
                 key={step.title}
@@ -190,6 +119,36 @@ export function PhysioSection() {
                     {step.title}
                   </h3>
                   <p className="m-0 text-[17px] text-muted">{step.text}</p>
+                  {last && stacked ? (
+                    <div
+                      data-testid="leak-test-card"
+                      className="mt-5 grid gap-3"
+                    >
+                      <SignedInPicker
+                        shown
+                        live={view.testing}
+                        who={view.who}
+                        onPick={test.pick}
+                        pressing={
+                          pressing?.kind === "pick" ? pressing.org : null
+                        }
+                        focusProps={test.focusProps}
+                      />
+                      <LeakTestControls
+                        live={view.testing}
+                        target={view.target}
+                        asking={view.asking}
+                        onTry={test.tryOther}
+                        onReset={test.reset}
+                        pressing={pressing}
+                        demo={test.demo}
+                        paused={test.paused}
+                        onPause={test.pause}
+                        onPlay={test.play}
+                        focusProps={test.focusProps}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             );
