@@ -1,5 +1,6 @@
 import { useReducedMotion } from "framer-motion";
-import { useCallback, useRef } from "react";
+import { lazy, Suspense, useCallback, useRef } from "react";
+import { PHYSIO_VARIANT } from "./explore/variant";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
@@ -53,7 +54,7 @@ const FADE = "transition-opacity duration-state motion-reduce:transition-none";
  * panel is sized to its list, so nothing spills out of it into the next
  * chapter. Static (reduced motion): the end state.
  */
-export function PhysioSection() {
+function PhysioClassic() {
   const still = useReducedMotion() ?? false;
   const stageRef = useRef<HTMLDivElement>(null);
   const measure = useCallback(() => {
@@ -197,5 +198,32 @@ export function PhysioSection() {
         </div>
       </div>
     </Section>
+  );
+}
+
+/*
+ * Design exploration (branch explore/physio): `?physio=a|b|c` swaps in a
+ * prototype direction, each in its own lazy chunk; no param is the live
+ * section above, unchanged.
+ */
+const DIRECTIONS = {
+  a: lazy(() =>
+    import("./explore/DirectionA").then((m) => ({ default: m.DirectionA })),
+  ),
+  b: lazy(() =>
+    import("./explore/DirectionB").then((m) => ({ default: m.DirectionB })),
+  ),
+  c: lazy(() =>
+    import("./explore/DirectionC").then((m) => ({ default: m.DirectionC })),
+  ),
+};
+
+export function PhysioSection() {
+  if (!PHYSIO_VARIANT) return <PhysioClassic />;
+  const Direction = DIRECTIONS[PHYSIO_VARIANT];
+  return (
+    <Suspense fallback={null}>
+      <Direction />
+    </Suspense>
   );
 }
