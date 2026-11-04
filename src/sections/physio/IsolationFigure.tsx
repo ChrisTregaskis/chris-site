@@ -23,6 +23,11 @@ const PHONE_STACKS = {
   a: lazy(() =>
     import("./explore/tray/TrayStack").then((m) => ({ default: m.TrayStack })),
   ),
+  b: lazy(() =>
+    import("./explore/drawer/DrawerStack").then((m) => ({
+      default: m.DrawerStack,
+    })),
+  ),
 } as const;
 
 interface IsolationFigureProps {
