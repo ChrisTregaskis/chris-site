@@ -1,14 +1,10 @@
+import { ContactCopyA } from "./explore/ContactCopyA";
+import { ContactCopyB } from "./explore/ContactCopyB";
+import { ElsewhereLinks } from "./ElsewhereLinks";
 import { CVRequestButton } from "@/features/cv-request";
-import { EnquiryButton, LINKEDIN_URL } from "@/features/enquiry";
-import { ButtonLink } from "@/ui/atoms/ButtonLink";
-import { VisuallyHidden } from "@/ui/atoms/VisuallyHidden";
+import { EnquiryButton } from "@/features/enquiry";
+import { ABOUT_VARIANT } from "@/sections/about/explore/variant";
 import { Section } from "@/ui/molecules/Section";
-
-const LINKS = [
-  { label: "LinkedIn", href: LINKEDIN_URL },
-  { label: "GitHub", href: "https://github.com/ChrisTregaskis" },
-  { label: "Articles", href: "https://medium.com/@c.tregaskis" },
-] as const;
 
 /** The close: what Chris can do for a business, the way to ask, the CV, and where else to find him. */
 export function Contact() {
@@ -25,6 +21,21 @@ export function Contact() {
       >
         Let&apos;s work together.
       </h2>
+      {ABOUT_VARIANT === "a" ? (
+        <ContactCopyA />
+      ) : ABOUT_VARIANT === "b" ? (
+        <ContactCopyB />
+      ) : (
+        <ContactCopy />
+      )}
+    </Section>
+  );
+}
+
+/** The live copy. */
+function ContactCopy() {
+  return (
+    <>
       <p className="m-0 mb-[26px] max-w-measure text-lede text-muted">
         I help small and medium businesses get more from the software they
         already have: adding AI where it earns its place, improving what&apos;s
@@ -35,19 +46,8 @@ export function Contact() {
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <EnquiryButton />
         <CVRequestButton variant="ghost" />
-        {LINKS.map((link) => (
-          <ButtonLink
-            key={link.label}
-            variant="ghost"
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {link.label}
-            <VisuallyHidden> (opens in a new tab)</VisuallyHidden>
-          </ButtonLink>
-        ))}
+        <ElsewhereLinks />
       </div>
-    </Section>
+    </>
   );
 }
