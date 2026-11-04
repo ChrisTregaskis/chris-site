@@ -17,6 +17,15 @@ import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
+/*
+ * Short phones (640 to 700px tall): the cards tighten a little, so the last
+ * one fits whole, picker and buttons included, under the pinned figure.
+ */
+const SHORT_PHONE_CARD =
+  "[@media(max-width:860px)_and_(max-height:700px)]:py-3";
+const SHORT_PHONE_NUMERAL =
+  "[@media(max-width:860px)_and_(max-height:700px)]:text-[40px]";
+
 /**
  * Chapter 2: the physio and wellness platform's tenant isolation. Three
  * steps scroll past one sessions table under the query that reads it: the
@@ -28,8 +37,9 @@ import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
  * Side by side, the figure pins beside the steps under the top bar, drawn
  * in 3D where there's room (`DEPTH_QUERY`) and flat where there isn't.
  * Stacked (phones), the flat figure pins under the top bar on an opaque
- * panel sized to it, the cards read beneath it, and the leak test's picker
- * and buttons move into the last card. Static (reduced motion): the end
+ * panel whose height never changes (the query keeps room for its filter,
+ * the drawing for its tallest state), the cards read beneath it, and the
+ * leak test's picker and button move into the last card. Static (reduced motion): the end
  * state, no pinning, every state change instant.
  */
 export function PhysioSection() {
@@ -114,10 +124,13 @@ export function PhysioSection() {
                   ref={cardRef(n)}
                   className={cn(
                     "tone-ease w-full max-w-[34em] py-[22px] text-ink wide:w-auto wide:max-w-[430px]",
+                    SHORT_PHONE_CARD,
                     !on && "wide:tone-dim",
                   )}
                 >
-                  <span className={stepNumeralClasses(on)}>{n}</span>
+                  <span className={stepNumeralClasses(on, SHORT_PHONE_NUMERAL)}>
+                    {n}
+                  </span>
                   <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
                     {step.title}
                   </h3>
@@ -125,7 +138,7 @@ export function PhysioSection() {
                   {last && stacked ? (
                     <div
                       data-testid="leak-test-card"
-                      className="mt-5 grid gap-3"
+                      className="mt-3 grid gap-2"
                     >
                       <SignedInPicker
                         shown
@@ -144,6 +157,7 @@ export function PhysioSection() {
                         onTry={test.tryOther}
                         onReset={test.reset}
                         pressing={pressing}
+                        single
                         demo={test.demo}
                         paused={test.paused}
                         onPause={test.pause}

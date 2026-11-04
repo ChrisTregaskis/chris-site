@@ -46,7 +46,7 @@ export function IsolationFigure({
   const room = (
     <div
       aria-hidden="true"
-      className={drawing === "depth" ? "mt-5" : "mt-2 wide:mt-3"}
+      className={drawing === "depth" ? "mt-5" : "mt-3"}
       style={{ height: drawing === "depth" ? STACK_H : FLAT_H }}
     />
   );
