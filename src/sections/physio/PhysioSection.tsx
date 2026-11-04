@@ -202,14 +202,11 @@ function PhysioClassic() {
 }
 
 /*
- * Design exploration (branch explore/physio): `?physio=a|b|c` swaps in a
+ * Design exploration (branch explore/physio): `?physio=b|c` swaps in a
  * prototype direction, each in its own lazy chunk; no param is the live
  * section above, unchanged.
  */
 const DIRECTIONS = {
-  a: lazy(() =>
-    import("./explore/DirectionA").then((m) => ({ default: m.DirectionA })),
-  ),
   b: lazy(() =>
     import("./explore/DirectionB").then((m) => ({ default: m.DirectionB })),
   ),

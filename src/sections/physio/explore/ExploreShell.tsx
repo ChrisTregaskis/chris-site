@@ -18,7 +18,23 @@ interface ExploreShellProps {
   steps?: readonly StoryStep[];
   /** Grid columns on wide screens (figure, then steps). */
   columns?: string;
+  /** The opener's copy; defaults to the live section's. */
+  heading?: { title: string; lede: string; chips: string[] };
 }
+
+const LIVE_HEADING = {
+  title: "A multi-tenant SaaS for physio and wellness practices",
+  lede: "Bookings and client notes for many wellness practices, from one codebase and one database. A personal project, built with my own AI-assisted Claude Code workflow.",
+  chips: [
+    "React",
+    "tRPC",
+    "Zod",
+    "Drizzle",
+    "Postgres RLS",
+    "SST",
+    "Turborepo",
+  ],
+};
 
 /**
  * The physio chapter's frame, shared by the prototypes: the same opener,
@@ -29,6 +45,7 @@ export function ExploreShell({
   renderStage,
   steps = STEPS,
   columns = "wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]",
+  heading = LIVE_HEADING,
 }: ExploreShellProps) {
   const still = useReducedMotion() ?? false;
   const stageRef = useRef<HTMLDivElement>(null);
@@ -56,17 +73,9 @@ export function ExploreShell({
       <ChapterHeading
         id="physio-title"
         numeral="2"
-        title="A multi-tenant SaaS for physio and wellness practices"
-        lede="Bookings and client notes for many wellness practices, from one codebase and one database. A personal project, built with my own AI-assisted Claude Code workflow."
-        chips={[
-          "React",
-          "tRPC",
-          "Zod",
-          "Drizzle",
-          "Postgres RLS",
-          "SST",
-          "Turborepo",
-        ]}
+        title={heading.title}
+        lede={heading.lede}
+        chips={heading.chips}
       />
       <div
         className={cn(
