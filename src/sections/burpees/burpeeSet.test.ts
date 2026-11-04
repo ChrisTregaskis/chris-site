@@ -6,15 +6,18 @@ describe("Badass Burpees set", () => {
     expect(setReadout(0)).toEqual({
       reps: 0,
       ringOffset: RING_LENGTH,
+      barFill: 0,
       clock: "One every 12.0s, 20:00 left",
     });
     expect(setReadout(0.5)).toMatchObject({
       reps: 50,
+      barFill: 0.5,
       clock: "One every 12.0s, 10:00 left",
     });
     expect(setReadout(1)).toEqual({
       reps: 100,
       ringOffset: 0,
+      barFill: 1,
       clock: "One every 12.0s, 00:00 left",
     });
   });
