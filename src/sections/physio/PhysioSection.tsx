@@ -181,7 +181,7 @@ export function PhysioSection() {
                 <div
                   ref={cardRef(n)}
                   className={cn(
-                    "tone-ease w-full py-[22px] text-ink wide:w-auto wide:max-w-[430px]",
+                    "tone-ease w-full max-w-[34em] py-[22px] text-ink wide:w-auto wide:max-w-[430px]",
                     !on && "wide:tone-dim",
                   )}
                 >
