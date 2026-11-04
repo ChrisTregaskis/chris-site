@@ -140,7 +140,7 @@ const chat: SubComponent[] = [
   {
     id: "1.1",
     part: "chat",
-    name: "One-tag loader",
+    name: "One-tag embed",
     boxes: [b3(24, 2, 0, 22, 8, 14)],
     details: [{ kind: "line", points: seg([29, 10, 7], [41, 10, 7]) }],
     apart: [0, -46, 0],
@@ -183,7 +183,7 @@ const chat: SubComponent[] = [
   {
     id: "1.3",
     part: "chat",
-    name: "Streamed message list",
+    name: "Streamed replies",
     boxes: [b3(0, 27, 0, 70, 5, 100)],
     details: [0, 1, 2, 3].map((i) => ({ kind: "outline", points: bubble(i) })),
     apart: [0, 60, 0],
@@ -243,7 +243,7 @@ const bff: SubComponent[] = [
   {
     id: "2.4",
     part: "bff",
-    name: "Card shaper",
+    name: "Card shaping",
     boxes: [b3(145, 15, 46, 40, 40, 8)],
     apart: [0, 0, 62],
     focus: [0, 0, 44],
@@ -258,7 +258,7 @@ const sup: SubComponent[] = [
   {
     id: "3.3",
     part: "sup",
-    name: "Next-step nudge",
+    name: "Next-step nudges",
     boxes: [supSlab(0, 18)],
     details: [
       { kind: "line", points: seg([276, 70, 9], [304, 70, 9]) },
@@ -274,7 +274,7 @@ const sup: SubComponent[] = [
   {
     id: "3.2",
     part: "sup",
-    name: "Router",
+    name: "Specialist router",
     boxes: [supSlab(18, 20)],
     details: [280, 295, 310].map((x) => ({
       kind: "inlay",
@@ -346,7 +346,7 @@ const adp: SubComponent[] = [
   {
     id: "5.3",
     part: "adp",
-    name: "Three sockets",
+    name: "Platform sockets",
     boxes: [adpSlab(30, 10)],
     details: [402, 432, 462].map((x) => ({ kind: "inlay", points: socket(x) })),
     apart: [0, 0, 32],
@@ -377,7 +377,7 @@ const mcp: SubComponent[] = [
   {
     id: "7.3",
     part: "mcp",
-    name: "Per-tool tests",
+    name: "Tests for each tool",
     boxes: [mcpSlab(0, 22)],
     details: [402, 422, 442].map((x) => ({
       kind: "line",
@@ -458,7 +458,10 @@ const cloud: SubComponent[] = [
 /** The plate is the cloud account itself: 9.4, everything as code. */
 export const PLATE_BOX = b3(-60, -150, -14, 620, 410, 14);
 export const PLATE = box(-60, -150, -14, 620, 410, 14);
-export const PLATE_PIECE = { id: "9.4", name: "Terraform, the whole account" };
+export const PLATE_PIECE = {
+  id: "9.4",
+  name: "The whole account, in Terraform",
+};
 
 export const SUBS: SubComponent[] = [
   ...cloud,
