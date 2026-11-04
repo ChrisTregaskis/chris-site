@@ -74,7 +74,7 @@ export interface SubComponent {
   tip: Vec3;
   /** Where its number tag lines up, if not where its part's do. */
   tag?: TagSide;
-  /** Proven in the prototype only: drawn dashed while taken apart. */
+  /** Proven in the prototype only: drawn without edges while taken apart. */
   prototype?: boolean;
   /** An AI platform cartridge (part 6). */
   platform?: PlatformIndex;

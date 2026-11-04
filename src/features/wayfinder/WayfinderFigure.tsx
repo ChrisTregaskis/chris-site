@@ -66,7 +66,16 @@ const ON: Record<Face, string> = {
   right: "fill-accent-strong",
 };
 
-function faceFill(face: Face, state: FaceState): string {
+/**
+ * A piece drawn without edges sets its shaded side one tone deeper, so the
+ * fold between its two sides still reads with no line along it.
+ */
+const BARE_RIGHT = {
+  off: "fill-figure-base-left",
+  dim: "fill-figure-base-right",
+} as const;
+
+function faceFill(face: Face, state: FaceState, bare = false): string {
   if (face === "top") {
     if (state.live) return "fill-ink";
     if (state.base && state.on) return "fill-figure-base-on";
@@ -74,8 +83,11 @@ function faceFill(face: Face, state: FaceState): string {
   }
   if (state.on && !state.quiet) return ON[face];
   if (state.base) return BASE_OFF[face];
-  if (state.hot) return OFF[face];
-  return state.dim === true || state.quiet === true ? DIM[face] : OFF[face];
+  const quieter = !state.hot && (state.dim === true || state.quiet === true);
+  if (bare && face === "right") {
+    return quieter ? BARE_RIGHT.dim : BARE_RIGHT.off;
+  }
+  return quieter ? DIM[face] : OFF[face];
 }
 
 function strokeFor(state: FaceState): string {
@@ -90,15 +102,24 @@ function strokeFor(state: FaceState): string {
 const SHAPE =
   "stroke-[1.2] [stroke-linejoin:round] transition-[fill,stroke] duration-state motion-reduce:transition-none";
 
-function Faces({ faces, state }: { faces: BoxFaces; state: FaceState }) {
-  const stroke = strokeFor(state);
+function Faces({
+  faces,
+  state,
+  bare = false,
+}: {
+  faces: BoxFaces;
+  state: FaceState;
+  /** Drawn without an edge (a prototype piece, taken apart). */
+  bare?: boolean;
+}) {
+  const stroke = bare ? "stroke-none" : strokeFor(state);
   return (
     <>
       {(["left", "right", "top"] as const).map((face) => (
         <polygon
           key={face}
           points={faces[face]}
-          className={cn(SHAPE, faceFill(face, state), stroke)}
+          className={cn(SHAPE, faceFill(face, state, bare), stroke)}
         />
       ))}
     </>
@@ -252,16 +273,13 @@ function Piece({
   apart: boolean;
 }) {
   const stroke = strokeFor(state);
+  // A prototype piece drops its edges while apart, so it can't be mistaken
+  // for the dashed seats and axes that show where pieces go back.
+  const bare = sub.prototype === true && apart;
   return (
-    <g
-      className={cn(
-        sub.prototype &&
-          apart &&
-          "[&_polygon]:[stroke-dasharray:4_3] [&_polyline]:[stroke-dasharray:4_3]",
-      )}
-    >
+    <g data-bare={bare || undefined}>
       {sub.boxes.map((b, index) => (
-        <Faces key={index} faces={facesOf(b)} state={state} />
+        <Faces key={index} faces={facesOf(b)} state={state} bare={bare} />
       ))}
       {sub.details ? (
         <Details
@@ -578,7 +596,8 @@ export function WayfinderFigure({
                 <g ref={register(key)} data-piece={sub.id}>
                   <PieceBody
                     sub={sub}
-                    apart={apart}
+                    // Phones open only the part in focus; the rest stay whole.
+                    apart={apart && (!lite || sub.part === selected)}
                     state={{
                       ...state,
                       quiet: pickedPart === sub.part && picked !== sub.id,
