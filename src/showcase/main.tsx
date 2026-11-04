@@ -2,10 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Showcase } from "./Showcase";
 
-import "@/styles/index.css";
+import "./showcase.css";
 import "@/ui/tokens/fonts";
 
-// Dev-only entry (showcase.html). Never part of `pnpm build`.
+// The design system showcase (showcase.html): `pnpm dev` serves it, and
+// `pnpm build` builds it in its own pass (see vite.config.ts) for /showcase.
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

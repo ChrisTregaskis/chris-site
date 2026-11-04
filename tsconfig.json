@@ -25,6 +25,10 @@
     }
   },
   "include": ["src"],
-  "exclude": ["vite.config.ts", "tailwind.config.ts"],
+  "exclude": [
+    "vite.config.ts",
+    "tailwind.config.ts",
+    "tailwind.showcase.config.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -7,6 +7,7 @@ module.exports = {
     "sst.config.ts",
     "vite.config.ts",
     "tailwind.config.ts",
+    "tailwind.showcase.config.ts",
     "sst-env.d.ts",
     "src/sst-env.d.ts",
     "dist/",

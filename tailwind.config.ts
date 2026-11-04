@@ -54,16 +54,10 @@ const COLOUR_TOKENS = [
   "tenant-teal",
 ] as const;
 
-// The showcase is a dev-only entry, never built into dist/, so production
-// CSS skips its utilities.
-const SHOWCASE_IN_CSS = process.env.NODE_ENV !== "production";
-
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    ...(SHOWCASE_IN_CSS ? [] : ["!./src/showcase/**"]),
-  ],
+  // The page's CSS skips the showcase's utilities: the showcase has its own
+  // stylesheet (src/showcase/showcase.css, tailwind.showcase.config.ts).
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "!./src/showcase/**"],
   theme: {
     extend: {
       colors: {
