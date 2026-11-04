@@ -134,7 +134,7 @@ export function Wayfinder() {
             <Button
               pressed={current === DEMO_STEP}
               onClick={() => select(DEMO_STEP)}
-              className="lk-tryit flex-none rounded-control px-4 py-0 wide:px-5"
+              className=" flex-none rounded-control px-4 py-0 wide:px-5"
             >
               Try it
             </Button>

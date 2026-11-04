@@ -18,10 +18,7 @@ export function ChapterHeading({
   const hasAside = Boolean(lede) || Boolean(chips?.length);
   return (
     <header className="lk-chapter-head grid items-end gap-6 pb-[10px] wide:grid-cols-2">
-      <h2
-        id={id}
-        className="lk-chapter-title m-0 font-display text-display-lg font-semibold"
-      >
+      <h2 id={id} className=" m-0 font-display text-display-lg font-semibold">
         {title}
       </h2>
       {hasAside ? (

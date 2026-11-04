@@ -1,14 +1,12 @@
 /**
- * Design exploration (explore/seamless, throwaway): `?look=a|b|d` sets
+ * Design exploration (explore/seamless, throwaway): `?look=d` sets
  * `data-look` on <html>, which scopes the variant styles in looks.css. With
  * no param the page is the baseline.
  */
-export const LOOKS = ["a", "b", "d"] as const;
+export const LOOKS = ["d"] as const;
 export type Look = (typeof LOOKS)[number];
 
 export const LOOK_NAMES: Record<Look, string> = {
-  a: "Night tones",
-  b: "Feature spread",
   d: "Night chapters",
 };
 

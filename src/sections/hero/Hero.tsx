@@ -22,16 +22,16 @@ export function Hero() {
         </p>
         <h1
           id="hero-title"
-          className="lk-hero-title m-0 mb-[clamp(14px,4svh,28px)] max-w-[15ch] font-display text-display-xl font-semibold"
+          className=" m-0 mb-[clamp(14px,4svh,28px)] max-w-[15ch] font-display text-display-xl font-semibold"
         >
           I build whole products, end to end, built properly and shipped quickly
           with AI in the workflow.
         </h1>
-        <p className="lk-hero-lede m-0 mb-[clamp(18px,4.3svh,30px)] max-w-measure text-lede text-muted">
+        <p className=" m-0 mb-[clamp(18px,4.3svh,30px)] max-w-measure text-lede text-muted">
           Front end, back end, agents and the cloud underneath. Scroll down and
           watch one of them assemble.
         </p>
-        <div className="lk-hero-ctas flex flex-wrap gap-3">
+        <div className=" flex flex-wrap gap-3">
           <EnquiryButton />
           <CVRequestButton variant="ghost" />
         </div>

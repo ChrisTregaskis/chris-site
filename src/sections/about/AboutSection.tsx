@@ -44,7 +44,7 @@ export function AboutSection() {
         <div>
           <h2
             id="about-title"
-            className="lk-about-title m-0 font-display text-display-md font-semibold"
+            className=" m-0 font-display text-display-md font-semibold"
           >
             About
           </h2>
@@ -91,7 +91,7 @@ export function AboutSection() {
             </div>
           </figure>
         </div>
-        <div className="lk-about-text self-start wide:self-end">
+        <div className=" self-start wide:self-end">
           <p className="m-0 mb-4 max-w-[34em] text-body-lg">
             I&apos;m a full-stack TypeScript developer who loves turning a rough
             idea into something people use. Toy with the stack, build the proof

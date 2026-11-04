@@ -112,7 +112,7 @@ export function BurpeesSection() {
             >
               Badass Burpees
             </h2>
-            <p className="m-0 mb-4 max-w-measure-narrow text-muted">
+            <p className="lk-burpees-lede m-0 mb-4 max-w-measure-narrow text-muted">
               My own fitness app. Set the reps and the time you have and it
               paces you, counting you through every one. Its interface is built
               from atomic components, atoms up to molecules and organisms. Keep

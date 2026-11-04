@@ -139,9 +139,8 @@ export function BuildStory() {
                 >
                   <span
                     aria-hidden="true"
-                    data-lit={index < lit || undefined}
                     className={cn(
-                      "lk-dot absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
+                      " absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
                       index < lit
                         ? "border-signal bg-signal"
                         : "border-line bg-surface",
