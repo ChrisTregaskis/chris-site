@@ -30,7 +30,7 @@ export function FlatStack({ view, attempt, still }: FlatStackProps) {
       aria-hidden="true"
       data-testid="sessions-stack"
       data-drawing="flat"
-      className="pointer-events-none relative mt-2 w-full wide:mt-3"
+      className="pointer-events-none relative mt-3 w-full"
       style={{ height: FLAT_H }}
     >
       {/* The one table's plate and its columns, while the sheets lie as one. */}

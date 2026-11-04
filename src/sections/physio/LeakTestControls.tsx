@@ -13,6 +13,8 @@ interface LeakTestControlsProps {
   onReset: () => void;
   /** The button the demo is pressing, if any. */
   pressing?: DemoMove | null;
+  /** One button at a time (phones): Try, or while asking, ask for every session again. */
+  single?: boolean;
   /** The demo can play: offer to pause or play it. */
   demo?: boolean;
   paused?: boolean;
@@ -33,6 +35,7 @@ export function LeakTestControls({
   onTry,
   onReset,
   pressing = null,
+  single = false,
   demo = false,
   paused = false,
   onPause,
@@ -50,27 +53,32 @@ export function LeakTestControls({
       )}
       aria-hidden={!live}
     >
-      <button
-        type="button"
-        tabIndex={live ? 0 : -1}
-        onClick={onTry}
-        className={cn(
-          "border-0 border-b-2 border-accent bg-transparent p-0 pb-[2px] font-semibold text-accent",
-          PRESSABLE,
-          pressing?.kind === "try" && DEMO_PRESSED,
-        )}
-      >
-        Try to read {target}&rsquo;s sessions
-      </button>
+      {single && asking ? null : (
+        <button
+          type="button"
+          tabIndex={live ? 0 : -1}
+          onClick={onTry}
+          className={cn(
+            "border-0 border-b-2 border-accent bg-transparent p-0 pb-[2px] font-semibold text-accent",
+            PRESSABLE,
+            pressing?.kind === "try" && DEMO_PRESSED,
+          )}
+        >
+          Try to read {target}&rsquo;s sessions
+        </button>
+      )}
       {asking ? (
         <button
           type="button"
           tabIndex={live ? 0 : -1}
           onClick={onReset}
           className={cn(
-            "border-0 bg-transparent p-0 text-muted underline-offset-4 hover:text-ink hover:underline",
+            single
+              ? "border-0 border-b-2 border-accent bg-transparent p-0 pb-[2px] font-semibold text-accent"
+              : "border-0 bg-transparent p-0 text-muted underline-offset-4 hover:text-ink hover:underline",
             PRESSABLE,
-            pressing?.kind === "reset" && cn(DEMO_PRESSED, "text-ink"),
+            pressing?.kind === "reset" &&
+              cn(DEMO_PRESSED, single ? undefined : "text-ink"),
           )}
         >
           Ask for every session again

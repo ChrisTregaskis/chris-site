@@ -60,9 +60,10 @@ export function FlatPolicy({ live, named, attempt, still }: FlatPolicyProps) {
         animate={flash ? { opacity: [0, 0, 0.3, 0] } : { opacity: 0 }}
         transition={hit}
       />
+      {/* Named on the box's top edge, like a legend, clear of the tabs: the panel's ground behind it breaks the dashes. */}
       <p
         className={cn(
-          "absolute right-3 top-[5px] m-0 text-[13px] font-semibold leading-[18px] text-accent transition-opacity duration-slow motion-reduce:transition-none",
+          "absolute -top-[10px] right-3 m-0 bg-surface px-[6px] text-[13px] font-semibold leading-[18px] text-accent transition-opacity duration-slow motion-reduce:transition-none wide:bg-tone-physio",
           named ? "opacity-100" : "opacity-0",
         )}
       >

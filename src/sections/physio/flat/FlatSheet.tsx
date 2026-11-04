@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { type Spot } from "../leakTest";
 import { type Org, ORG_TINT, rowsOf, sheetEdge } from "../organisations";
 import { HIT_TIMES, MOVE } from "../stackMotion";
-import { FLAT, flatPose } from "./flatGeometry";
+import { FLAT, flatPose, flatSpan } from "./flatGeometry";
 import { cn } from "@/lib/cn";
 import { DURATION, EASE } from "@/ui/tokens/motion";
 
@@ -28,10 +28,11 @@ function rowTransition(open: boolean, still: boolean): string {
     : `${move}, opacity var(--duration-fast) linear`;
 }
 
-/** One organisation's rows on its own sheet, flat: folded to its tab when held. */
+/** One organisation's rows on its own sheet, flat: folded to its tab, in its own column, when held. */
 export function FlatSheet({ org, spot, attempt, still }: FlatSheetProps) {
   const mine = rowsOf(org);
-  const pose = flatPose(spot, mine.length);
+  const pose = flatPose(spot, org, mine.length);
+  const span = flatSpan(pose.column);
   const atRest = spot.at === "table";
   const lunge = attempt !== null && attempt > 0 && !still;
 
@@ -39,14 +40,14 @@ export function FlatSheet({ org, spot, attempt, still }: FlatSheetProps) {
     <div
       data-sheet={org}
       data-spot={spot.at}
-      className="absolute top-0 transition-[transform,left,right,height] ease-lift motion-reduce:transition-none"
+      className="absolute top-0 transition-[transform,left,width,height] ease-lift motion-reduce:transition-none"
       style={{
         ...TIMING,
         // The one leaving the result goes first.
         transitionDelay:
           spot.at === "result" ? "var(--stagger-base)" : undefined,
-        left: pose.inset,
-        right: pose.inset,
+        left: span.left,
+        width: span.width,
         height: pose.height,
         zIndex: pose.layer,
         transform: `translateY(${pose.y}px)`,
@@ -56,7 +57,7 @@ export function FlatSheet({ org, spot, attempt, still }: FlatSheetProps) {
       <motion.div
         key={lunge ? `attempt-${attempt}` : "rest"}
         className="absolute inset-0"
-        animate={lunge ? { y: [0, FLAT.lunge, 0, 5, 0] } : undefined}
+        animate={lunge ? { y: [0, FLAT.lunge, 0, 4, 0] } : undefined}
         transition={{
           delay: DURATION.state,
           duration: DURATION.apart,
@@ -87,33 +88,36 @@ export function FlatSheet({ org, spot, attempt, still }: FlatSheetProps) {
           <i className={cn("size-[7px] rounded-pill", ORG_TINT[org].bg)} />
           {org}
         </p>
-        {mine.map(({ row, index }, own) => (
-          <div
-            key={row.label}
-            className={cn(
-              "absolute inset-x-3 top-0 grid grid-cols-[8px_1fr_auto] items-center gap-2 text-[14px] leading-none text-ink",
-              pose.open ? "opacity-100" : "opacity-0",
-            )}
-            style={{
-              transition: rowTransition(pose.open, still),
-              height: FLAT.row,
-              transform: `translateY(${FLAT.tab + (atRest ? index : own) * FLAT.row}px)`,
-            }}
-          >
-            <i className={cn("size-[8px] rounded-pill", ORG_TINT[org].bg)} />
-            <span>{row.label}</span>
-            <small
+        {/* Clipped to the sheet: a folded tab's rows never reach past its column. */}
+        <div className="absolute inset-0 overflow-hidden rounded-[10px]">
+          {mine.map(({ row, index }, own) => (
+            <div
+              key={row.label}
               className={cn(
-                MOVE,
-                "text-[13px] text-muted",
-                atRest ? "opacity-100" : "opacity-0",
+                "absolute inset-x-3 top-0 grid grid-cols-[8px_1fr_auto] items-center gap-2 text-[14px] leading-none text-ink",
+                pose.open ? "opacity-100" : "opacity-0",
               )}
-              style={TIMING}
+              style={{
+                transition: rowTransition(pose.open, still),
+                height: FLAT.row,
+                transform: `translateY(${FLAT.tab + (atRest ? index : own) * FLAT.row}px)`,
+              }}
             >
-              {org}
-            </small>
-          </div>
-        ))}
+              <i className={cn("size-[8px] rounded-pill", ORG_TINT[org].bg)} />
+              <span>{row.label}</span>
+              <small
+                className={cn(
+                  MOVE,
+                  "text-[13px] text-muted",
+                  atRest ? "opacity-100" : "opacity-0",
+                )}
+                style={TIMING}
+              >
+                {org}
+              </small>
+            </div>
+          ))}
+        </div>
       </motion.div>
     </div>
   );

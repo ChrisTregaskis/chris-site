@@ -7,25 +7,40 @@ import { DURATION } from "@/ui/tokens/motion";
 export type QuerySize = "large" | "compact";
 
 /**
- * Type per size: every line of the query at one display size, the line
- * under it, and the room the block keeps so nothing below it moves when the
- * leak test's filter grows in (three query lines, plus the line under them
- * at its longest: one line large, two compact). Each line height comes
- * after its font size: `cn` drops a line height set before one.
+ * The type per size, in px, and the room the block keeps so nothing below it
+ * moves when the leak test's filter grows in: three query lines, plus the
+ * line under them at its longest (one line large, two compact). Wide is the
+ * compact figure beside the steps.
  */
-const SIZES: Record<QuerySize, { block: string; query: string; line: string }> =
-  {
-    large: {
-      block: "min-h-[132px]",
-      query: "text-[28px] leading-[1.25]",
-      line: "text-[15px] leading-[1.5]",
-    },
-    compact: {
-      block: "min-h-[106px] wide:min-h-[132px]",
-      query: "text-[17px] leading-[1.25] wide:text-[22px] wide:leading-[1.25]",
-      line: "text-[14px] leading-[1.4] wide:text-[15px] wide:leading-[1.5]",
-    },
-  };
+export const QUERY_TYPE = {
+  large: { query: 28, line: 15, lineLeading: 1.5, lines: 1, block: 132 },
+  compact: { query: 16, line: 14, lineLeading: 1.4, lines: 2, block: 104 },
+  compactWide: { query: 22, line: 15, lineLeading: 1.5, lines: 2, block: 132 },
+} as const;
+
+/** The query's line height, and the gap above the line under it. */
+export const QUERY_LEADING = 1.25;
+export const LINE_GAP = 4;
+
+/**
+ * The same as classes (static, for Tailwind). Each line height comes after
+ * its font size: `cn` drops a line height set before one.
+ */
+export const SIZES: Record<
+  QuerySize,
+  { block: string; query: string; line: string }
+> = {
+  large: {
+    block: "min-h-[132px]",
+    query: "text-[28px] leading-[1.25]",
+    line: "text-[15px] leading-[1.5]",
+  },
+  compact: {
+    block: "min-h-[104px] wide:min-h-[132px]",
+    query: "text-[16px] leading-[1.25] wide:text-[22px] wide:leading-[1.25]",
+    line: "text-[14px] leading-[1.4] wide:text-[15px] wide:leading-[1.5]",
+  },
+};
 
 interface QueryLinesProps {
   view: LeakView;
