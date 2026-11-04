@@ -62,7 +62,7 @@ export function StepCard({
         ref={cardRef}
         onClick={onCardClick}
         className={cn(
-          "group tone-ease w-full py-[22px] text-ink wide:w-auto",
+          "group tone-ease w-full max-w-[34em] py-[22px] text-ink wide:w-auto",
           demo
             ? "cursor-auto wide:max-w-[460px]"
             : "cursor-pointer wide:max-w-[430px]",
