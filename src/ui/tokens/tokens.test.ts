@@ -69,6 +69,24 @@ describe("colour tokens", () => {
     expect(contrast("line-field", "surface")).toBeGreaterThanOrEqual(3);
   });
 
+  it("keeps text at AA and underlines at 3:1 on every chapter tone", () => {
+    for (const tone of [
+      "tone-base",
+      "tone-wayfinder",
+      "tone-physio",
+      "tone-burpees",
+      "tone-about",
+    ]) {
+      for (const text of ["ink", "muted", "dim-ink", "dim-muted", "accent"]) {
+        expect(
+          contrast(text, tone),
+          `${text} on ${tone}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(contrast("line-field", tone), tone).toBeGreaterThanOrEqual(3);
+    }
+  });
+
   it("draws the chat widget's input bar at 3:1 against the white widget", () => {
     expect(contrast("chat-field", "chat-surface")).toBeGreaterThanOrEqual(3);
   });

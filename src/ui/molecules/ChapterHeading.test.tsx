@@ -24,4 +24,17 @@ describe("ChapterHeading", () => {
     ).toHaveAttribute("id", "work");
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
+
+  it("sets the chapter's number above the title, hidden from assistive tech", () => {
+    renderWithProviders(
+      <Section id="work" labelledBy="work-title">
+        <ChapterHeading id="work-title" numeral="1" title="Selected work" />
+      </Section>,
+    );
+    const numeral = screen.getByText("1");
+    expect(numeral).toHaveAttribute("aria-hidden", "true");
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Selected work" }),
+    ).toBeInTheDocument();
+  });
 });
