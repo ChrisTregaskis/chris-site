@@ -17,11 +17,13 @@ beforeEach(() => {
 });
 
 describe("App under reduced motion", () => {
-  it("shows the physio story's end state: only the signed-in organisation's sessions come back", () => {
+  it("shows the physio story's end state: only the signed-in organisation's sessions come back", async () => {
     renderWithProviders(<App />);
     const physio = screen.getByRole("region", {
       name: "A multi-tenant platform for physio and wellness",
     });
+    // The drawing loads on its own.
+    await within(physio).findByTestId("sessions-stack");
     expect(
       within(physio)
         .getByText(/set local/)

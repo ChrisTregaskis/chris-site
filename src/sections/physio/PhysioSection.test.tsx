@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { DEPTH_QUERY } from "./depth/depthGeometry";
@@ -23,6 +23,13 @@ const spot = (org: string) =>
 
 const spoken = () => document.querySelector("#physio [aria-live]");
 
+/** Renders the chapter and waits for its drawing, which loads on its own. */
+async function renderDrawn() {
+  const rendered = renderWithProviders(<PhysioSection />);
+  await screen.findByTestId("sessions-stack");
+  return rendered;
+}
+
 describe("the physio chapter", () => {
   it("opens on the approved heading, numbered 2", () => {
     media();
@@ -39,7 +46,7 @@ describe("the physio chapter", () => {
   it("asks for another organisation's sessions by name and gets an empty result, then resets", async () => {
     media();
     const user = userEvent.setup();
-    renderWithProviders(<PhysioSection />);
+    await renderDrawn();
     const filter = screen.getByTestId("query-filter");
     const empty = screen.getByTestId("empty-result");
     expect(screen.getByTestId("query-outcome")).toHaveTextContent(
@@ -70,7 +77,7 @@ describe("the physio chapter", () => {
   it("brings the organisation picked forward as the result", async () => {
     media();
     const user = userEvent.setup();
-    renderWithProviders(<PhysioSection />);
+    await renderDrawn();
     await user.click(screen.getByRole("button", { name: "Cedar" }));
     expect(screen.getByRole("button", { name: "Cedar" })).toHaveAttribute(
       "aria-pressed",
@@ -82,25 +89,21 @@ describe("the physio chapter", () => {
     );
   });
 
-  it("draws the table in 3D only where there's room for it", () => {
+  it("draws the table in 3D only where there's room for it", async () => {
+    const drawing = () =>
+      screen.getByTestId("sessions-stack").getAttribute("data-drawing");
     media(DEPTH_QUERY);
-    const { unmount } = renderWithProviders(<PhysioSection />);
-    expect(screen.getByTestId("sessions-stack")).toHaveAttribute(
-      "data-drawing",
-      "depth",
-    );
+    const { unmount } = await renderDrawn();
+    await waitFor(() => expect(drawing()).toBe("depth"));
     unmount();
     media(DEPTH_QUERY, BELOW_WIDE);
-    renderWithProviders(<PhysioSection />);
-    expect(screen.getByTestId("sessions-stack")).toHaveAttribute(
-      "data-drawing",
-      "flat",
-    );
+    await renderDrawn();
+    await waitFor(() => expect(drawing()).toBe("flat"));
   });
 
-  it("keeps the stack out of the way of clicks", () => {
+  it("keeps the stack out of the way of clicks", async () => {
     media(DEPTH_QUERY);
-    renderWithProviders(<PhysioSection />);
+    await renderDrawn();
     expect(screen.getByTestId("sessions-stack")).toHaveClass(
       "pointer-events-none",
     );
@@ -109,7 +112,7 @@ describe("the physio chapter", () => {
   it("on phones, puts the leak test's picker and buttons in the last step's card", async () => {
     media(BELOW_WIDE);
     const user = userEvent.setup();
-    renderWithProviders(<PhysioSection />);
+    await renderDrawn();
     const card = screen.getByTestId("leak-test-card");
     const figure = screen.getByRole("figure");
     expect(within(figure).queryByRole("button")).not.toBeInTheDocument();

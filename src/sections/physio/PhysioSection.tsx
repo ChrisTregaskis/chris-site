@@ -7,6 +7,7 @@ import { PHYSIO_STEPS } from "./organisations";
 import { PHYSIO_HEADING } from "./physioHeading";
 import { SignedInPicker } from "./SignedInPicker";
 import { useLeakTest } from "./useLeakTest";
+import { useNearScreen } from "./useNearScreen";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
@@ -54,6 +55,7 @@ export function PhysioSection() {
   const test = useLeakTest(stage, { still, watch: stageRef });
   const { view, pressing } = test;
   const drawing = roomy && !stacked ? "depth" : "flat";
+  const drawn = useNearScreen(stageRef, still);
 
   return (
     <Section
@@ -83,6 +85,7 @@ export function PhysioSection() {
             test={test}
             drawing={drawing}
             controlsInside={!stacked}
+            drawn={drawn}
             still={still}
           />
         </div>
