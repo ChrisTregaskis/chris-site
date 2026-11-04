@@ -29,9 +29,16 @@ type Ask = "every" | "other";
 
 const ROW_H = 36;
 const HELD_H = 28;
+const COUNTS = PRACTICES.map(
+  (practice) => ROWS.filter((row) => row.practice === practice).length,
+);
 /** Where the policy line sits: under the most rows one practice has. */
-const LINE_Y = 3 * ROW_H + 14;
-const AREA_H = Math.max(ROWS.length * ROW_H, LINE_Y + 40 + 4 * HELD_H);
+const LINE_Y = Math.max(...COUNTS) * ROW_H + 14;
+/** Room for the most rows ever held back (signed in as the smallest practice). */
+const AREA_H = Math.max(
+  ROWS.length * ROW_H,
+  LINE_Y + 40 + (ROWS.length - Math.min(...COUNTS)) * HELD_H,
+);
 
 interface Placed {
   row: SessionRow;
