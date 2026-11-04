@@ -3,8 +3,9 @@
  * app's own spoken calls (its recorded clips: "Go!", the tens, "Halfway",
  * "Five left", "Last one", "Done"), one line of the story on each. The
  * lines are checked against the app's repo: the spec's 6am goal and sweaty
- * hands; the voice and a screen read from about 2m away; no backend, no
- * accounts, only the browser's own storage; the ADRs that record each
+ * hands; reps spread evenly through the window and every position
+ * scheduled before the start, the voice and a screen read from about 2m
+ * away; no backend, no accounts, no data kept; the ADRs that record each
  * decision; and ADR 0034 (no analytics: nobody can tell from inside the
  * app how many use it). The build is framed as a low-stakes experiment,
  * never as how Chris builds client or business software.
@@ -27,12 +28,12 @@ export const CALLS: readonly Call[] = [
   {
     at: 10,
     call: "Ten.",
-    line: "It calls the count and the milestones out loud, so I can train hands-free with the screen across the room.",
+    line: "It works out where every rep should land and calls the count out loud. Nothing to think about: just get on and do them, hands-free.",
   },
   {
     at: 50,
     call: "Halfway",
-    line: "Built to be thrown away: no database, no accounts, nothing kept beyond your browser. So I could let the AI do the heavy lifting while I made the calls.",
+    line: "Nothing at stake: no users to lose, no data to leak. A good place to see how far direction alone gets you.",
   },
   {
     at: 95,

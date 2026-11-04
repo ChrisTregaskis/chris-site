@@ -6,6 +6,7 @@ import { useSealBeat } from "../useSealBeat";
 import { BurpeesLinks } from "./BurpeesLinks";
 import { callAt, CALLS, repsAt, SET_REPS } from "./calls";
 import { BURPEES_TITLE, CALLS_LEDE } from "./copy";
+import { useFitNumeral } from "./useFitNumeral";
 import { useScrollFrame } from "@/hooks/useScrollFrame";
 import { cn } from "@/lib/cn";
 import { stickyProgress } from "@/lib/scrollProgress";
@@ -23,12 +24,24 @@ import { Section } from "@/ui/molecules/Section";
  * it's free. Reduced motion: a finished
  * set, one frame, every call and line listed, no pinning.
  */
+/**
+ * The count's type: the chapter numeral's, set as large as its column
+ * allows. Joined as a plain string, not through `cn`: tailwind-merge would
+ * drop the line height when a font size follows it.
+ */
+const NUMERAL =
+  "font-display font-bold tabular-nums leading-[0.8] tracking-[-0.06em] text-accent-strong [font-variation-settings:'opsz'_96]";
+
 export function DirectionC() {
   const still = useReducedMotion() ?? false;
   const sectionRef = useRef<HTMLDivElement>(null);
   const runRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const stickTop = useRef(0);
+  const columnRef = useRef<HTMLDivElement>(null);
+  const ghostRef = useRef<HTMLSpanElement>(null);
+  const countRef = useRef<HTMLParagraphElement>(null);
+  useFitNumeral(columnRef, ghostRef, countRef);
   const [reps, setReps] = useState(still ? SET_REPS : 0);
   const [called, setCalled] = useState(still ? CALLS.length - 1 : 0);
   const { figureRef, pose } = useSealBeat(still);
@@ -90,8 +103,17 @@ export function DirectionC() {
                 : "sticky top-nav h-[calc(100svh-var(--size-nav))]",
             )}
           >
-            <div className="relative">
-              <p className="m-0 font-display text-[min(42vw,22svh)] font-bold tabular-nums leading-[0.8] tracking-[-0.06em] text-accent-strong [font-variation-settings:'opsz'_96] wide:text-[min(24vw,46svh)]">
+            <div ref={columnRef} className="relative">
+              <span
+                ref={ghostRef}
+                className={`${NUMERAL} pointer-events-none invisible absolute left-0 top-0 whitespace-nowrap text-[100px]`}
+              >
+                {SET_REPS}
+              </span>
+              <p
+                ref={countRef}
+                className={`${NUMERAL} m-0 whitespace-nowrap text-[length:min(var(--fit,42vw),22svh)] wide:text-[length:min(var(--fit,24vw),46svh)]`}
+              >
                 {shownReps}
               </p>
               <p className="m-0 mt-3 text-body-sm text-muted">
@@ -117,7 +139,7 @@ export function DirectionC() {
                 ))}
               </div>
             </div>
-            <ol className="m-0 list-none p-0 wide:pb-10">
+            <ol className="relative z-[1] m-0 list-none p-0 wide:pb-10">
               {CALLS.map((item, index) => {
                 if (index > shownCall) return null;
                 const now = index === shownCall;
