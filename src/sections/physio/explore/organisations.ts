@@ -1,3 +1,4 @@
+import { PHYSIO_HEADING } from "../physioHeading";
 import { type StoryStep } from "./practices";
 
 /*
@@ -68,18 +69,5 @@ export const ORG_STEPS: readonly StoryStep[] = [
   },
 ];
 
-/** The opener, with the same wording fixes (organisations, not practices or bookings; a start-up, in build). */
-export const ORG_HEADING = {
-  title: "A multi-tenant SaaS for physio and wellness",
-  lede: "Exercise programmes for the people in many organisations, from one codebase and one database. A start-up I'm building with a co-founder, heading for launch, made with my own AI-assisted Claude Code workflow.",
-  chips: [
-    "React",
-    "Zod",
-    "Drizzle",
-    "Postgres RLS",
-    "AWS Lambda",
-    "Cognito",
-    "SST",
-    "Turborepo",
-  ],
-};
+/** The opener: the approved copy, shared with the live section when it ships. */
+export const ORG_HEADING = PHYSIO_HEADING;
