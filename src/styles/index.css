@@ -72,17 +72,29 @@
 
 @layer components {
   /*
-   * Scroll-feel prototype b, chapter progress (?scroll=b; ChapterRail). Each
-   * case study carries its numeral at the window's left edge, a book's thumb
-   * index, over a hairline rail that fills as the chapter is read: empty as
-   * the chapter reaches the top bar, full as its end reaches the bottom of
-   * the window. It keeps to the edge because the Wayfinder figure grows into
-   * the margin (to within 24px of the edge) while apart. The column spans
-   * the whole chapter (its view timeline is the chapter's progress); the
-   * numeral and rail inside it stay pinned below the top bar while the
-   * chapter is on screen. A CSS scroll-driven animation (a transform, so it
-   * runs on the compositor); without support the rail isn't drawn at all.
-   * Under reduced motion it shows the same progress in quarters.
+   * Scroll-feel prototype b, chapter progress (?scroll=b or bc;
+   * ChapterRail): a gauge of how far through each case study the visitor
+   * is, and of when it's finished. Each case study carries its numeral at
+   * the window's left edge, a book's thumb index, over a short hairline
+   * rail. Violet says how far, as everywhere on the page: the rail fills in
+   * the chapter numeral's violet as the chapter is read (empty as it
+   * reaches the top bar, full once its end is a third of the way up the
+   * window, by when the next chapter has taken over and anything still
+   * playing out at its end, the build lane, has finished), and once it's
+   * full the chapter settles: the hollow numeral fills and the line lights
+   * to lilac. It keeps to the edge because the Wayfinder
+   * figure grows into the margin while apart.
+   *
+   * So it never reads as a second scrollbar, a gauge shows only while its
+   * chapter is in view: it fades in as the chapter reaches the top, holds
+   * its finished state a moment, and fades out before the next one's comes
+   * in. Phones keep the rail alone (no numeral), with
+   * a dot at its head that fills when the chapter is finished.
+   *
+   * All of it is CSS scroll-driven animation on the chapter's view timeline
+   * (the column spans the chapter), opacity and transforms only, so it runs
+   * on the compositor. Without support it isn't drawn; under reduced motion
+   * the rail fills in quarters, never continuously.
    */
   .chapter-rail {
     display: none;
@@ -93,7 +105,7 @@
       top: 0;
       bottom: 0;
       /* From the chapter's centre out to the window's edge, then back in. */
-      left: calc(50% - 50vw + clamp(8px, 1vw, 12px));
+      left: calc(50% - 50vw + clamp(7px, 1vw, 12px));
       display: block;
       width: 0;
       pointer-events: none;
@@ -104,38 +116,90 @@
   .chapter-rail__pin {
     position: sticky;
     top: calc(var(--size-nav) + 24px);
-    display: flex;
     width: 24px;
+    transform: translateX(-50%);
+    animation: chapter-rail-in linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: entry 55% entry 100%;
+  }
+  .chapter-rail__gauge {
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    transform: translateX(-50%);
+    animation: chapter-rail-out linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: exit 36% exit 56%;
   }
+  /* Hollow while the chapter is read; filled (::after) once it's finished. */
   .chapter-rail__numeral {
+    position: relative;
     font-family: var(--font-display);
-    /* Phones keep it inside their 16px gutter. */
-    font-size: clamp(12px, 1vw + 8px, 15px);
+    font-size: 15px;
     font-weight: 700;
     line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(var(--color-accent));
+  }
+  .chapter-rail__numeral::after {
+    content: attr(data-numeral);
+    position: absolute;
+    inset: 0;
     color: rgb(var(--color-accent));
+    opacity: 0;
+    animation: chapter-rail-done linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: exit 22% exit 33%;
   }
   .chapter-rail__track {
     position: relative;
     width: 2px;
-    height: min(56svh, 520px);
+    height: min(40svh, 360px);
     border-radius: 2px;
-    background: rgb(var(--color-line) / 0.7);
+    background: rgb(var(--color-line) / 0.5);
     overflow: hidden;
   }
-  .chapter-rail__fill {
+  .chapter-rail__fill,
+  .chapter-rail__done {
     position: absolute;
     inset: 0;
+  }
+  .chapter-rail__fill {
     transform-origin: top;
     transform: scaleY(0);
-    background: rgb(var(--color-accent));
+    background: rgb(var(--color-accent-strong));
     animation: chapter-rail-fill linear both;
     animation-timeline: --chapter-rail;
-    animation-range: contain 0% contain 100%;
+    animation-range: contain 0% exit 33%;
+  }
+  .chapter-rail__done {
+    background: rgb(var(--color-accent));
+    opacity: 0;
+    animation: chapter-rail-done linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: exit 22% exit 33%;
+  }
+  /* Phones: the rail alone, thinner, headed by a dot rather than the numeral. */
+  @media (max-width: 620px) {
+    .chapter-rail__gauge {
+      gap: 8px;
+    }
+    .chapter-rail__numeral {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      font-size: 0;
+      -webkit-text-stroke: 0;
+      box-shadow: inset 0 0 0 1px rgb(var(--color-accent));
+    }
+    .chapter-rail__numeral::after {
+      content: "";
+      border-radius: 999px;
+      background: rgb(var(--color-accent));
+    }
+    .chapter-rail__track {
+      width: 1.5px;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .chapter-rail__fill {
@@ -150,11 +214,36 @@
       transform: scaleY(1);
     }
   }
+  /* The last stretch of the read: the chapter settles as the rail fills. */
+  @keyframes chapter-rail-done {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes chapter-rail-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes chapter-rail-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
 }
 
 @layer components {
   /*
-   * Scroll-feel prototype c, dead-zone cues (?scroll=c): one small cue in
+   * Scroll-feel prototype c, dead-zone cues (?scroll=c or bc): one small cue in
    * each stretch where scrolling otherwise changed next to nothing (found by
    * scrolling the page slowly at 1440x900 and 390x844), each in its own
    * chapter's terms. None of them is drawn under reduced motion.

@@ -1,5 +1,9 @@
 import { createContext, useContext } from "react";
-import { type ScrollFeel } from "./scrollFeel";
+import {
+  type ScrollFeel,
+  showsChapterRails,
+  showsDeadZoneCues,
+} from "./scrollFeel";
 
 /**
  * Which scroll-feel prototype the page is showing, or null for the live
@@ -11,4 +15,14 @@ export const ScrollFeelContext = createContext<ScrollFeel | null>(null);
 
 export function useScrollFeel(): ScrollFeel | null {
   return useContext(ScrollFeelContext);
+}
+
+/** Whether the chapters carry their progress rails (`?scroll=b` or `bc`). */
+export function useChapterRails(): boolean {
+  return showsChapterRails(useScrollFeel());
+}
+
+/** Whether the dead stretches carry their cues (`?scroll=c` or `bc`). */
+export function useDeadZoneCues(): boolean {
+  return showsDeadZoneCues(useScrollFeel());
 }

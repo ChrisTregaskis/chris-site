@@ -1,18 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { scrollFeelFrom } from "./scrollFeel";
+import {
+  scrollFeelFrom,
+  showsChapterRails,
+  showsDeadZoneCues,
+} from "./scrollFeel";
 
 describe("scrollFeelFrom", () => {
   it("picks a prototype from ?scroll=", () => {
-    expect(scrollFeelFrom("?scroll=a")).toBe("a");
     expect(scrollFeelFrom("?scroll=b")).toBe("b");
-    expect(scrollFeelFrom("?utm_source=x&scroll=c")).toBe("c");
+    expect(scrollFeelFrom("?scroll=c")).toBe("c");
+    expect(scrollFeelFrom("?utm_source=x&scroll=bc")).toBe("bc");
   });
 
   it("is the live site without it, or with anything it doesn't know", () => {
     expect(scrollFeelFrom("")).toBeNull();
     expect(scrollFeelFrom("?scroll=")).toBeNull();
-    expect(scrollFeelFrom("?scroll=d")).toBeNull();
-    expect(scrollFeelFrom("?scroll=A")).toBeNull();
-    expect(scrollFeelFrom("?other=a")).toBeNull();
+    expect(scrollFeelFrom("?scroll=a")).toBeNull();
+    expect(scrollFeelFrom("?scroll=cb")).toBeNull();
+    expect(scrollFeelFrom("?scroll=B")).toBeNull();
+    expect(scrollFeelFrom("?other=b")).toBeNull();
+  });
+});
+
+describe("what each prototype shows", () => {
+  it("draws the rails under b and bc, the cues under c and bc", () => {
+    expect(showsChapterRails("b")).toBe(true);
+    expect(showsChapterRails("bc")).toBe(true);
+    expect(showsChapterRails("c")).toBe(false);
+    expect(showsDeadZoneCues("c")).toBe(true);
+    expect(showsDeadZoneCues("bc")).toBe(true);
+    expect(showsDeadZoneCues("b")).toBe(false);
+  });
+
+  it("draws neither on the live site", () => {
+    expect(showsChapterRails(null)).toBe(false);
+    expect(showsDeadZoneCues(null)).toBe(false);
   });
 });

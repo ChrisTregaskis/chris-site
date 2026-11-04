@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useBuildRunway } from "./useBuildRunway";
-import { useScrollFeel } from "@/features/scroll-feel";
+import { useDeadZoneCues } from "@/features/scroll-feel";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/cn";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
@@ -92,7 +92,7 @@ export function BuildStory() {
   );
   const bench = <BenchNote shown={lit >= BENCH_AFTER} stacked={stacked} />;
   // Prototype c: the lane's pinned run otherwise only grows a 3px line.
-  const head = useScrollFeel() === "c" && layout !== null;
+  const head = useDeadZoneCues() && layout !== null;
 
   return (
     <>

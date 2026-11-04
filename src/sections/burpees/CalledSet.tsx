@@ -8,7 +8,7 @@ import { SetCount } from "./SetCount";
 import { RUN_HEIGHT } from "./stageRun";
 import { useCalledSet } from "./useCalledSet";
 import { useStageLayout } from "./useStageLayout";
-import { useScrollFeel } from "@/features/scroll-feel";
+import { useDeadZoneCues } from "@/features/scroll-feel";
 import { cn } from "@/lib/cn";
 
 interface CalledSetProps {
@@ -32,7 +32,7 @@ export function CalledSet({ still }: CalledSetProps) {
   const rulerRef = useRef<HTMLSpanElement>(null);
   const baselineRef = useRef<HTMLSpanElement>(null);
   // Prototype c: the count strains through the slow last reps.
-  const strain = useScrollFeel() === "c" && !still;
+  const strain = useDeadZoneCues() && !still;
   const { reps, called } = useCalledSet(still, runRef, stageRef, strain);
   const layout = useStageLayout(gridRef, rulerRef, baselineRef);
   const done = !still && reps >= SET_REPS;
