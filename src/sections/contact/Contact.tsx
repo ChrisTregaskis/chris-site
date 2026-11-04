@@ -16,18 +16,18 @@ export function Contact() {
     <Section id="contact" labelledBy="contact-title" spacing="closing">
       <h2
         id="contact-title"
-        className="m-0 mb-[18px] max-w-[16ch] font-display text-display-md font-semibold"
+        className="lk-contact-title m-0 mb-[18px] max-w-[16ch] font-display text-display-md font-semibold"
       >
         Let&apos;s work together.
       </h2>
-      <p className="m-0 mb-[26px] max-w-measure text-lede text-muted">
+      <p className="lk-contact-lede m-0 mb-[26px] max-w-measure text-lede text-muted">
         I help small and medium businesses get more from the software they
         already have: adding AI where it earns its place, improving what&apos;s
         there, or proving an idea with a focused prototype. Tell me what
         you&apos;re trying to do and I&apos;ll tell you how I&apos;d approach
         it.
       </p>
-      <div className="flex flex-wrap gap-3">
+      <div className="lk-contact-links flex flex-wrap gap-3">
         <EnquiryButton />
         <CVRequestButton variant="ghost" />
         {LINKS.map((link) => (

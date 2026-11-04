@@ -54,14 +54,15 @@ export function StepCard({
   return (
     <div
       ref={stepRef}
-      className="flex min-h-[58vh] items-center wide:min-h-[62vh]"
+      className="lk-step flex min-h-[58vh] items-center wide:min-h-[62vh]"
     >
       {/* The number button is the keyboard route; the card click is a shortcut. */}
       <div
         ref={cardRef}
         onClick={onCardClick}
+        data-on={on || undefined}
         className={cn(
-          "tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto",
+          "lk-step-card tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto",
           demo
             ? "cursor-auto wide:max-w-[460px]"
             : "cursor-pointer wide:max-w-[430px]",
@@ -80,19 +81,19 @@ export function StepCard({
             onSelect(n);
           }}
           className={cn(
-            "mb-[10px] inline-grid size-7 cursor-pointer place-items-center rounded-pill border-0 p-0 text-[14px] font-semibold leading-none transition-colors duration-state motion-reduce:transition-none [&>svg]:size-[14px]",
+            "lk-step-badge mb-[10px] inline-grid size-7 cursor-pointer place-items-center rounded-pill border-0 p-0 text-[14px] font-semibold leading-none transition-colors duration-state motion-reduce:transition-none [&>svg]:size-[14px]",
             on ? "bg-accent text-on-accent" : "bg-raised text-ink",
           )}
         >
           {badge ?? n}
         </button>
-        <span className="ml-2 align-[4px] text-[13px] font-medium text-muted">
+        <span className="lk-step-kicker ml-2 align-[4px] text-[13px] font-medium text-muted">
           {kicker}
         </span>
-        <h3 className="m-0 mb-[6px] font-display text-title font-semibold">
+        <h3 className="lk-step-heading m-0 mb-[6px] font-display text-title font-semibold">
           {heading}
         </h3>
-        <p className="m-0 text-[16px] text-muted">{text}</p>
+        <p className="lk-step-text m-0 text-[16px] text-muted">{text}</p>
         {children}
         {stack?.length ? (
           <div className="mt-3">

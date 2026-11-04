@@ -17,12 +17,15 @@ export function ChapterHeading({
 }: ChapterHeadingProps) {
   const hasAside = Boolean(lede) || Boolean(chips?.length);
   return (
-    <header className="grid items-end gap-6 pb-[10px] wide:grid-cols-2">
-      <h2 id={id} className="m-0 font-display text-display-lg font-semibold">
+    <header className="lk-chapter-head grid items-end gap-6 pb-[10px] wide:grid-cols-2">
+      <h2
+        id={id}
+        className="lk-chapter-title m-0 font-display text-display-lg font-semibold"
+      >
         {title}
       </h2>
       {hasAside ? (
-        <div>
+        <div className="lk-chapter-aside">
           {lede ? (
             <p className="m-0 max-w-measure-narrow text-muted">{lede}</p>
           ) : null}

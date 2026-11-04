@@ -85,10 +85,10 @@ export function Wayfinder() {
       : "";
 
   return (
-    <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
+    <div className="lk-story relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
       <div
         ref={stageRef}
-        className="sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
+        className="lk-stage sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
       >
         <div className="flex w-full flex-col items-stretch gap-[14px]">
           <WayfinderFigure
@@ -116,7 +116,7 @@ export function Wayfinder() {
                   <>
                     <span
                       className={cn(
-                        "inline-grid h-8 min-w-8 flex-none place-items-center rounded-row px-[6px] font-display text-[15px] font-bold tabular-nums tracking-[0.02em] wide:h-[34px] wide:min-w-[34px]",
+                        "lk-picker-badge inline-grid h-8 min-w-8 flex-none place-items-center rounded-row px-[6px] font-display text-[15px] font-bold tabular-nums tracking-[0.02em] wide:h-[34px] wide:min-w-[34px]",
                         current
                           ? "bg-accent text-on-accent"
                           : "bg-raised text-ink",
@@ -134,7 +134,7 @@ export function Wayfinder() {
             <Button
               pressed={current === DEMO_STEP}
               onClick={() => select(DEMO_STEP)}
-              className="flex-none rounded-control px-4 py-0 wide:px-5"
+              className="lk-tryit flex-none rounded-control px-4 py-0 wide:px-5"
             >
               Try it
             </Button>
@@ -145,7 +145,7 @@ export function Wayfinder() {
         </p>
       </div>
 
-      <div className="relative z-[1] pb-[34vh] pt-[4vh] wide:py-[30vh]">
+      <div className="lk-steps relative z-[1] pb-[34vh] pt-[4vh] wide:py-[30vh]">
         {PART_ORDER.map((id, index) => {
           const n = index + 1;
           const part = PARTS[id];
@@ -186,7 +186,7 @@ export function Wayfinder() {
                         aria-pressed={live}
                         onClick={() => demo.swapPlatform(platform)}
                         className={cn(
-                          "cursor-pointer rounded-pill border-[1.5px] px-3 py-[5px] text-[13px] font-semibold leading-[normal] transition-colors duration-base motion-reduce:transition-none",
+                          "lk-platform cursor-pointer rounded-pill border-[1.5px] px-3 py-[5px] text-[13px] font-semibold leading-[normal] transition-colors duration-base motion-reduce:transition-none",
                           live
                             ? "border-accent bg-accent text-on-accent"
                             : "border-line bg-transparent text-ink",

@@ -45,7 +45,7 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
   return (
     <div
       className={cn(
-        "pl-[34px] wide:grid wide:grid-cols-5 wide:gap-x-4 wide:pl-0",
+        "lk-bench-wrap pl-[34px] wide:grid wide:grid-cols-5 wide:gap-x-4 wide:pl-0",
         stacked ? "pb-[clamp(40px,6vw,80px)]" : "mt-7",
       )}
     >
@@ -54,11 +54,11 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
         initial={false}
         animate={shown ? preset.animate : preset.initial}
         transition={preset.transition}
-        className="flex max-w-[640px] flex-col gap-3 rounded-card sheet:flex-row sheet:gap-4 border border-dashed border-line-strong bg-panel px-5 py-4 wide:col-span-3 wide:col-start-2"
+        className="lk-bench flex max-w-[640px] flex-col gap-3 rounded-card sheet:flex-row sheet:gap-4 border border-dashed border-line-strong bg-panel px-5 py-4 wide:col-span-3 wide:col-start-2"
       >
         <span
           aria-hidden="true"
-          className="grid size-9 shrink-0 place-items-center rounded-pill bg-raised text-signal"
+          className="lk-bench-icon grid size-9 shrink-0 place-items-center rounded-pill bg-raised text-signal"
         >
           <svg viewBox="0 0 24 24" className="size-5">
             <path
@@ -103,7 +103,10 @@ export function BuildStory() {
         <section
           ref={sectionRef}
           aria-labelledby="build-title"
-          className={cn("py-[clamp(40px,6vw,80px)]", layout && "sticky")}
+          className={cn(
+            "lk-build py-[clamp(40px,6vw,80px)]",
+            layout && "sticky",
+          )}
           style={layout ? { top: layout.pinTop } : undefined}
         >
           <h3
@@ -118,29 +121,30 @@ export function BuildStory() {
           </p>
           <div
             ref={trackRef}
-            className="relative pl-[34px] wide:pl-0 wide:pt-[34px]"
+            className="lk-track relative pl-[34px] wide:pl-0 wide:pt-[34px]"
           >
             {/* The 3px line runs through the dots' centres: each 21px dot
                 sits at the track's left edge (stacked) or 2px from its top
                 (side by side), so its centre is 10.5px in, or 12.5px down. */}
             <span
               aria-hidden="true"
-              className="absolute left-[9px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-[11px] wide:h-[3px] wide:w-auto"
+              className="lk-track-line absolute left-[9px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-[11px] wide:h-[3px] wide:w-auto"
             />
             <span
               aria-hidden="true"
-              className="absolute left-[9px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-gradient-to-b from-accent to-signal wide:left-0 wide:top-[11px] wide:h-[3px] wide:w-[calc(var(--p,0)*100%)] wide:bg-gradient-to-r"
+              className="lk-track-fill absolute left-[9px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-gradient-to-b from-accent to-signal wide:left-0 wide:top-[11px] wide:h-[3px] wide:w-[calc(var(--p,0)*100%)] wide:bg-gradient-to-r"
             />
             <ol className="m-0 grid list-none gap-[22px] p-0 wide:grid-cols-5 wide:gap-4">
               {STEPS.map((step, index) => (
                 <li
                   key={step.name}
-                  className="relative text-[15px] leading-[1.6] text-muted"
+                  className="lk-lane-step relative text-[15px] leading-[1.6] text-muted"
                 >
                   <span
                     aria-hidden="true"
+                    data-lit={index < lit || undefined}
                     className={cn(
-                      "absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
+                      "lk-dot absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
                       index < lit
                         ? "border-signal bg-signal"
                         : "border-line bg-surface",

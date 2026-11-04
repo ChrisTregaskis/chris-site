@@ -94,7 +94,7 @@ export function BurpeesSection() {
         ref={sectionRef}
         id="burpees"
         aria-labelledby="burpees-title"
-        className={cn("relative", !still && "wide:h-[220vh]")}
+        className={cn("lk-burpees relative", !still && "wide:h-[220vh]")}
       >
         <div
           ref={stageRef}
@@ -105,14 +105,14 @@ export function BurpeesSection() {
               : "pt-[clamp(40px,6vw,80px)] wide:sticky wide:top-0 wide:h-screen wide:pt-0 [@media(min-width:861px)_and_(max-height:760px)]:top-nav [@media(min-width:861px)_and_(max-height:760px)]:h-[calc(100svh-var(--size-nav))]",
           )}
         >
-          <div>
+          <div className="lk-burpees-copy">
             <h2
               id="burpees-title"
-              className="m-0 mb-[14px] font-display text-display-lg font-semibold"
+              className="lk-burpees-title m-0 mb-[14px] font-display text-display-lg font-semibold"
             >
               Badass Burpees
             </h2>
-            <p className="m-0 mb-4 max-w-measure-narrow text-muted">
+            <p className="lk-burpees-lede m-0 mb-4 max-w-measure-narrow text-muted">
               My own fitness app. Set the reps and the time you have and it
               paces you, counting you through every one. Its interface is built
               from atomic components, atoms up to molecules and organisms. Keep
@@ -128,7 +128,7 @@ export function BurpeesSection() {
                 ]}
               />
             </div>
-            <p className="m-0 mb-4 mt-5 flex flex-wrap gap-3">
+            <p className="lk-burpees-links m-0 mb-4 mt-5 flex flex-wrap gap-3">
               <ButtonLink
                 variant="ghost"
                 href="https://badass-burpees.app/"

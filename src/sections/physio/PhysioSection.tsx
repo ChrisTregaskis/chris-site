@@ -89,11 +89,11 @@ export function PhysioSection() {
           "Turborepo",
         ]}
       />
-      <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
+      <div className="lk-story relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
         <div
           ref={stageRef}
           className={cn(
-            "flex items-center justify-center",
+            "lk-stage flex items-center justify-center",
             still
               ? "relative py-6"
               : "sticky top-nav z-[2] bg-surface py-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:top-[6vh] wide:z-[1] wide:h-[88vh] wide:bg-transparent wide:py-0 wide:after:hidden",
@@ -105,7 +105,7 @@ export function PhysioSection() {
           >
             <p
               className={cn(
-                "m-0 mb-[6px] text-caption text-muted wide:mb-[10px] [@media(max-width:860px)_and_(max-height:700px)]:mb-1",
+                "lk-signed m-0 mb-[6px] text-caption text-muted wide:mb-[10px] [@media(max-width:860px)_and_(max-height:700px)]:mb-1",
                 FADE,
                 practiceSet ? "opacity-100" : "opacity-0",
               )}
@@ -114,28 +114,29 @@ export function PhysioSection() {
             </p>
             <div
               className={cn(
-                "mb-[6px] rounded-input border-[1.5px] border-dashed border-muted px-3 py-[6px] text-caption font-medium text-muted wide:py-2 [@media(max-width:860px)_and_(max-height:700px)]:py-1",
+                "lk-policy mb-[6px] rounded-input border-[1.5px] border-dashed border-muted px-3 py-[6px] text-caption font-medium text-muted wide:py-2 [@media(max-width:860px)_and_(max-height:700px)]:py-1",
                 FADE,
                 practiceSet ? "opacity-100" : "opacity-0",
               )}
             >
               policy: tenant_id = current practice
             </div>
-            <ul className="m-0 grid w-full list-none gap-[6px] p-0 wide:gap-2 [@media(max-width:860px)_and_(max-height:700px)]:gap-1">
+            <ul className="lk-rows m-0 grid w-full list-none gap-[6px] p-0 wide:gap-2 [@media(max-width:860px)_and_(max-height:700px)]:gap-1">
               {ROWS.map((row) => {
                 const hidden = filtered && row.practice !== "Riverside";
                 return (
                   <li
                     key={row.label}
+                    data-hidden={hidden || undefined}
                     className={cn(
-                      "grid grid-cols-[12px_1fr_auto] items-center gap-[10px] rounded-row border border-line bg-panel px-3 py-[5px] text-[14px] leading-[1.5] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none wide:py-[10px] wide:text-[14.5px] wide:leading-[1.6] [@media(max-width:860px)_and_(max-height:700px)]:py-[3px] [@media(max-width:860px)_and_(max-height:700px)]:text-[13px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.4]",
+                      "lk-row grid grid-cols-[12px_1fr_auto] items-center gap-[10px] rounded-row border border-line bg-panel px-3 py-[5px] text-[14px] leading-[1.5] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none wide:py-[10px] wide:text-[14.5px] wide:leading-[1.6] [@media(max-width:860px)_and_(max-height:700px)]:py-[3px] [@media(max-width:860px)_and_(max-height:700px)]:text-[13px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.4]",
                       hidden && "translate-x-[14px] opacity-[0.12] saturate-0",
                     )}
                   >
                     <i
                       aria-hidden="true"
                       className={cn(
-                        "size-[10px] rounded-pill",
+                        "lk-row-dot size-[10px] rounded-pill",
                         DOT[row.practice],
                       )}
                     />
@@ -154,7 +155,7 @@ export function PhysioSection() {
         </div>
         <div
           className={cn(
-            "relative z-[1] wide:z-[2]",
+            "lk-steps relative z-[1] wide:z-[2]",
             still ? "pb-6" : "pb-6 pt-[4vh] wide:py-[30vh]",
           )}
         >
@@ -166,7 +167,7 @@ export function PhysioSection() {
                 key={step.title}
                 ref={stepRef(n)}
                 className={cn(
-                  "flex",
+                  "lk-step flex",
                   still
                     ? "py-2"
                     : "min-h-[64vh] items-end wide:min-h-[62vh] wide:items-center",
@@ -174,8 +175,9 @@ export function PhysioSection() {
               >
                 <div
                   ref={cardRef(n)}
+                  data-on={on || undefined}
                   className={cn(
-                    "tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto wide:max-w-[430px]",
+                    "lk-step-card tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto wide:max-w-[430px]",
                     on
                       ? "border-accent-strong wide:bg-panel"
                       : "border-line wide:tone-dim wide:border-line/[0.45] wide:bg-panel/[0.45]",
@@ -183,16 +185,18 @@ export function PhysioSection() {
                 >
                   <span
                     className={cn(
-                      "mb-[10px] inline-grid size-7 place-items-center rounded-pill text-[14px] font-semibold leading-none",
+                      "lk-step-badge mb-[10px] inline-grid size-7 place-items-center rounded-pill text-[14px] font-semibold leading-none",
                       on ? "bg-accent text-on-accent" : "bg-raised text-ink",
                     )}
                   >
                     {n}
                   </span>
-                  <h3 className="m-0 mb-[6px] font-display text-title font-semibold">
+                  <h3 className="lk-step-heading m-0 mb-[6px] font-display text-title font-semibold">
                     {step.title}
                   </h3>
-                  <p className="m-0 text-[16px] text-muted">{step.text}</p>
+                  <p className="lk-step-text m-0 text-[16px] text-muted">
+                    {step.text}
+                  </p>
                 </div>
               </div>
             );

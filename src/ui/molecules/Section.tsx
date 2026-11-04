@@ -26,6 +26,7 @@ export function Section({
         id={id}
         aria-labelledby={labelledBy}
         className={cn(
+          "lk-section",
           divided && "border-t border-line",
           spacing === "chapter" && "pt-section",
           spacing === "roomy" && "py-section-lg",

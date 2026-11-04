@@ -40,11 +40,11 @@ export function AboutSection() {
 
   return (
     <Section id="about" labelledBy="about-title" spacing="roomy">
-      <div className="grid gap-7 wide:grid-cols-[1fr_1.6fr]">
+      <div className="lk-about grid gap-7 wide:grid-cols-[1fr_1.6fr]">
         <div>
           <h2
             id="about-title"
-            className="m-0 font-display text-display-md font-semibold"
+            className="lk-about-title m-0 font-display text-display-md font-semibold"
           >
             About
           </h2>
@@ -61,7 +61,7 @@ export function AboutSection() {
               <path
                 ref={ringRef}
                 d={blobPath(1 - STILL_T)}
-                className="fill-accent-strong/[0.16] stroke-accent-strong stroke-[1.5] [vector-effect:non-scaling-stroke]"
+                className="lk-blob-ring fill-accent-strong/[0.16] stroke-accent-strong stroke-[1.5] [vector-effect:non-scaling-stroke]"
               />
             </svg>
             <svg
@@ -91,7 +91,7 @@ export function AboutSection() {
             </div>
           </figure>
         </div>
-        <div className="self-start wide:self-end">
+        <div className="lk-about-text self-start wide:self-end">
           <p className="m-0 mb-4 max-w-[34em] text-body-lg">
             I&apos;m a full-stack TypeScript developer who loves turning a rough
             idea into something people use. Toy with the stack, build the proof

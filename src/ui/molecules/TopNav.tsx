@@ -18,8 +18,8 @@ export interface TopNavProps {
  */
 export function TopNav({ name, links, action }: TopNavProps) {
   return (
-    <header className="flex h-nav items-center justify-between gap-4 text-body-sm leading-[1.6]">
-      <strong className="font-semibold">{name}</strong>
+    <header className="lk-topnav flex h-nav items-center justify-between gap-4 text-body-sm leading-[1.6]">
+      <strong className="lk-name font-semibold">{name}</strong>
       <div className="flex items-center gap-[22px]">
         <nav aria-label="Primary" className="hidden gap-[22px] wide:flex">
           {links.map((link) => (

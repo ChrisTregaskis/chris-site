@@ -1,3 +1,4 @@
+import { LookSwitcher } from "@/explore/LookSwitcher";
 import { CVDrawer } from "@/features/cv-request";
 import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
 import { AboutSection } from "@/sections/about/AboutSection";
@@ -25,7 +26,7 @@ export function App() {
       >
         Skip to content
       </a>
-      <div className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md">
+      <div className="lk-topbar sticky top-0 z-30 bg-surface/90 backdrop-blur-md">
         <Container>
           <TopNav
             name="Chris Tregaskis"
@@ -43,12 +44,13 @@ export function App() {
         <Contact />
       </main>
       <Container as="footer">
-        <p className="m-0 pb-[50px] pt-[30px] text-caption text-muted">
+        <p className="lk-footer m-0 pb-[50px] pt-[30px] text-caption text-muted">
           © {new Date().getFullYear()} Chris Tregaskis
         </p>
       </Container>
       <EnquiryDrawer />
       <CVDrawer />
+      <LookSwitcher />
     </>
   );
 }

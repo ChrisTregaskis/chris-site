@@ -8,14 +8,14 @@ interface DrawerHeaderProps {
 export function DrawerHeader({ eyebrow, onClose }: DrawerHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-eyebrow font-semibold uppercase text-accent">
+      <span className="lk-drawer-eyebrow text-eyebrow font-semibold uppercase text-accent">
         {eyebrow}
       </span>
       <button
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="grid size-10 place-items-center rounded-pill border-[1.5px] border-line bg-transparent text-ink transition-colors duration-base hover:border-accent motion-reduce:transition-none"
+        className="lk-drawer-close grid size-10 place-items-center rounded-pill border-[1.5px] border-line bg-transparent text-ink transition-colors duration-base hover:border-accent motion-reduce:transition-none"
       >
         <svg viewBox="0 0 20 20" className="size-4" aria-hidden="true">
           <path
