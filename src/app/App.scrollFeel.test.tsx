@@ -14,6 +14,7 @@ const renderFeel = (feel: ScrollFeel | null) =>
 describe("App's scroll-feel prototypes", () => {
   it("adds nothing without ?scroll=", () => {
     const { container } = renderFeel(null);
+    expect(container.querySelector(".build-head")).toBeNull();
     expect(container.querySelector(".chapter-rail")).toBeNull();
   });
 
@@ -25,5 +26,12 @@ describe("App's scroll-feel prototypes", () => {
       expect(rail).toHaveAttribute("aria-hidden", "true");
       expect(rail.parentElement).toHaveClass("chapter-tone");
     }
+  });
+
+  it("c: sends a spark along the build lane's pinned run", () => {
+    const { container } = renderFeel("c");
+    const head = container.querySelector("#how-it-was-built .build-head");
+    expect(head).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".chapter-rail")).toBeNull();
   });
 });

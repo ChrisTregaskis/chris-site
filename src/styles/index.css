@@ -152,6 +152,94 @@
   }
 }
 
+@layer components {
+  /*
+   * Scroll-feel prototype c, dead-zone cues (?scroll=c): one small cue in
+   * each stretch where scrolling otherwise changed next to nothing (found by
+   * scrolling the page slowly at 1440x900 and 390x844), each in its own
+   * chapter's terms. None of them is drawn under reduced motion.
+   *
+   * How it was built: while the lane is pinned, only its 3px line grew. A
+   * spark now rides the head of the line, the build running through the
+   * stages, on the progress the lane already writes (--p). It fades in off
+   * Spec and out onto Ship.
+   */
+  .build-head {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform: translate3d(0, calc(var(--p, 0) * 100%), 0);
+    opacity: clamp(0, min(var(--p, 0), 1 - var(--p, 0)) * 25, 1);
+  }
+  /* The spark, on the line's centre (see BuildStory): 10.5px in, stacked. */
+  .build-head::before {
+    content: "";
+    position: absolute;
+    left: 10.5px;
+    top: 0;
+    width: 11px;
+    height: 11px;
+    margin: -5.5px;
+    border-radius: 999px;
+    background: rgb(var(--color-signal));
+    box-shadow:
+      0 0 0 5px rgb(var(--color-signal) / 0.18),
+      0 0 24px 6px rgb(var(--color-signal) / 0.5);
+  }
+  /* Its trail, brightening the last stretch of line behind it. */
+  .build-head::after {
+    content: "";
+    position: absolute;
+    left: 9px;
+    top: -56px;
+    width: 3px;
+    height: 56px;
+    border-radius: 3px;
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--color-signal) / 0),
+      rgb(var(--color-signal))
+    );
+  }
+  @screen wide {
+    .build-head {
+      transform: translate3d(calc(var(--p, 0) * 100%), 0, 0);
+    }
+    /* 12.5px down, side by side. */
+    .build-head::before {
+      left: 0;
+      top: 12.5px;
+    }
+    .build-head::after {
+      left: -96px;
+      top: 11px;
+      width: 96px;
+      height: 3px;
+      background: linear-gradient(
+        to right,
+        rgb(var(--color-signal) / 0),
+        rgb(var(--color-signal))
+      );
+    }
+  }
+
+  /*
+   * Badass Burpees: the count slows for the last five reps, as a set does,
+   * so 99 held for half a screen and Done for a third with nothing moving
+   * but the figure's own beat. Now the count strains: from Five left its
+   * strokes thicken, slowly at first and most while 99 is held, then ease
+   * back off through Done. --set-p is the set's progress (useCalledSet).
+   */
+  .set-strain {
+    --strain-rise: clamp(0, (var(--set-p, 0) - 0.6) / 0.3, 1);
+    --strain: min(
+      var(--strain-rise) * var(--strain-rise),
+      clamp(0, (1 - var(--set-p, 0)) / 0.1, 1)
+    );
+    -webkit-text-stroke: calc(var(--strain) * 0.035em) currentColor;
+  }
+}
+
 @layer utilities {
   /*
    * An inactive step card: its text one tone quieter rather than see-through,

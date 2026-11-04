@@ -1,8 +1,9 @@
-import { act, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BurpeesSection } from "./BurpeesSection";
 import { CALLS } from "./calls";
 import { RUN_HEIGHT } from "./stageRun";
+import { AppProviders } from "@/app/AppProviders";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 /** Animation frames the test runs by hand. */
@@ -189,5 +190,31 @@ describe("BurpeesSection", () => {
     );
     expect(fit).toBeLessThan(1);
     expect(1500 * fit).toBeLessThanOrEqual(1088);
+  });
+
+  it("prototype c: strains the count through the last reps, from the set's progress", async () => {
+    const at = { top: 0 };
+    layOut(() => at.top);
+    render(
+      <AppProviders scrollFeel="c">
+        <BurpeesSection />
+      </AppProviders>,
+    );
+    await nearSet();
+    const stage = count().closest("[aria-hidden='true']") as HTMLElement;
+    expect(count()).toHaveClass("set-strain");
+    scrollTo(0.85, at, flush);
+    expect(stage.style.getPropertyValue("--set-p")).toBe("0.85");
+  });
+
+  it("leaves the count alone on the live site", async () => {
+    const at = { top: 0 };
+    layOut(() => at.top);
+    renderWithProviders(<BurpeesSection />);
+    await nearSet();
+    scrollTo(0.85, at, flush);
+    expect(count()).not.toHaveClass("set-strain");
+    const stage = count().closest("[aria-hidden='true']") as HTMLElement;
+    expect(stage.style.getPropertyValue("--set-p")).toBe("");
   });
 });
