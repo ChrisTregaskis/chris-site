@@ -42,15 +42,6 @@ const COLOUR_TOKENS = [
   "chat-media-from",
   "chat-media-to",
   "chat-typing",
-  "bb-bezel",
-  "bb-bezel-edge",
-  "bb-screen",
-  "bb-glow",
-  "bb-ink",
-  "bb-track",
-  "bb-yellow",
-  "bb-cadence",
-  "bb-dark",
   "tenant-teal",
 ] as const;
 
@@ -126,7 +117,6 @@ export default {
       boxShadow: {
         popover: "var(--shadow-popover)",
         float: "var(--shadow-float)",
-        phone: "var(--shadow-phone)",
         drawer: "var(--shadow-drawer)",
         "focus-glow": "var(--shadow-focus-glow)",
         "ring-line": "var(--shadow-ring-line)",

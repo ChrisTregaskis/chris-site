@@ -26,7 +26,6 @@ export const TOKEN_MERGE_KEYS = {
   boxShadow: [
     "popover",
     "float",
-    "phone",
     "drawer",
     "focus-glow",
     "ring-line",
