@@ -25,6 +25,34 @@ describe("App", () => {
     ).toEqual(["#about", "#contact"]);
   });
 
+  it("sets the headline's promise in the accent, still read as one sentence", () => {
+    renderWithProviders(<App />);
+    const headline = screen.getByRole("heading", { level: 1 });
+    expect(headline).toHaveTextContent(
+      "I build whole products, end to end, built properly and shipped quickly with AI in the workflow.",
+    );
+    const promise = within(headline).getByText(
+      "built properly and shipped quickly",
+    );
+    expect(promise.tagName).toBe("EM");
+    expect(promise).toHaveClass("not-italic", "text-accent");
+  });
+
+  it("numbers the case studies 1 to 3, as decoration", () => {
+    renderWithProviders(<App />);
+    for (const [region, numeral] of [
+      [/^Wayfinder/, "1"],
+      [/^A multi-tenant SaaS/, "2"],
+      ["Badass Burpees", "3"],
+    ] as const) {
+      const section = screen.getByRole("region", { name: region });
+      const number = within(section)
+        .getAllByText(numeral)
+        .find((element) => element.getAttribute("aria-hidden") === "true");
+      expect(number).toBeDefined();
+    }
+  });
+
   it("tells the story in order: the work, how it's built, about and contact", () => {
     renderWithProviders(<App />);
     expect(

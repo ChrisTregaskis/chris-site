@@ -7,8 +7,20 @@ import { BREAKPOINT } from "@/ui/tokens/breakpoints";
 // Class names are written out in full so Tailwind can find them.
 const COLOURS = [
   { name: "surface", swatch: "bg-surface", use: "Page" },
-  { name: "panel", swatch: "bg-panel", use: "Cards, drawer, dropdown" },
-  { name: "raised", swatch: "bg-raised", use: "Chips, badges, hover rows" },
+  {
+    name: "tone-wayfinder",
+    swatch: "bg-tone-wayfinder",
+    use: "Chapter 1's ground",
+  },
+  { name: "tone-physio", swatch: "bg-tone-physio", use: "Chapter 2's ground" },
+  {
+    name: "tone-burpees",
+    swatch: "bg-tone-burpees",
+    use: "Chapter 3's ground",
+  },
+  { name: "tone-about", swatch: "bg-tone-about", use: "About's ground" },
+  { name: "panel", swatch: "bg-panel", use: "Dropdown lists, popovers" },
+  { name: "raised", swatch: "bg-raised", use: "Raised surfaces" },
   { name: "line", swatch: "bg-line", use: "Borders and rules" },
   { name: "line-strong", swatch: "bg-line-strong", use: "Figure strokes" },
   { name: "line-hover", swatch: "bg-line-hover", use: "Hover border" },
@@ -24,8 +36,16 @@ const COLOURS = [
     swatch: "bg-[rgb(var(--color-dim-muted))]",
     use: "Secondary text, dimmed card",
   },
-  { name: "accent", swatch: "bg-accent", use: "Primary button, active" },
-  { name: "accent-strong", swatch: "bg-accent-strong", use: "Active border" },
+  {
+    name: "accent",
+    swatch: "bg-accent",
+    use: "Primary button, link underline, active",
+  },
+  {
+    name: "accent-strong",
+    swatch: "bg-accent-strong",
+    use: "Chapter numerals",
+  },
   { name: "on-accent", swatch: "bg-on-accent", use: "Text on accent" },
   { name: "signal", swatch: "bg-signal", use: "Focus ring, pressed" },
   { name: "danger", swatch: "bg-danger", use: "Invalid border" },
@@ -34,6 +54,12 @@ const COLOURS = [
 ];
 
 const TYPE_SCALE = [
+  {
+    name: "numeral",
+    sample: "1 2 3",
+    className:
+      "font-display text-numeral font-bold text-accent-strong [font-variation-settings:'opsz'_96]",
+  },
   {
     name: "display-xl",
     className: "font-display text-display-xl font-semibold",
@@ -120,7 +146,9 @@ function TypeScale() {
           className="grid gap-1 wide:grid-cols-[10rem_minmax(0,1fr)] wide:items-baseline"
         >
           <span className="font-code text-mono-sm text-muted">{step.name}</span>
-          <span className={cn("break-words", step.className)}>{SAMPLE}</span>
+          <span className={cn("break-words", step.className)}>
+            {"sample" in step ? step.sample : SAMPLE}
+          </span>
         </li>
       ))}
     </ul>

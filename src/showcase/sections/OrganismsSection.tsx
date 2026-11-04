@@ -2,10 +2,10 @@ import { useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import { ShowcaseSection } from "../ShowcaseSection";
 import { Button } from "@/ui/atoms/Button";
-import { cn } from "@/lib/cn";
 import { RevealItem, RevealList } from "@/ui/molecules/Reveal";
 import { Drawer } from "@/ui/organisms/Drawer";
 import { NumberedDropdown, pad2 } from "@/ui/organisms/NumberedDropdown";
+import { NavMenu } from "@/ui/organisms/NavMenu";
 import { Odometer } from "@/ui/organisms/Odometer";
 
 const OPTIONS = [
@@ -27,8 +27,9 @@ export function OrganismsSection() {
     <ShowcaseSection title="Organisms">
       <p className="mb-6 max-w-measure text-muted">
         NumberedDropdown with an Odometer label (pick 6 from 1 to watch it roll
-        through every number), a Drawer (a bottom sheet below 621px) and a
-        RevealList. Placeholder copy.
+        through every number), a Drawer (a bottom sheet below 621px), a NavMenu
+        (the top bar's Work disclosure: ArrowDown opens it, Escape closes it)
+        and a RevealList. Placeholder copy.
       </p>
       <div className="flex max-w-[460px] items-stretch gap-[10px]">
         <NumberedDropdown
@@ -44,12 +45,7 @@ export function OrganismsSection() {
             className="h-8 min-w-0 flex-1 wide:h-[34px]"
             renderItem={(n) => (
               <>
-                <span
-                  className={cn(
-                    "inline-grid h-8 min-w-8 place-items-center rounded-row px-[6px] font-display text-[15px] font-bold tabular-nums wide:h-[34px] wide:min-w-[34px]",
-                    value ? "bg-accent text-on-accent" : "bg-raised text-ink",
-                  )}
-                >
+                <span className="inline-grid h-8 place-items-center font-display text-[20px] font-semibold tabular-nums tracking-[-0.02em] text-accent wide:h-[34px]">
                   {pad2(n)}
                 </span>
                 {OPTIONS[n - 1].label}
@@ -84,13 +80,24 @@ export function OrganismsSection() {
           </Button>
         </div>
       </Drawer>
-      <RevealList className="m-0 mt-8 grid list-none gap-4 p-0 sheet:grid-cols-3">
+      <div className="mt-8 text-body-sm">
+        <NavMenu
+          label="Work"
+          items={[
+            { href: "#organisms", label: "A first study", numeral: "1" },
+            { href: "#organisms", label: "How it was made", sub: true },
+            { href: "#organisms", label: "A second study", numeral: "2" },
+            { href: "#organisms", label: "A third study", numeral: "3" },
+          ]}
+        />
+      </div>
+      <RevealList className="m-0 mt-48 grid list-none gap-4 p-0 sheet:grid-cols-3">
         {["First", "Second", "Third"].map((item) => (
           <RevealItem
             key={item}
-            className="rounded-card border border-line bg-panel px-6 py-5"
+            className="py-2 font-display text-title font-semibold"
           >
-            {item} card
+            {item} item
           </RevealItem>
         ))}
       </RevealList>
