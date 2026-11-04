@@ -50,6 +50,7 @@ const COLOUR_TOKENS = [
   "bb-track",
   "bb-yellow",
   "bb-cadence",
+  "bb-flame",
   "bb-dark",
   "tenant-teal",
 ] as const;

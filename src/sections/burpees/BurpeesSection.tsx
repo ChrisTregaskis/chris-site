@@ -244,6 +244,9 @@ const DIRECTIONS: Partial<
   a: lazy(() =>
     import("./explore/DirectionA").then((m) => ({ default: m.DirectionA })),
   ),
+  b: lazy(() =>
+    import("./explore/DirectionB").then((m) => ({ default: m.DirectionB })),
+  ),
 };
 
 export function BurpeesSection() {
