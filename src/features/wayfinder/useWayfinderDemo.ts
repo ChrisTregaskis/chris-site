@@ -29,6 +29,13 @@ const STILL_FLASH_MS = 4000;
  */
 const OFF_STAGE = "translate(-999,-999)";
 
+/** PROTOTYPE: told where the pulse is each frame (the 3D figure draws it too). */
+export type PulseListener = (
+  route: RouteKey | null,
+  reverse?: boolean,
+  progress?: number,
+) => void;
+
 /**
  * The live demo's state and its runner: the chat, the trace, which parts are
  * flashing, which pipes are lit, the live AI platform, and the pulse that
@@ -45,6 +52,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
   const [hot, setHot] = useState<ReadonlySet<PartId>>(new Set());
   const [lit, setLit] = useState<ReadonlySet<RouteKey>>(new Set());
   const pulseRef = useRef<SVGGElement>(null);
+  const pulseListener = useRef<PulseListener | null>(null);
   const busy = useRef(false);
   const alive = useRef(true);
   const nextId = useRef(1);
@@ -70,6 +78,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
     pulse?.setAttribute("visibility", "visible");
   };
   const parkPulse = () => {
+    pulseListener.current?.(null);
     const pulse = pulseRef.current;
     pulse?.setAttribute("transform", OFF_STAGE);
     pulse?.setAttribute("visibility", "hidden");
@@ -130,6 +139,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
           const progress = Math.min(1, (now - start) / duration);
           const [x, y] = pointAlong(points, progress * total);
           movePulse(x, y);
+          pulseListener.current?.(route, reverse, progress);
           line?.style.setProperty("stroke-dashoffset", String(1 - progress));
           if (progress < 1) {
             requestAnimationFrame(frame);
@@ -207,6 +217,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
     hot,
     lit,
     pulseRef,
+    pulseListener,
     send,
   };
 }
