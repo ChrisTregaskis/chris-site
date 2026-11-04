@@ -12,6 +12,7 @@ import {
   type Bounds,
   drawnBounds,
   layoutAt,
+  PLATE_BOX,
   project,
   settled,
   SUBS,
@@ -29,14 +30,16 @@ const TAG_ROOM_PX = 40;
 const [VB_X, VB_Y, VB_W, VB_H] = VIEW_BOX.split(" ").map(Number);
 
 /**
- * Everything drawn while taken apart, whichever part is in focus: every
- * piece and badge, in user units.
+ * Everything drawn while taken apart, whichever part is in focus: the plate,
+ * every piece and badge, in user units. (Number tags stay within its width:
+ * `tags.test.ts`.)
  */
 export const APART_EXTENT: Bounds = unionBounds(
   [null, ...PART_ORDER].flatMap((focus) => {
     const amounts = settled(focus, false);
     const layout = layoutAt(amounts);
     return [
+      drawnBounds(PLATE_BOX),
       ...SUBS.flatMap((sub) =>
         sub.boxes.map((b) => drawnBounds(b, layout.offset.get(sub.id))),
       ),
