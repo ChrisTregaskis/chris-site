@@ -25,11 +25,7 @@ export function Hero() {
           id="hero-title"
           className="m-0 mb-[clamp(14px,4svh,28px)] max-w-[15ch] font-display text-display-xl font-semibold"
         >
-          I build whole products, end to end,{" "}
-          {/* As on the link-preview card: the promise in the accent, upright. */}
-          <em className="not-italic text-accent">
-            built properly and shipped quickly
-          </em>{" "}
+          I build whole products, end to end, built properly and shipped quickly
           with AI in the workflow.
         </h1>
         <p className="m-0 mb-[clamp(18px,4.3svh,30px)] max-w-measure text-lede text-muted">
