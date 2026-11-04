@@ -20,6 +20,8 @@
 
   body {
     @apply bg-surface font-body text-body text-ink;
+    /* Chapter tones bleed to the window's edges; that must never scroll sideways. */
+    overflow-x: clip;
   }
 
   :focus-visible {
@@ -34,6 +36,37 @@
     .tone-ease :where(*) {
       transition: color var(--duration-state) var(--ease-enter);
     }
+  }
+}
+
+@layer components {
+  /*
+   * A chapter on its own full-bleed tone, fading in over --tone-feather from
+   * the tone before it (--tone-from) to its own (--tone-to), so chapters
+   * hand over without a rule between them. Set the three with the section
+   * (Section's `tone`); the plate sits behind the content and covers the
+   * section's top edge, so no seam shows.
+   */
+  .chapter-tone {
+    position: relative;
+    isolation: isolate;
+  }
+  .chapter-tone::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    bottom: 0;
+    left: 50%;
+    z-index: -1;
+    width: 100vw;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--tone-from)) 0,
+      rgb(var(--tone-to)) var(--tone-feather, 360px),
+      rgb(var(--tone-to)) 100%
+    );
   }
 }
 

@@ -19,6 +19,10 @@ const COLOUR_TOKENS = [
   "signal",
   "danger",
   "danger-ink",
+  "tone-wayfinder",
+  "tone-physio",
+  "tone-burpees",
+  "tone-about",
   "scrim",
   "figure-top",
   "figure-left",
@@ -74,6 +78,11 @@ export default {
         code: "var(--font-code)",
       },
       fontSize: {
+        // A chapter's number: set very large, bold and tight, above its title.
+        numeral: [
+          "clamp(88px, 12vw, 176px)",
+          { lineHeight: "0.8", letterSpacing: "-0.06em" },
+        ],
         "display-xl": [
           "clamp(min(38px, 6svh), min(6.4vw, 9.4svh), 84px)",
           { lineHeight: "1.02", letterSpacing: "-0.025em" },

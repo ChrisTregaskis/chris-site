@@ -33,7 +33,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           className={fieldClasses(
             invalid,
             cn(
-              "cursor-pointer appearance-none pr-10 [color-scheme:dark]",
+              "cursor-pointer appearance-none pr-8 [color-scheme:dark]",
               className,
             ),
           )}
@@ -50,7 +50,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <svg
           viewBox="0 0 20 20"
           aria-hidden="true"
-          className="pointer-events-none absolute right-[14px] top-1/2 size-4 -translate-y-1/2 text-muted"
+          className="pointer-events-none absolute right-0 top-1/2 size-4 -translate-y-1/2 text-muted"
         >
           <path
             d="M5 7.5l5 5 5-5"

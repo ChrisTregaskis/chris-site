@@ -15,7 +15,7 @@ export function DrawerHeader({ eyebrow, onClose }: DrawerHeaderProps) {
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="grid size-10 place-items-center rounded-pill border-[1.5px] border-line bg-transparent text-ink transition-colors duration-base hover:border-accent motion-reduce:transition-none"
+        className="grid size-10 place-items-center rounded-pill border-0 bg-transparent text-ink transition-colors duration-base hover:text-accent motion-reduce:transition-none"
       >
         <svg viewBox="0 0 20 20" className="size-4" aria-hidden="true">
           <path

@@ -1,5 +1,6 @@
 import { type MouseEvent, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { stepNumeralClasses } from "@/ui/atoms/stepNumeralClasses";
 import { ChipList } from "@/ui/molecules/ChipList";
 
 interface StepCardProps {
@@ -61,14 +62,13 @@ export function StepCard({
         ref={cardRef}
         onClick={onCardClick}
         className={cn(
-          "tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto",
+          "group tone-ease w-full py-[22px] text-ink wide:w-auto",
           demo
             ? "cursor-auto wide:max-w-[460px]"
             : "cursor-pointer wide:max-w-[430px]",
-          // Side by side, the others dim: b3's 45% frame, with quieter text that still reads at 4.5:1.
-          on
-            ? "border-accent-strong wide:bg-panel"
-            : "border-line wide:tone-dim wide:border-line/[0.45] wide:bg-panel/[0.45]",
+          // Side by side, the others step back a tone (still 4.5:1), and come
+          // back up while hovered, so they read as something to press.
+          !on && "wide:[&:not(:hover)]:tone-dim",
         )}
       >
         <button
@@ -79,20 +79,29 @@ export function StepCard({
             event.stopPropagation();
             onSelect(n);
           }}
-          className={cn(
-            "mb-[10px] inline-grid size-7 cursor-pointer place-items-center rounded-pill border-0 p-0 text-[14px] font-semibold leading-none transition-colors duration-state motion-reduce:transition-none [&>svg]:size-[14px]",
-            on ? "bg-accent text-on-accent" : "bg-raised text-ink",
+          className={stepNumeralClasses(
+            on,
+            cn(
+              "cursor-pointer",
+              !on &&
+                "group-hover:scale-100 group-hover:text-ink group-hover:opacity-100 group-hover:blur-0",
+            ),
           )}
         >
           {badge ?? n}
         </button>
-        <span className="ml-2 align-[4px] text-[13px] font-medium text-muted">
+        <span className="mb-[6px] block text-[14px] font-medium text-muted">
           {kicker}
         </span>
-        <h3 className="m-0 mb-[6px] font-display text-title font-semibold">
+        <h3
+          className={cn(
+            "m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em] underline decoration-transparent decoration-[1.5px] underline-offset-[6px] transition-[text-decoration-color] duration-base motion-reduce:transition-none",
+            !on && "group-hover:decoration-accent",
+          )}
+        >
           {heading}
         </h3>
-        <p className="m-0 text-[16px] text-muted">{text}</p>
+        <p className="m-0 text-[17px] text-muted">{text}</p>
         {children}
         {stack?.length ? (
           <div className="mt-3">
