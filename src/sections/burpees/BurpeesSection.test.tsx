@@ -25,7 +25,9 @@ describe("BurpeesSection", () => {
   it("describes the app on phones too, not only side by side", () => {
     viewport(true);
     const section = renderSection();
-    const description = within(section).getByText(/^My own fitness app\./);
+    const description = within(section).getByText(
+      /^A fitness app I built for myself, shared with everyone for free\./,
+    );
     // It was hidden below the wide breakpoint; nothing may hide it there again.
     expect(description).not.toHaveClass("hidden");
     expect(description.className).not.toMatch(/(^|\s)hidden(\s|$)/);

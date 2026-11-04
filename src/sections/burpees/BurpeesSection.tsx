@@ -121,10 +121,10 @@ export function BurpeesSection() {
               Badass Burpees
             </h2>
             <p className="m-0 mb-4 max-w-measure-narrow text-muted wide:max-w-[31em] wide:text-body-lg">
-              My own fitness app. Set the reps and the time you have and it
-              paces you, counting you through every one. Its interface is built
-              from atomic components, atoms up to molecules and organisms. Keep
-              scrolling to do a set.
+              A fitness app I built for myself, shared with everyone for free.
+              Set the reps and the time you have and it paces you, counting you
+              through every one. Its interface is built from atomic components,
+              atoms up to molecules and organisms. Keep scrolling to do a set.
             </p>
             <div className="hidden wide:block">
               <ChipList
