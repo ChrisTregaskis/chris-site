@@ -143,6 +143,21 @@ describe("the exploded figure's number tags", () => {
     expect(failures).toEqual([]);
   });
 
+  it("keeps every number on screen on a phone, where the figure spans the width", () => {
+    // The viewBox runs from -290 to 630; the page's gutter is at least 16px.
+    const failures: string[] = [];
+    for (const { label, tags, u } of everyPart()) {
+      if (!label.includes("lite true")) continue;
+      for (const tag of tags) {
+        const box = tagBox(tag, u);
+        if (box.left < -290 - 12 * u || box.right > 630 + 12 * u) {
+          failures.push(`${label}: ${tag.id}`);
+        }
+      }
+    }
+    expect(failures).toEqual([]);
+  });
+
   it("lines a part's numbers up: one column, one row, or one line along the plan", () => {
     for (const { label, tags } of everyPart()) {
       const bySide = new Map<string, TagSpec[]>();

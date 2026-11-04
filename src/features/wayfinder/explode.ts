@@ -476,7 +476,14 @@ export const SUBS: SubComponent[] = [
 ];
 
 export const PLAN: Record<PartId, PartPlan> = {
-  cloud: { lift: [0, 0, 10], delay: 0, badgeOn: null, tags: "front" },
+  cloud: {
+    lift: [0, 0, 10],
+    delay: 0,
+    badgeOn: null,
+    tags: "front",
+    // On a phone the plate runs to the screen's edge: no room in front.
+    liteTags: "below",
+  },
   tools: { lift: [24, 0, 30], delay: 0.06, badgeOn: "8.1", tags: "below" },
   spec: { lift: [0, 26, 36], delay: 0.11, badgeOn: "4.1", tags: "below" },
   mcp: { lift: [10, 16, 54], delay: 0.16, badgeOn: "7.1", tags: "right" },

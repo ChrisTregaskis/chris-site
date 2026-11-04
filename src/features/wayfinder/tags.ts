@@ -110,6 +110,8 @@ interface Piece {
   sub: string | null;
   boxes: readonly Box3[];
   side: TagSide;
+  /** Where its dot goes, if not where its side would put it. */
+  anchor?: Vec3;
 }
 
 function piecesOf(part: PartId, lite: boolean): Piece[] {
@@ -124,11 +126,14 @@ function piecesOf(part: PartId, lite: boolean): Piece[] {
     }),
   );
   if (part === "cloud") {
+    // On the plate's front face, off to the right: clear of the pads' tags.
+    const { x, y, z, w, d, h } = PLATE_BOX;
     pieces.push({
       id: PLATE_PIECE.id,
       sub: null,
       boxes: [PLATE_BOX],
       side: "front",
+      anchor: [x + w * 0.7, y + d, z + h / 2],
     });
   }
   return pieces;
@@ -319,7 +324,7 @@ export function tagLayout(
         ),
       );
       const dots = group.map((piece): Dot => {
-        const anchor = anchorOn(hull(piece.boxes), side);
+        const anchor = piece.anchor ?? anchorOn(hull(piece.boxes), side);
         const o = offsetOf(layout, piece);
         const plan: Vec3 = [
           anchor[0] + o[0],
