@@ -1,16 +1,18 @@
 import { useReducedMotion } from "framer-motion";
-import { useCallback, useRef, useState } from "react";
-import { type Pose, POSES, setReadout } from "./burpeeSet";
+import {
+  lazy,
+  type LazyExoticComponent,
+  Suspense,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
+import { POSES, setReadout } from "./burpeeSet";
+import { BURPEES_VARIANT, type BurpeesVariant } from "./explore/variant";
+import { FRAMES } from "./frames";
 import { RepBar } from "./RepBar";
 import { RepRing } from "./RepRing";
 import { useSealBeat } from "./useSealBeat";
-import chest from "@/assets/burpees/chest.webp";
-import fistsToHips from "@/assets/burpees/fists-to-hips.webp";
-import plank from "@/assets/burpees/plank.webp";
-import plankLKnee from "@/assets/burpees/plank-l-knee.webp";
-import plankRKnee from "@/assets/burpees/plank-r-knee.webp";
-import stand from "@/assets/burpees/stand.webp";
-import tuck from "@/assets/burpees/tuck.webp";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useScrollFrame } from "@/hooks/useScrollFrame";
 import { cn } from "@/lib/cn";
@@ -22,16 +24,6 @@ import { VisuallyHidden } from "@/ui/atoms/VisuallyHidden";
 import { chapterToneStyle } from "@/ui/molecules/chapterTone";
 import { ChipList } from "@/ui/molecules/ChipList";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
-
-const FRAMES: Record<Pose, string> = {
-  stand,
-  "fists-to-hips": fistsToHips,
-  tuck,
-  plank,
-  chest,
-  "plank-r-knee": plankRKnee,
-  "plank-l-knee": plankLKnee,
-};
 
 /**
  * Chapter 3: Badass Burpees, Chris's own app. Side by side, the whole stage
@@ -45,7 +37,7 @@ const FRAMES: Record<Pose, string> = {
  * Navy SEAL burpees at the app's beat. Static under reduced motion: a
  * finished set and one frame.
  */
-export function BurpeesSection() {
+function BurpeesClassic() {
   const still = useReducedMotion() ?? false;
   const stacked = useMediaQuery(BELOW_WIDE);
   const sectionRef = useRef<HTMLElement>(null);
@@ -238,5 +230,28 @@ export function BurpeesSection() {
         </div>
       </section>
     </Container>
+  );
+}
+
+/*
+ * Design exploration (branch explore/burpees): `?burpees=a|b|c` swaps in a
+ * prototype direction, each in its own lazy chunk; no param is the live
+ * section above, unchanged.
+ */
+const DIRECTIONS: Partial<
+  Record<BurpeesVariant, LazyExoticComponent<() => JSX.Element>>
+> = {
+  a: lazy(() =>
+    import("./explore/DirectionA").then((m) => ({ default: m.DirectionA })),
+  ),
+};
+
+export function BurpeesSection() {
+  const Direction = BURPEES_VARIANT ? DIRECTIONS[BURPEES_VARIANT] : null;
+  if (!Direction) return <BurpeesClassic />;
+  return (
+    <Suspense fallback={null}>
+      <Direction />
+    </Suspense>
   );
 }
