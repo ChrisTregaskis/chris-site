@@ -16,6 +16,7 @@ import { stepNumeralClasses } from "@/ui/atoms/stepNumeralClasses";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
+import { ChapterRail } from "@/features/scroll-feel";
 
 /*
  * Short phones (640 to 700px tall): the cards tighten a little, so the last
@@ -73,6 +74,7 @@ export function PhysioSection() {
       labelledBy="physio-title"
       tone={{ from: "wayfinder", to: "physio" }}
     >
+      <ChapterRail numeral="2" />
       <ChapterHeading
         id="physio-title"
         numeral="2"
