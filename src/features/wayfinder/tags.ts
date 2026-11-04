@@ -71,6 +71,8 @@ export interface TagSpec {
   text: Point;
   anchor: "start" | "middle" | "end";
   side: TagSide;
+  /** The line it shares with its neighbours (a part's pieces, or the plate alone). */
+  line: string;
 }
 
 /** One box around all of a piece's boxes (plan units). */
@@ -112,6 +114,8 @@ interface Piece {
   side: TagSide;
   /** Where its dot goes, if not where its side would put it. */
   anchor?: Vec3;
+  /** Lines up on its own, apart from its part's pieces (the plate). */
+  alone?: boolean;
 }
 
 function piecesOf(part: PartId, lite: boolean): Piece[] {
@@ -134,6 +138,7 @@ function piecesOf(part: PartId, lite: boolean): Piece[] {
       boxes: [PLATE_BOX],
       side: "front",
       anchor: [x + w * 0.7, y + d, z + h / 2],
+      alone: true,
     });
   }
   return pieces;
@@ -219,7 +224,7 @@ function lineUp(
   outline: Bounds,
   side: TagSide,
   u: number,
-): Omit<TagSpec, "part">[] {
+): Omit<TagSpec, "part" | "line">[] {
   const font = TAG_PX.font * u;
   const gap = TAG_PX.gap * u;
   const pad = TAG_PX.pad * u;
@@ -314,8 +319,11 @@ export function tagLayout(
     const pieces = piecesOf(part, lite);
     const hits = new Set<PartId>();
 
-    for (const side of new Set(pieces.map((piece) => piece.side))) {
-      const group = pieces.filter((piece) => piece.side === side);
+    const lineOf = (piece: Piece) =>
+      `${piece.side}${piece.alone ? `:${piece.id}` : ""}`;
+    for (const line of new Set(pieces.map(lineOf))) {
+      const group = pieces.filter((piece) => lineOf(piece) === line);
+      const { side } = group[0];
       // The part's own badge steps aside while its tags show (see
       // `useExplode`), so the line need only clear its pieces.
       const outline = unionBounds(
@@ -334,8 +342,8 @@ export function tagLayout(
         return { at: iso(...anchor), settled: iso(...plan), plan };
       });
 
-      lineUp(group, dots, outline, side, u).forEach((line, k) => {
-        const tag = { ...line, part };
+      lineUp(group, dots, outline, side, u).forEach((placed, k) => {
+        const tag = { ...placed, part, line };
         tags.set(tag.id, tag);
         for (const other of PART_ORDER) {
           if (other === part) continue;

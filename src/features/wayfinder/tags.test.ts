@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   type Bounds,
-  drawnBounds,
+  type Box3,
   layoutAt,
   PLATE_PIECE,
   settled,
   SUBS,
+  type Vec3,
 } from "./explode";
-import { type Point } from "./iso";
+import { iso, type Point } from "./iso";
 import { PART_ORDER, PLATFORM_INDEXES } from "./parts";
 import {
   badgeBounds,
@@ -16,6 +17,7 @@ import {
   type TagSpec,
   tierShift,
 } from "./tags";
+import { APART_EXTENT } from "./zoom";
 
 /**
  * User units per CSS px where the figure settles: wide screens at 1280,
@@ -26,6 +28,46 @@ const STACKED = [1.3, 2.57, 3.19];
 
 const overlap = (a: Bounds, b: Bounds) =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+
+/** A box's eight corners, drawn. */
+function drawnCorners(b: Box3, o: Vec3 = [0, 0, 0]): Point[] {
+  const corners: Point[] = [];
+  for (const dx of [0, b.w]) {
+    for (const dy of [0, b.d]) {
+      for (const dz of [0, b.h]) {
+        corners.push(iso(b.x + dx + o[0], b.y + dy + o[1], b.z + dz + o[2]));
+      }
+    }
+  }
+  return corners;
+}
+
+/**
+ * Whether a number's box covers a box's drawing (a hexagon whose edges run
+ * along the three drawn axes): no axis among the rectangle's and the
+ * hexagon's edge normals separates them.
+ */
+function coversDrawing(box: Bounds, corners: readonly Point[]): boolean {
+  const rect: Point[] = [
+    [box.left, box.top],
+    [box.right, box.top],
+    [box.right, box.bottom],
+    [box.left, box.bottom],
+  ];
+  const axes: Point[] = [
+    [1, 0],
+    [0, 1],
+    [-0.5, 0.866],
+    [0.5, 0.866],
+  ];
+  return axes.every(([ax, ay]) => {
+    const along = (points: readonly Point[]) =>
+      points.map(([x, y]) => x * ax + y * ay);
+    const a = along(rect);
+    const b = along(corners);
+    return Math.min(...a) < Math.max(...b) && Math.min(...b) < Math.max(...a);
+  });
+}
 
 /** Whether two segments cross (touching ends don't count). */
 function cross([a, b]: [Point, Point], [c, d]: [Point, Point]) {
@@ -94,10 +136,10 @@ describe("the exploded figure's number tags", () => {
     const failures: string[] = [];
     for (const { label, tags, u, layout, part } of everyPart()) {
       const pieces = SUBS.filter((sub) => sub.part === part).flatMap((sub) =>
-        sub.boxes.map((b) => drawnBounds(b, layout.offset.get(sub.id))),
+        sub.boxes.map((b) => drawnCorners(b, layout.offset.get(sub.id))),
       );
       for (const tag of tags) {
-        if (pieces.some((piece) => overlap(tagBox(tag, u), piece))) {
+        if (pieces.some((piece) => coversDrawing(tagBox(tag, u), piece))) {
           failures.push(`${label}: ${tag.id}`);
         }
       }
@@ -158,13 +200,27 @@ describe("the exploded figure's number tags", () => {
     expect(failures).toEqual([]);
   });
 
+  it("keeps every number within the drawing's own width on wide screens, so growing it keeps them on screen", () => {
+    const failures: string[] = [];
+    for (const { label, tags, u } of everyPart()) {
+      if (label.includes("lite true")) continue;
+      for (const tag of tags) {
+        if (tagBox(tag, u).left < APART_EXTENT.left) {
+          failures.push(`${label}: ${tag.id}`);
+        }
+      }
+    }
+    expect(failures).toEqual([]);
+  });
+
   it("lines a part's numbers up: one column, one row, or one line along the plan", () => {
     for (const { label, tags } of everyPart()) {
-      const bySide = new Map<string, TagSpec[]>();
+      const byLine = new Map<string, TagSpec[]>();
       for (const tag of tags) {
-        bySide.set(tag.side, [...(bySide.get(tag.side) ?? []), tag]);
+        byLine.set(tag.line, [...(byLine.get(tag.line) ?? []), tag]);
       }
-      for (const [side, line] of bySide) {
+      for (const line of byLine.values()) {
+        const { side } = line[0];
         const ends = line.map((tag) => tag.end);
         if (side === "left" || side === "right") {
           expect(new Set(ends.map(([x]) => x.toFixed(3))).size, label).toBe(1);
@@ -175,6 +231,7 @@ describe("the exploded figure's number tags", () => {
         } else {
           // Along the plan's x axis: every step is 0.866 across to 0.5 down.
           const [first, ...rest] = ends;
+          expect(new Set(line.map((tag) => tag.side)).size, label).toBe(1);
           for (const [x, y] of rest) {
             expect((y - first[1]) / (x - first[0]), label).toBeCloseTo(
               0.5 / 0.866,
