@@ -87,6 +87,56 @@ describe("WayfinderFigure taken apart", () => {
     ).not.toBeNull();
   });
 
+  it("draws the prototype-only pieces without edges while apart, and whole as before", () => {
+    const prototypes = SUBS.filter((sub) => sub.prototype).map((sub) => sub.id);
+    expect(prototypes).toEqual(["4.2", "4.3", "8.2", "8.3"]);
+    const faces = (container: HTMLElement, id: string) => [
+      ...container.querySelectorAll(`[data-piece="${id}"] polygon`),
+    ];
+    const figure = (apart: boolean, lite = false) =>
+      render(
+        <WayfinderFigure
+          selected="spec"
+          hot={new Set()}
+          lit={new Set()}
+          platform={0}
+          onPart={() => {}}
+          onSlot={() => {}}
+          pulseRef={{ current: null }}
+          apart={apart}
+          lite={lite}
+          reducedMotion
+        />,
+      );
+
+    const apart = figure(true);
+    for (const id of prototypes) {
+      expect(faces(apart.container, id).length).toBeGreaterThan(0);
+      for (const face of faces(apart.container, id)) {
+        expect(face).toHaveClass("stroke-none");
+        expect(face.getAttribute("class")).not.toMatch(/dasharray/);
+      }
+    }
+    // Proven pieces keep their edges.
+    for (const face of faces(apart.container, "4.1")) {
+      expect(face).not.toHaveClass("stroke-none");
+    }
+    apart.unmount();
+
+    const whole = figure(false);
+    for (const id of prototypes) {
+      for (const face of faces(whole.container, id)) {
+        expect(face).not.toHaveClass("stroke-none");
+      }
+    }
+    whole.unmount();
+
+    // Phones open only the part in focus: the tools stay whole, edges on.
+    const phone = figure(true, true);
+    expect(faces(phone.container, "4.2")[0]).toHaveClass("stroke-none");
+    expect(faces(phone.container, "8.2")[0]).not.toHaveClass("stroke-none");
+  });
+
   it("swaps the platform when a cartridge is clicked, taken apart or not", async () => {
     const user = userEvent.setup();
     const onSlot = vi.fn();
