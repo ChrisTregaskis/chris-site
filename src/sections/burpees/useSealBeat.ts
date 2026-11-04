@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { SEAL, SEAL_BEAT_MS, STILL_FRAME } from "./burpeeSet";
+import { type Pose, SEAL, SEAL_BEAT_MS, STILL_POSE } from "./burpeeSet";
 
 /**
  * Plays the Navy SEAL rep on a loop at the app's beat while the figure is at
  * least 30% on screen, standing still otherwise. Under reduced motion it
- * holds one frame.
+ * holds one pose.
  */
 export function useSealBeat(still: boolean) {
-  const figureRef = useRef<HTMLDivElement>(null);
+  const figureRef = useRef<HTMLSpanElement>(null);
   const [beat, setBeat] = useState(-1);
 
   useEffect(() => {
@@ -36,10 +36,6 @@ export function useSealBeat(still: boolean) {
     };
   }, [still]);
 
-  const frame = still
-    ? STILL_FRAME
-    : beat < 0
-      ? (["stand", null] as const)
-      : SEAL[beat];
-  return { figureRef, pose: frame[0], count: frame[1] };
+  const pose: Pose = still ? STILL_POSE : beat < 0 ? "stand" : SEAL[beat][0];
+  return { figureRef, pose };
 }
