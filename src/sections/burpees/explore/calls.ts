@@ -3,9 +3,11 @@
  * app's own spoken calls (its recorded clips: "Go!", the tens, "Halfway",
  * "Five left", "Last one", "Done"), one line of the story on each. The
  * lines are checked against the app's repo: the spec's 6am goal and sweaty
- * hands, the first deploy the day after the repo was stood up (21 and 22
- * Aug 2026), 37 ADRs, and ADR 0034 (no analytics: nobody can tell from
- * inside the app how many use it).
+ * hands; the voice and a screen read from about 2m away; no backend, no
+ * accounts, only the browser's own storage; the ADRs that record each
+ * decision; and ADR 0034 (no analytics: nobody can tell from inside the
+ * app how many use it). The build is framed as a low-stakes experiment,
+ * never as how Chris builds client or business software.
  */
 export const SET_REPS = 100;
 
@@ -25,22 +27,22 @@ export const CALLS: readonly Call[] = [
   {
     at: 10,
     call: "Ten.",
-    line: "Pick a burpee, the reps and the time you have. It spreads the reps through the window and counts you through every one, a drawn figure moving with the count.",
+    line: "It calls the count and the milestones out loud, so I can train hands-free with the screen across the room.",
   },
   {
     at: 50,
     call: "Halfway",
-    line: "I built it quickly, with an AI-assisted workflow. It was on the web the day after I started.",
+    line: "Built to be thrown away: no database, no accounts, nothing kept beyond your browser. So I could let the AI do the heavy lifting while I made the calls.",
   },
   {
     at: 95,
     call: "Five left",
-    line: "It has changed with my training ever since, and each decision is written down: 37 so far.",
+    line: "It has changed with my training ever since, and every decision is written down.",
   },
   {
     at: 99,
     call: "Last one",
-    line: "No accounts and no tracking, by choice. I can't even tell who else uses it.",
+    line: "No tracking either, by choice. I can't even tell who else uses it.",
   },
   {
     at: 100,

@@ -24,10 +24,6 @@ export const PLATE_STEPS = [
   },
 ] as const;
 
-/** Direction B: the pacing engine. */
-export const PACING_LEDE =
-  "A fitness app I built for myself, quickly and with an AI-assisted workflow, then shared with everyone for free. Tell it the reps and the time you have, and it works out the rest.";
-
 /** Direction C: the set, called out. */
-export const CALLS_LEDE =
-  "A fitness app I built for myself, shared with everyone for free. Keep scrolling to do a set; the app's own calls tell the rest.";
+/** Direction C, chosen: A's lede, which Chris likes. */
+export const CALLS_LEDE = PLATE_LEDE;

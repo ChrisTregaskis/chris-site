@@ -18,8 +18,9 @@ import { Section } from "@/ui/molecules/Section";
  * pins while the section scrolls a set of 100, the count huge in the
  * chapter-numeral violet with the app's figure doing Navy SEALs in front of
  * it at the app's beat, and the story told in the app's own spoken calls,
- * each with one line: who it's for, what it does, how it was built, how it
- * grew, what it doesn't do, and that it's free. Reduced motion: a finished
+ * each with one line: who it's for, how it's used, why low stakes let it
+ * be built as an experiment, how it grew, what it doesn't track, and that
+ * it's free. Reduced motion: a finished
  * set, one frame, every call and line listed, no pinning.
  */
 export function DirectionC() {

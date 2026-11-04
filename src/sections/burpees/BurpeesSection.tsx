@@ -234,8 +234,8 @@ function BurpeesClassic() {
 }
 
 /*
- * Design exploration (branch explore/burpees): `?burpees=a|b|c` swaps in a
- * prototype direction, each in its own lazy chunk; no param is the live
+ * Design exploration (branch explore/burpees): `?burpees=a|c` swaps in a
+ * prototype direction (a kept for reference; c chosen), each in its own lazy chunk; no param is the live
  * section above, unchanged.
  */
 const DIRECTIONS: Partial<
@@ -243,9 +243,6 @@ const DIRECTIONS: Partial<
 > = {
   a: lazy(() =>
     import("./explore/DirectionA").then((m) => ({ default: m.DirectionA })),
-  ),
-  b: lazy(() =>
-    import("./explore/DirectionB").then((m) => ({ default: m.DirectionB })),
   ),
   c: lazy(() =>
     import("./explore/DirectionC").then((m) => ({ default: m.DirectionC })),
