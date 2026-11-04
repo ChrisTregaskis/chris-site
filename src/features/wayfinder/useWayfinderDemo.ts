@@ -151,10 +151,12 @@ export function useWayfinderDemo(reducedMotion: boolean) {
 
   /**
    * Send a message. A suggestion pill passes its own `ask` (and route);
-   * anything typed is free text, which goes to the supervisor and back.
+   * anything typed is free text, which goes to the supervisor and back. The
+   * message shows at once; given `ready` (the figure still going back
+   * together), it sets off round the figure once that resolves.
    */
   const send = useCallback(
-    async (question: string, ask: Ask = FREE_TEXT) => {
+    async (question: string, ask: Ask = FREE_TEXT, ready?: Promise<void>) => {
       const text = question.trim();
       if (busy.current || !text) return;
       busy.current = true;
@@ -165,6 +167,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
       setTyping(true);
       litSoFar.current = new Set();
       setLit(new Set());
+      if (ready) await ready;
 
       for (const step of demoPlan(ask, platformRef.current)) {
         if (!alive.current) return;

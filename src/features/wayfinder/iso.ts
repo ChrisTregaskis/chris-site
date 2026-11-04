@@ -187,6 +187,19 @@ export const SLOTS = PLATFORM_INDEXES.map((platform) => {
 });
 export const AI_BADGE = badge(6, 370, -120, 40);
 
+/** Every part's numbered badge, as drawn on the assembled board. */
+export const BADGES: Record<PartId, Badge> = {
+  chat: FIGURE.chat.badge,
+  bff: FIGURE.bff.badge,
+  sup: FIGURE.sup.badge,
+  spec: FIGURE.spec.badge,
+  adp: FIGURE.adp.badge,
+  ai: AI_BADGE,
+  mcp: FIGURE.mcp.badge,
+  tools: FIGURE.tools.badge,
+  cloud: FIGURE.cloud.badge,
+};
+
 /** Pipes between parts, as plan points; drawn and travelled 6 units up. */
 export const ROUTES = {
   "chat-bff": [

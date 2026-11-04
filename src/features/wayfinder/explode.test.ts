@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  CARTRIDGE_LIFT,
   DRAW_ITEMS,
   type ExplodeAmounts,
   INSIDE,
   itemKey,
   layoutAt,
+  PLATE_PIECE,
+  pipeRetract,
+  ROUTE_PARTS,
+  settled,
   SUBS,
 } from "./explode";
+import { ROUTE_KEYS } from "./iso";
 import { PART_ORDER, type PartId, PLATFORM_INDEXES } from "./parts";
 import { behind, drawingsOverlap, interpenetrate } from "@/lib/isoDepth";
 
@@ -94,20 +100,75 @@ describe("the exploded Wayfinder figure", () => {
     expect(failures.slice(0, 10)).toEqual([]);
   });
 
-  it("seats every piece exactly where it was when assembled", () => {
-    const { offset } = layoutAt({ apart: 0, focus: noFocus, lite: false });
-    for (const sub of SUBS) expect(offset.get(sub.id)).toEqual([0, 0, 0]);
+  it("seats every piece exactly where it was when assembled, the cartridges not live lifted as on the board", () => {
+    const { offset, axis } = layoutAt(settled(null, false, false), 2);
+    for (const sub of SUBS) {
+      const lifted = sub.platform !== undefined && sub.platform !== 2;
+      expect(offset.get(sub.id)).toEqual([0, 0, lifted ? CARTRIDGE_LIFT : 0]);
+      // Assembled, nothing has left a gap to draw an axis in.
+      const [from, to] = axis.get(sub.id) ?? [];
+      expect(from).toEqual(to);
+    }
   });
 
-  it("lists every part's pieces in number order", () => {
+  it("lifts a cartridge part way while a platform swap is under way", () => {
+    const { offset } = layoutAt(settled(null, false, false), [0, 0.5, 1]);
+    expect(offset.get("6.1")?.[2]).toBe(0);
+    expect(offset.get("6.2")?.[2]).toBe(CARTRIDGE_LIFT / 2);
+    expect(offset.get("6.3")?.[2]).toBe(CARTRIDGE_LIFT);
+  });
+
+  it("draws every pipe off once the board is apart, and back on assembled", () => {
+    const apart = pipeRetract(settled(null, false));
+    const whole = pipeRetract(settled(null, false, false));
+    for (const key of ROUTE_KEYS) {
+      expect(apart[key]).toBe(1);
+      expect(whole[key]).toBe(0);
+    }
+    // Half way through coming apart, every pipe is already gone.
+    const half = pipeRetract({ ...settled(null, false), apart: 0.5 });
+    expect(Object.values(half).every((off) => off === 1)).toBe(true);
+  });
+
+  it("on phones, draws off only the pipes of the part that is open", () => {
+    for (const part of PART_ORDER) {
+      const retract = pipeRetract(settled(part, true));
+      for (const key of ROUTE_KEYS) {
+        expect(retract[key]).toBe(ROUTE_PARTS[key].includes(part) ? 1 : 0);
+      }
+    }
+    // The intro on a phone: nothing opens, so every pipe stays drawn.
+    const intro = pipeRetract(settled(null, true));
+    expect(Object.values(intro).every((off) => off === 0)).toBe(true);
+  });
+
+  it("on phones, opens only the part in focus, where it stands", () => {
+    const { offset } = layoutAt(settled("bff", true));
+    for (const sub of SUBS) {
+      const o = offset.get(sub.id) ?? [0, 0, 0];
+      const moved = o.some((value) => value !== 0);
+      if (sub.part !== "bff") {
+        // Only the cartridges not live stand lifted, as on the board.
+        expect(o[0]).toBe(0);
+        expect(o[1]).toBe(0);
+      } else if (sub.id !== "2.1") {
+        expect(moved).toBe(true);
+      }
+    }
+  });
+
+  it("lists every part's pieces in number order, numbered by part", () => {
     expect(INSIDE.bff.map((piece) => piece.id)).toEqual([
       "2.1",
       "2.2",
       "2.3",
       "2.4",
     ]);
-    for (const part of PART_ORDER) {
-      expect(INSIDE[part].length).toBeGreaterThan(2);
-    }
+    PART_ORDER.forEach((part, index) => {
+      const ids = INSIDE[part].map((piece) => piece.id);
+      expect(ids.length).toBeGreaterThan(2);
+      expect(ids).toEqual(ids.map((_, k) => `${index + 1}.${k + 1}`));
+    });
+    expect(INSIDE.cloud.at(-1)?.id).toBe(PLATE_PIECE.id);
   });
 });

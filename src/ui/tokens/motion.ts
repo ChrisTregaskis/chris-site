@@ -10,6 +10,10 @@ export const DURATION = {
   state: 0.45,
   slow: 0.55,
   flash: 0.75,
+  /** The Wayfinder figure going back together. */
+  together: 0.9,
+  /** And coming apart, staggered from the plate up. */
+  apart: 1.4,
 } as const;
 
 export const EASE = {

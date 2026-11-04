@@ -11,6 +11,39 @@ afterEach(() => {
 const lastReply = (messages: { from: string }[]) => messages.at(-1);
 
 describe("useWayfinderDemo", () => {
+  it("shows a message at once, but holds it back from the figure until it is ready", async () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useWayfinderDemo(true));
+    let ready: () => void = () => {};
+    const whole = new Promise<void>((resolve) => {
+      ready = resolve;
+    });
+
+    let sent: Promise<void> = Promise.resolve();
+    act(() => {
+      sent = result.current.send("Do you do vans?", undefined, whole);
+    });
+    expect(lastReply(result.current.messages)).toEqual(
+      expect.objectContaining({ from: "me", text: "Do you do vans?" }),
+    );
+    expect(result.current.typing).toBe(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    // Nothing has set off yet.
+    expect(result.current.trace).toEqual([]);
+    expect(result.current.lit.size).toBe(0);
+
+    await act(async () => {
+      ready();
+      await sent;
+    });
+    expect(result.current.trace.length).toBeGreaterThan(0);
+    expect(lastReply(result.current.messages)).toEqual(
+      expect.objectContaining({ from: "bot", kind: "scripted" }),
+    );
+  });
+
   it("keeps typing while free text travels to the supervisor and back, then replies with the scripted line", async () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useWayfinderDemo(false));
