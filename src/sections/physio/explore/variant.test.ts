@@ -4,7 +4,7 @@ import { parseDraft, PHONE_DRAFT } from "./variant";
 describe("the phone drafts' switch", () => {
   it("reads a draft from ?physiom=, and nothing else", () => {
     expect(parseDraft("?physiom=a")).toBe("a");
-    expect(parseDraft("?x=1&physiom=b")).toBe("b");
+    expect(parseDraft("?x=1&physiom=c")).toBe("c");
     expect(parseDraft("?physiom=B")).toBeNull();
     expect(parseDraft("?physiom=z")).toBeNull();
     expect(parseDraft("?burpees=a")).toBeNull();

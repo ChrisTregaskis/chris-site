@@ -28,6 +28,11 @@ const PHONE_STACKS = {
       default: m.DrawerStack,
     })),
   ),
+  c: lazy(() =>
+    import("./explore/floor/FloorStack").then((m) => ({
+      default: m.FloorStack,
+    })),
+  ),
 } as const;
 
 interface IsolationFigureProps {

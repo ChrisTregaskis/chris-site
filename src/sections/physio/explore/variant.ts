@@ -1,12 +1,12 @@
 /**
  * Design exploration (branch explore/physio-mobile): which phone drawing of
- * the physio chapter to show, from `?physiom=a|b`. Read once at module
+ * the physio chapter to show, from `?physiom=a|b|c`. Read once at module
  * load, never during render; anything else (or no param) is the live
  * chapter, untouched. Any draft also lowers the 3D cut-off (see `fitDepth`).
  */
-export type PhoneDraft = "a" | "b";
+export type PhoneDraft = "a" | "b" | "c";
 
-export const PHONE_DRAFTS: readonly PhoneDraft[] = ["a", "b"];
+export const PHONE_DRAFTS: readonly PhoneDraft[] = ["a", "b", "c"];
 
 export function parseDraft(search: string): PhoneDraft | null {
   const value = new URLSearchParams(search).get("physiom");
