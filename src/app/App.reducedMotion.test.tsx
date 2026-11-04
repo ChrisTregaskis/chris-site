@@ -17,15 +17,33 @@ beforeEach(() => {
 });
 
 describe("App under reduced motion", () => {
-  it("shows the physio story's end state: only the signed-in practice's rows", () => {
+  it("shows the physio story's end state: only the signed-in organisation's sessions come back", () => {
     renderWithProviders(<App />);
     const physio = screen.getByRole("region", {
-      name: "A multi-tenant SaaS for physio and wellness practices",
+      name: "A multi-tenant platform for physio and wellness",
     });
     expect(
-      within(physio).getByText("Signed in as Riverside Wellness"),
+      within(physio)
+        .getByText(/set local/)
+        .closest("p"),
+    ).toHaveTextContent("set local organisation = ‘Alder’");
+    expect(physio.querySelector("[aria-live]")).toHaveTextContent(
+      "Only Alder's sessions come back, with no filter in the query.",
+    );
+    const spots = [...physio.querySelectorAll("[data-sheet]")].map(
+      (sheet) =>
+        `${sheet.getAttribute("data-sheet")}: ${sheet.getAttribute("data-spot")}`,
+    );
+    expect(spots).toEqual(["Alder: result", "Birch: held", "Cedar: held"]);
+    // Static: the leak test is open, with no demo playing itself.
+    expect(
+      within(physio).getByRole("button", {
+        name: "Try to read Birch’s sessions",
+      }),
     ).toBeInTheDocument();
-    expect(within(physio).getAllByText(", hidden")).toHaveLength(4);
+    expect(
+      within(physio).queryByRole("button", { name: /demo/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the build lane finished, with the eval bench as a note beneath it", () => {
