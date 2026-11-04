@@ -34,7 +34,8 @@ const stroke = {
 
 /**
  * The eval bench: a companion note under the lane, not a step on it. Side by
- * side it sits in the pinned section, centred under the plan, build and review steps;
+ * side it sits in the pinned section, set to the lane's end under the build,
+ * review and ship steps (the stages it guards);
  * stacked, it follows the pinned run (so the lane still fits a phone's
  * screen), lined up with the steps' text. It rises in as the lane reaches
  * Review gates (static under reduced motion, where the lane is lit from the
@@ -54,13 +55,10 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
         initial={false}
         animate={shown ? preset.animate : preset.initial}
         transition={preset.transition}
-        className="flex max-w-[640px] flex-col gap-3 rounded-card sheet:flex-row sheet:gap-4 border border-dashed border-line-strong bg-panel px-5 py-4 wide:col-span-3 wide:col-start-2"
+        className="flex max-w-[640px] flex-col gap-3 sheet:flex-row sheet:items-center sheet:gap-4 wide:col-span-3 wide:col-start-3 wide:justify-self-end"
       >
-        <span
-          aria-hidden="true"
-          className="grid size-9 shrink-0 place-items-center rounded-pill bg-raised text-signal"
-        >
-          <svg viewBox="0 0 24 24" className="size-5">
+        <span aria-hidden="true" className="shrink-0 text-signal">
+          <svg viewBox="0 0 24 24" className="size-[30px]">
             <path
               d="M9 3h6M10 3v6l-5.2 9.2A1.9 1.9 0 0 0 6.5 21h11a1.9 1.9 0 0 0 1.7-2.8L14 9V3"
               {...stroke}
@@ -71,7 +69,7 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
         <div className="text-[15px] leading-[1.6] text-muted">
           <h4
             id="bench-title"
-            className="m-0 mb-[2px] font-display text-[18px] font-semibold leading-[normal] text-ink"
+            className="m-0 mb-[2px] font-display text-[22px] font-semibold leading-[normal] text-ink"
           >
             {BENCH.name}
           </h4>
@@ -95,10 +93,16 @@ export function BuildStory() {
 
   return (
     <>
+      {/* An in-page link lands where the lane pins with its line undrawn. */}
       <div
         ref={runRef}
+        id="how-it-was-built"
         className="relative"
-        style={layout ? { height: layout.height } : undefined}
+        style={
+          layout
+            ? { height: layout.height, scrollMarginTop: layout.pinTop }
+            : undefined
+        }
       >
         <section
           ref={sectionRef}

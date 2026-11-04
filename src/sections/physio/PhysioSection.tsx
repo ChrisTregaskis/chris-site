@@ -3,6 +3,7 @@ import { useCallback, useRef } from "react";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
+import { stepNumeralClasses } from "@/ui/atoms/stepNumeralClasses";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
@@ -74,9 +75,14 @@ export function PhysioSection() {
   const filtered = stage >= 3;
 
   return (
-    <Section id="physio" labelledBy="physio-title">
+    <Section
+      id="physio"
+      labelledBy="physio-title"
+      tone={{ from: "wayfinder", to: "physio" }}
+    >
       <ChapterHeading
         id="physio-title"
+        numeral="2"
         title="A multi-tenant SaaS for physio and wellness practices"
         lede="Bookings and client notes for many wellness practices, from one codebase and one database. A personal project, built with my own AI-assisted Claude Code workflow."
         chips={[
@@ -114,21 +120,21 @@ export function PhysioSection() {
             </p>
             <div
               className={cn(
-                "mb-[6px] rounded-input border-[1.5px] border-dashed border-muted px-3 py-[6px] text-caption font-medium text-muted wide:py-2 [@media(max-width:860px)_and_(max-height:700px)]:py-1",
+                "mb-[6px] py-[6px] text-caption font-medium text-accent wide:py-2 wide:text-[14px] [@media(max-width:860px)_and_(max-height:700px)]:py-1",
                 FADE,
                 practiceSet ? "opacity-100" : "opacity-0",
               )}
             >
               policy: tenant_id = current practice
             </div>
-            <ul className="m-0 grid w-full list-none gap-[6px] p-0 wide:gap-2 [@media(max-width:860px)_and_(max-height:700px)]:gap-1">
+            <ul className="m-0 grid w-full list-none gap-[6px] p-0 wide:gap-[2px] [@media(max-width:860px)_and_(max-height:700px)]:gap-1">
               {ROWS.map((row) => {
                 const hidden = filtered && row.practice !== "Riverside";
                 return (
                   <li
                     key={row.label}
                     className={cn(
-                      "grid grid-cols-[12px_1fr_auto] items-center gap-[10px] rounded-row border border-line bg-panel px-3 py-[5px] text-[14px] leading-[1.5] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none wide:py-[10px] wide:text-[14.5px] wide:leading-[1.6] [@media(max-width:860px)_and_(max-height:700px)]:py-[3px] [@media(max-width:860px)_and_(max-height:700px)]:text-[13px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.4]",
+                      "grid grid-cols-[12px_1fr_auto] items-center gap-[10px] py-[5px] text-[14px] leading-[1.5] transition-[opacity,transform,filter] duration-state motion-reduce:transition-none wide:py-[10px] wide:text-[17px] wide:leading-[1.6] [@media(max-width:860px)_and_(max-height:700px)]:py-[3px] [@media(max-width:860px)_and_(max-height:700px)]:text-[13px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.4]",
                       hidden && "translate-x-[14px] opacity-[0.12] saturate-0",
                     )}
                   >
@@ -175,24 +181,15 @@ export function PhysioSection() {
                 <div
                   ref={cardRef(n)}
                   className={cn(
-                    "tone-ease w-full rounded-card border bg-panel/[0.96] px-6 py-[22px] text-ink transition-[border-color,background-color] duration-state motion-reduce:transition-none wide:w-auto wide:max-w-[430px]",
-                    on
-                      ? "border-accent-strong wide:bg-panel"
-                      : "border-line wide:tone-dim wide:border-line/[0.45] wide:bg-panel/[0.45]",
+                    "tone-ease w-full py-[22px] text-ink wide:w-auto wide:max-w-[430px]",
+                    !on && "wide:tone-dim",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "mb-[10px] inline-grid size-7 place-items-center rounded-pill text-[14px] font-semibold leading-none",
-                      on ? "bg-accent text-on-accent" : "bg-raised text-ink",
-                    )}
-                  >
-                    {n}
-                  </span>
-                  <h3 className="m-0 mb-[6px] font-display text-title font-semibold">
+                  <span className={stepNumeralClasses(on)}>{n}</span>
+                  <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
                     {step.title}
                   </h3>
-                  <p className="m-0 text-[16px] text-muted">{step.text}</p>
+                  <p className="m-0 text-[17px] text-muted">{step.text}</p>
                 </div>
               </div>
             );

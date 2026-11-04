@@ -114,14 +114,7 @@ export function Wayfinder() {
                 className="h-8 min-w-0 flex-1 wide:h-[34px]"
                 renderItem={(n) => (
                   <>
-                    <span
-                      className={cn(
-                        "inline-grid h-8 min-w-8 flex-none place-items-center rounded-row px-[6px] font-display text-[15px] font-bold tabular-nums tracking-[0.02em] wide:h-[34px] wide:min-w-[34px]",
-                        current
-                          ? "bg-accent text-on-accent"
-                          : "bg-raised text-ink",
-                      )}
-                    >
+                    <span className="inline-grid h-8 flex-none place-items-center font-display text-[20px] font-semibold tabular-nums tracking-[-0.02em] text-accent wide:h-[34px]">
                       {pad2(n)}
                     </span>
                     <span className="overflow-hidden text-ellipsis">
@@ -175,7 +168,7 @@ export function Wayfinder() {
                   role="group"
                   aria-label="AI platform"
                   data-no-select=""
-                  className="mt-3 flex gap-[6px]"
+                  className="mt-3 flex gap-3"
                 >
                   {PLATFORM_INDEXES.map((platform) => {
                     const live = platform === demo.platform;
@@ -186,10 +179,12 @@ export function Wayfinder() {
                         aria-pressed={live}
                         onClick={() => demo.swapPlatform(platform)}
                         className={cn(
-                          "cursor-pointer rounded-pill border-[1.5px] px-3 py-[5px] text-[13px] font-semibold leading-[normal] transition-colors duration-base motion-reduce:transition-none",
+                          // The live platform: lilac on a solid underline; the
+                          // others on a dotted one, so they still read as choices.
+                          "cursor-pointer border-0 bg-transparent px-[2px] py-[5px] text-[13px] font-semibold leading-[normal] underline decoration-[1.5px] underline-offset-[6px] transition-colors duration-base hover:text-ink motion-reduce:transition-none",
                           live
-                            ? "border-accent bg-accent text-on-accent"
-                            : "border-line bg-transparent text-ink",
+                            ? "text-accent decoration-accent decoration-solid"
+                            : "text-muted decoration-line-field decoration-dotted",
                         )}
                       >
                         {PLATFORMS[platform]}

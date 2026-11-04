@@ -69,7 +69,7 @@ export function Drawer({ open, onClose, labelledBy, children }: DrawerProps) {
       onClose={handleClose}
       onCancel={handleCancel}
       onClick={handleClick}
-      className="inset-x-0 bottom-0 top-auto m-0 h-auto max-h-[92dvh] w-full max-w-none animate-sheet-up overflow-auto overscroll-contain rounded-t-sheet border-0 border-t border-line bg-panel p-0 text-ink shadow-drawer backdrop:bg-scrim/[0.66] backdrop:backdrop-blur-[3px] motion-reduce:animate-none sheet:inset-y-0 sheet:left-auto sheet:right-0 sheet:h-dvh sheet:max-h-none sheet:w-[min(520px,100vw)] sheet:animate-drawer-in sheet:rounded-none sheet:border-l sheet:border-t-0"
+      className="inset-x-0 bottom-0 top-auto m-0 h-auto max-h-[92dvh] w-full max-w-none animate-sheet-up overflow-auto overscroll-contain rounded-t-sheet border-0 bg-surface p-0 text-ink shadow-drawer backdrop:bg-scrim/[0.66] backdrop:backdrop-blur-[3px] motion-reduce:animate-none sheet:inset-y-0 sheet:left-auto sheet:right-0 sheet:h-dvh sheet:max-h-none sheet:w-[min(520px,100vw)] sheet:animate-drawer-in sheet:rounded-none"
     >
       {children}
     </dialog>

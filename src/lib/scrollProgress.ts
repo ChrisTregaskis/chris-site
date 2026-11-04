@@ -67,6 +67,25 @@ export function pinTopFor(
     : top;
 }
 
+/**
+ * How much longer a pinned panel's run should be than its runway, so what
+ * follows it starts to enter (its top reaches the viewport's bottom) at
+ * `enterAt` of the way through the runway rather than earlier. Without it,
+ * the room under a pinned panel shows the next section early, the more so
+ * the taller the screen. Never negative: where the room is too small for
+ * that, the next section simply enters a little later.
+ */
+export function runwayTail(
+  viewportHeight: number,
+  pinTop: number,
+  height: number,
+  runway: number,
+  enterAt: number,
+): number {
+  const room = Math.max(0, viewportHeight - pinTop - height);
+  return Math.max(0, room - (1 - enterAt) * runway);
+}
+
 /** Where milestone `index` (0-based) of `count` lights, as a 0 to 1 progress. */
 export function milestoneAt(index: number, count: number): number {
   return (index + 0.2) / count;

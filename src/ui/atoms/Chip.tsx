@@ -3,19 +3,17 @@ import { cn } from "@/lib/cn";
 
 export interface ChipProps {
   children: ReactNode;
-  /** `md`: b3 chapter chips; `sm`: b3 step-card stack chips. */
+  /** `md`: a chapter's tags; `sm`: a step's stack. */
   size?: "md" | "sm";
 }
 
-/** One tag in a ChipList; renders an `<li>`. */
+/** One tag in a ChipList: a quiet word in muted text, no pill; renders an `<li>`. */
 export function Chip({ children, size = "md" }: ChipProps) {
   return (
     <li
       className={cn(
-        "rounded-pill bg-raised text-ink",
-        size === "md"
-          ? "px-[10px] py-[3px] text-caption"
-          : "px-[9px] py-[2px] text-[12.5px] leading-[1.4]",
+        "leading-[1.4] text-muted",
+        size === "md" ? "text-[14px]" : "text-[13px]",
       )}
     >
       {children}

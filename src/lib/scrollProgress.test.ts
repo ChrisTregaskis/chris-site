@@ -4,6 +4,7 @@ import {
   milestonesPassed,
   pinTopFor,
   runwayProgress,
+  runwayTail,
   stickyProgress,
   viewportProgress,
 } from "./scrollProgress";
@@ -48,6 +49,19 @@ describe("scroll progress", () => {
     expect(pinTopFor(568, 576, 68)).toBe(-24);
     // No bar: centred, as before.
     expect(pinTopFor(600, 500)).toBe(50);
+  });
+
+  it("lengthens a pinned run so what follows enters at a set point in its runway", () => {
+    // 1440 viewport, 550 panel pinned at 445: 445px of room under it. With a
+    // 432px runway, entering at 70% leaves 30% (about 130px) of the room to
+    // the runway, and the rest to the tail.
+    expect(runwayTail(1440, 445, 550, 432, 0.7)).toBeCloseTo(445 - 129.6);
+    // Entering at the very end: the tail is the whole room.
+    expect(runwayTail(900, 175, 550, 300, 1)).toBe(175);
+    // Too little room to wait for 70%: no tail, it enters a little later.
+    expect(runwayTail(900, 175, 550, 900, 0.7)).toBe(0);
+    // A panel that fills the room needs no tail.
+    expect(runwayTail(667, 84, 600, 300, 0.7)).toBe(0);
   });
 
   it("places each milestone a fifth of the way into its share of the run", () => {

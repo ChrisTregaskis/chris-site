@@ -16,8 +16,10 @@ import { useScrollFrame } from "@/hooks/useScrollFrame";
 import { cn } from "@/lib/cn";
 import { stickyProgress } from "@/lib/scrollProgress";
 import { ButtonLink } from "@/ui/atoms/ButtonLink";
+import { ChapterNumeral } from "@/ui/atoms/ChapterNumeral";
 import { Container } from "@/ui/atoms/Container";
 import { VisuallyHidden } from "@/ui/atoms/VisuallyHidden";
+import { chapterToneStyle } from "@/ui/molecules/chapterTone";
 import { ChipList } from "@/ui/molecules/ChipList";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
@@ -94,7 +96,12 @@ export function BurpeesSection() {
         ref={sectionRef}
         id="burpees"
         aria-labelledby="burpees-title"
-        className={cn("relative", !still && "wide:h-[220vh]")}
+        style={chapterToneStyle({
+          from: "physio",
+          to: "burpees",
+          feather: "70vh",
+        })}
+        className={cn("chapter-tone", !still && "wide:h-[220vh]")}
       >
         <div
           ref={stageRef}
@@ -106,13 +113,14 @@ export function BurpeesSection() {
           )}
         >
           <div>
+            <ChapterNumeral>3</ChapterNumeral>
             <h2
               id="burpees-title"
-              className="m-0 mb-[14px] font-display text-display-lg font-semibold"
+              className="m-0 mb-[22px] font-display text-display-lg font-semibold"
             >
               Badass Burpees
             </h2>
-            <p className="m-0 mb-4 max-w-measure-narrow text-muted">
+            <p className="m-0 mb-4 max-w-measure-narrow text-muted wide:max-w-[31em] wide:text-body-lg">
               My own fitness app. Set the reps and the time you have and it
               paces you, counting you through every one. Its interface is built
               from atomic components, atoms up to molecules and organisms. Keep
@@ -128,7 +136,7 @@ export function BurpeesSection() {
                 ]}
               />
             </div>
-            <p className="m-0 mb-4 mt-5 flex flex-wrap gap-3">
+            <p className="m-0 mb-4 mt-5 flex flex-wrap gap-x-6 gap-y-3">
               <ButtonLink
                 variant="ghost"
                 href="https://badass-burpees.app/"

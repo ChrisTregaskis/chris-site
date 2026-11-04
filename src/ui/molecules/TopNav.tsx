@@ -1,36 +1,56 @@
-import { type ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
-export interface TopNavLink {
-  href: string;
-  label: string;
-}
+export type TopNavLink =
+  | { href: string; label: string }
+  /** An entry that is its own control (the Work menu), passed in whole. */
+  | { label: string; control: ReactNode };
 
 export interface TopNavProps {
   name: string;
   links: TopNavLink[];
   /** A control at the far right that stays visible at every width (the CV button). */
   action?: ReactNode;
+  /** Where the name links to: the top of the page (`#top`). */
+  homeHref?: string;
 }
 
 /**
  * The b3 `.top` bar: name left, links right (hidden below `wide`), then an
  * optional action. It doesn't position itself; the page makes it sticky.
  */
-export function TopNav({ name, links, action }: TopNavProps) {
+export function TopNav({ name, links, action, homeHref }: TopNavProps) {
   return (
     <header className="flex h-nav items-center justify-between gap-4 text-body-sm leading-[1.6]">
-      <strong className="font-semibold">{name}</strong>
+      {homeHref ? (
+        <a
+          href={homeHref}
+          className="font-display text-[18px] font-semibold tracking-[-0.01em] text-ink no-underline focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal"
+        >
+          {name}
+        </a>
+      ) : (
+        <strong className="font-display text-[18px] font-semibold tracking-[-0.01em]">
+          {name}
+        </strong>
+      )}
       <div className="flex items-center gap-[22px]">
-        <nav aria-label="Primary" className="hidden gap-[22px] wide:flex">
-          {links.map((link) => (
-            <a
-              key={`${link.href} ${link.label}`}
-              href={link.href}
-              className="text-muted no-underline transition-colors duration-base hover:text-ink motion-reduce:transition-none focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal"
-            >
-              {link.label}
-            </a>
-          ))}
+        <nav
+          aria-label="Primary"
+          className="hidden items-center gap-[22px] wide:flex"
+        >
+          {links.map((link) =>
+            "control" in link ? (
+              <Fragment key={`control ${link.label}`}>{link.control}</Fragment>
+            ) : (
+              <a
+                key={`${link.href} ${link.label}`}
+                href={link.href}
+                className="text-muted no-underline transition-colors duration-base hover:text-ink motion-reduce:transition-none focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal"
+              >
+                {link.label}
+              </a>
+            ),
+          )}
         </nav>
         {action}
       </div>

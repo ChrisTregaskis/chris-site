@@ -39,7 +39,12 @@ export function AboutSection() {
   useScrollFrame(onFrame, !still, splashRef);
 
   return (
-    <Section id="about" labelledBy="about-title" spacing="roomy">
+    <Section
+      id="about"
+      labelledBy="about-title"
+      spacing="roomy"
+      tone={{ from: "burpees", to: "about" }}
+    >
       <div className="grid gap-7 wide:grid-cols-[1fr_1.6fr]">
         <div>
           <h2
@@ -61,7 +66,7 @@ export function AboutSection() {
               <path
                 ref={ringRef}
                 d={blobPath(1 - STILL_T)}
-                className="fill-accent-strong/[0.16] stroke-accent-strong stroke-[1.5] [vector-effect:non-scaling-stroke]"
+                className="fill-accent-strong/[0.28] stroke-none"
               />
             </svg>
             <svg

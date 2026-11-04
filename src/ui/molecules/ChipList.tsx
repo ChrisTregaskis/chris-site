@@ -11,7 +11,7 @@ export function ChipList({ items, size = "md", label }: ChipListProps) {
   return (
     <ul
       aria-label={label}
-      className="m-0 flex list-none flex-wrap gap-[6px] p-0"
+      className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0"
     >
       {items.map((item) => (
         <Chip key={item} size={size}>

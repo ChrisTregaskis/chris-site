@@ -56,4 +56,14 @@ describe("TopNav", () => {
     const action = screen.getByRole("button", { name: "Request my CV" });
     expect(nav).not.toContainElement(action);
   });
+
+  it("links the name home when given where home is", () => {
+    renderWithProviders(
+      <TopNav name="Ada Lovelace" links={[]} homeHref="#top" />,
+    );
+    expect(screen.getByRole("link", { name: "Ada Lovelace" })).toHaveAttribute(
+      "href",
+      "#top",
+    );
+  });
 });

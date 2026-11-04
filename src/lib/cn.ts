@@ -8,6 +8,7 @@ import { extendTailwindMerge } from "tailwind-merge";
  */
 export const TOKEN_MERGE_KEYS = {
   fontSize: [
+    "numeral",
     "display-xl",
     "display-lg",
     "display-md",

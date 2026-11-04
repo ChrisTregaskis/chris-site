@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
 export type ButtonVariant = "primary" | "ghost";
-/** `md`: the b3 `.btn`; `sm`: the compact button in the sticky top bar. */
+/** `md`: the page's buttons; `sm`: the compact one in the sticky top bar. */
 export type ButtonSize = "md" | "sm";
 
 const BASE =
@@ -14,11 +14,13 @@ const SIZES: Record<ButtonSize, string> = {
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-accent text-on-accent aria-pressed:bg-signal",
+  // Secondary actions are links in look: a lilac underline that thickens on
+  // hover, no outline or fill. Only primary actions are filled.
   ghost:
-    "bg-transparent text-ink shadow-ring-line hover:shadow-ring-accent aria-pressed:shadow-ring-accent",
+    "rounded-[2px] bg-transparent px-0 text-ink underline decoration-accent decoration-[1.5px] underline-offset-[7px] transition-[color,text-decoration-thickness] hover:text-accent hover:decoration-[3px] aria-pressed:decoration-[3px]",
 };
 
-/** The b3 `.btn` look, shared by Button and ButtonLink. */
+/** The button look, shared by Button and ButtonLink. */
 export function buttonClasses(
   variant: ButtonVariant,
   size: ButtonSize = "md",

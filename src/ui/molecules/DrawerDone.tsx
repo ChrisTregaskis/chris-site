@@ -47,7 +47,7 @@ export function DrawerDone({
         {title}
       </h2>
       <p className="m-0 text-[16px] text-muted">{children}</p>
-      <div className="flex flex-wrap gap-3">{actions}</div>
+      <div className="flex flex-wrap gap-x-6 gap-y-3">{actions}</div>
     </div>
   );
 }

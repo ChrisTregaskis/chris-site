@@ -13,7 +13,12 @@ const LINKS = [
 /** The close: what Chris can do for a business, the way to ask, the CV, and where else to find him. */
 export function Contact() {
   return (
-    <Section id="contact" labelledBy="contact-title" spacing="closing">
+    <Section
+      id="contact"
+      labelledBy="contact-title"
+      spacing="closing"
+      tone={{ from: "about", to: "base", feather: "100%" }}
+    >
       <h2
         id="contact-title"
         className="m-0 mb-[18px] max-w-[16ch] font-display text-display-md font-semibold"
@@ -27,7 +32,7 @@ export function Contact() {
         you&apos;re trying to do and I&apos;ll tell you how I&apos;d approach
         it.
       </p>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <EnquiryButton />
         <CVRequestButton variant="ghost" />
         {LINKS.map((link) => (

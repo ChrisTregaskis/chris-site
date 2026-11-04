@@ -14,6 +14,7 @@ export function Hero() {
   return (
     <Container>
       <section
+        id="top"
         aria-labelledby="hero-title"
         className="box-border flex min-h-[calc(100vh-var(--size-nav))] flex-col justify-center pb-[clamp(16px,min(9vw,32svh_-_178px),110px)] pt-[clamp(16px,min(12vw,45svh_-_255px),150px)] supports-[min-height:100svh]:min-h-[calc(100svh-var(--size-nav))]"
       >
@@ -22,16 +23,16 @@ export function Hero() {
         </p>
         <h1
           id="hero-title"
-          className="m-0 mb-[clamp(14px,4svh,28px)] max-w-[15ch] font-display text-display-xl font-semibold"
+          className=" m-0 mb-[clamp(14px,4svh,28px)] max-w-[15ch] font-display text-display-xl font-semibold"
         >
           I build whole products, end to end, built properly and shipped quickly
           with AI in the workflow.
         </h1>
-        <p className="m-0 mb-[clamp(18px,4.3svh,30px)] max-w-measure text-lede text-muted">
+        <p className=" m-0 mb-[clamp(18px,4.3svh,30px)] max-w-measure text-lede text-muted">
           Front end, back end, agents and the cloud underneath. Scroll down and
           watch one of them assemble.
         </p>
-        <div className="flex flex-wrap gap-3">
+        <div className=" flex flex-wrap gap-3">
           <EnquiryButton />
           <CVRequestButton variant="ghost" />
         </div>
