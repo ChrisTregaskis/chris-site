@@ -4,6 +4,7 @@ import {
   milestonesPassed,
   pinTopFor,
   runwayProgress,
+  runwayTail,
   stickyProgress,
   viewportProgress,
 } from "./scrollProgress";
@@ -48,6 +49,14 @@ describe("scroll progress", () => {
     expect(pinTopFor(568, 576, 68)).toBe(-24);
     // No bar: centred, as before.
     expect(pinTopFor(600, 500)).toBe(50);
+  });
+
+  it("holds a pinned panel until what follows can enter only once its runway is done", () => {
+    // 900 viewport, 550 panel pinned at 175: 175px of room under it.
+    expect(runwayTail(900, 175, 550)).toBe(175);
+    expect(runwayTail(900, 175, 550, 135)).toBe(310);
+    // A panel that fills the room needs only the hold.
+    expect(runwayTail(667, 84, 600, 100)).toBe(100);
   });
 
   it("places each milestone a fifth of the way into its share of the run", () => {

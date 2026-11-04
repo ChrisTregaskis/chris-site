@@ -194,6 +194,25 @@
 :root[data-look="d"] .lk-step-card[data-on] .lk-step-badge {
   background: none;
   color: rgb(var(--color-accent));
+  animation: d-numeral-focus var(--duration-slow) var(--ease-enter) both;
+}
+/* The numeral comes into focus as its step becomes the selected one: from
+   a touch soft, small and faint to sharp and lilac. Only the numeral moves;
+   the step's text eases between its tones as before. */
+@keyframes d-numeral-focus {
+  from {
+    opacity: 0.45;
+    filter: blur(3px);
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+:root[data-look="d"] .lk-step-badge {
+  transform-origin: left 70%;
 }
 :root[data-look="d"] .lk-step-kicker {
   display: block;
@@ -228,6 +247,9 @@
   :root[data-look="d"] .lk-step-badge,
   :root[data-look="d"] .lk-step-heading {
     transition: none;
+  }
+  :root[data-look="d"] .lk-step-card[data-on] .lk-step-badge {
+    animation: none;
   }
 }
 
@@ -340,11 +362,18 @@
   color: rgb(var(--color-accent));
 }
 
-/* How it was built: the bench is an open note beside its flask. */
+/* How it was built: the bench is an open note beside its flask, set to the
+   lane's end under Review gates and Ship, the stages it guards. */
 :root[data-look="d"] .lk-bench {
   border-color: transparent;
   background: none;
   padding: 0;
+}
+@media (min-width: 861px) {
+  :root[data-look="d"] .lk-bench {
+    grid-column: 3 / span 3;
+    justify-self: end;
+  }
 }
 :root[data-look="d"] .lk-bench-icon {
   width: auto;

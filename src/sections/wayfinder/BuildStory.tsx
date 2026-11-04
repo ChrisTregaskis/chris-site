@@ -95,10 +95,16 @@ export function BuildStory() {
 
   return (
     <>
+      {/* An in-page link lands where the lane pins with its line undrawn. */}
       <div
         ref={runRef}
+        id="how-it-was-built"
         className="relative"
-        style={layout ? { height: layout.height } : undefined}
+        style={
+          layout
+            ? { height: layout.height, scrollMarginTop: layout.pinTop }
+            : undefined
+        }
       >
         <section
           ref={sectionRef}

@@ -7,17 +7,28 @@ import { Contact } from "@/sections/contact/Contact";
 import { Hero } from "@/sections/hero/Hero";
 import { PhysioSection } from "@/sections/physio/PhysioSection";
 import { WayfinderSection } from "@/sections/wayfinder/WayfinderSection";
+import { useAnchorScroll } from "@/hooks/useAnchorScroll";
 import { Container } from "@/ui/atoms/Container";
-import { TopNav } from "@/ui/molecules/TopNav";
+import { type TopNavLink, TopNav } from "@/ui/molecules/TopNav";
+import { type NavMenuItem, NavMenu } from "@/ui/organisms/NavMenu";
 
-const NAV_LINKS = [
-  { href: "#work", label: "Work" },
+/** The Work menu: each case study by its number, straight to its opener. */
+const WORK_ITEMS: NavMenuItem[] = [
+  { href: "#work", label: "Wayfinder", numeral: "1" },
+  { href: "#how-it-was-built", label: "How it was built", sub: true },
+  { href: "#physio", label: "Physio and wellness SaaS", numeral: "2" },
+  { href: "#burpees", label: "Badass Burpees", numeral: "3" },
+];
+
+const NAV_LINKS: TopNavLink[] = [
+  { label: "Work", control: <NavMenu label="Work" items={WORK_ITEMS} /> },
   { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
 
 /** chris-tregaskis.uk: one long page, a sticky top bar, and the enquiry and CV drawers. */
 export function App() {
+  useAnchorScroll();
   return (
     <>
       <a

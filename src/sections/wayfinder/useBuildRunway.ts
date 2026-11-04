@@ -5,6 +5,7 @@ import {
   milestonesPassed,
   pinTopFor,
   runwayProgress,
+  runwayTail,
 } from "@/lib/scrollProgress";
 import { topClearance } from "@/lib/topClearance";
 
@@ -14,15 +15,22 @@ interface Layout {
   /** Where the section pins, from the viewport top. */
   pinTop: number;
   runway: number;
+  /** Extra run after the runway, so the next section enters only once the lane has finished. */
+  tail: number;
 }
+
+/** How long the finished lane holds before the next section enters, as a share of the viewport. */
+const HOLD = 0.12;
 
 /**
  * The b3 build lane: the section pins in the middle of the screen (clear of
  * the sticky bar, or bottom-aligned when it can't fit beneath it) while a
  * runway of 2.5 times the track's height (at least 30% of the viewport) plays
  * the track out, so a quick flick can't skip it. Writes the fill straight to
- * the track (`--p`) and reports how many steps are lit. Static (reduced
- * motion): no runway, everything lit.
+ * the track (`--p`) and reports how many steps are lit. The run then holds
+ * the finished lane pinned until the next section has room to enter, so it
+ * never arrives while the line is still drawing. Static (reduced motion): no
+ * runway, everything lit.
  */
 export function useBuildRunway(
   steps: number,
@@ -45,17 +53,21 @@ export function useBuildRunway(
     }
     const height = section.offsetHeight;
     const runway = Math.max(track.offsetHeight * 2.5, window.innerHeight * 0.3);
-    const next = {
-      height: height + runway,
-      pinTop: pinTopFor(window.innerHeight, height, topClearance()),
-      runway,
-    };
+    const pinTop = pinTopFor(window.innerHeight, height, topClearance());
+    const tail = runwayTail(
+      window.innerHeight,
+      pinTop,
+      height,
+      window.innerHeight * HOLD,
+    );
+    const next = { height: height + runway + tail, pinTop, runway, tail };
     // Keep the same object when nothing moved, so a resize that changes
     // nothing here (most of them) doesn't re-render the lane.
     setLayout((previous) =>
       previous?.height === next.height &&
       previous.pinTop === next.pinTop &&
-      previous.runway === next.runway
+      previous.runway === next.runway &&
+      previous.tail === next.tail
         ? previous
         : next,
     );

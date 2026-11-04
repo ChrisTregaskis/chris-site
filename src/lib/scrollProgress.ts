@@ -67,6 +67,21 @@ export function pinTopFor(
     : top;
 }
 
+/**
+ * How much longer a pinned panel's run should be than its runway, so what
+ * follows it doesn't enter until the runway has played out: the room under
+ * the pinned panel (which would otherwise show the next section early), plus
+ * a short `hold` on the finished state.
+ */
+export function runwayTail(
+  viewportHeight: number,
+  pinTop: number,
+  height: number,
+  hold = 0,
+): number {
+  return Math.max(0, viewportHeight - pinTop - height) + Math.max(0, hold);
+}
+
 /** Where milestone `index` (0-based) of `count` lights, as a 0 to 1 progress. */
 export function milestoneAt(index: number, count: number): number {
   return (index + 0.2) / count;

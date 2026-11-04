@@ -1,4 +1,5 @@
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { renderWithProviders } from "@/test/renderWithProviders";
@@ -67,5 +68,50 @@ describe("App under reduced motion", () => {
         name: /^See the atomic design system\s*\(opens in a new tab\)$/,
       }),
     ).toHaveAttribute("href", "https://badass-burpees.app/design");
+  });
+
+  it("takes in-page links straight to their section, updates the hash and moves focus to its heading", async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.fn();
+    vi.stubGlobal("scrollTo", scrollTo);
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole("link", { name: "About" }));
+    expect(scrollTo).toHaveBeenCalledWith(
+      expect.objectContaining({ behavior: "instant" }),
+    );
+    expect(window.location.hash).toBe("#about");
+    expect(screen.getByRole("heading", { name: "About" })).toHaveFocus();
+  });
+
+  it("offers each case study from the Work menu, each to a target on the page", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("scrollTo", vi.fn());
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Work" }));
+    const links = screen
+      .getAllByRole("link")
+      .filter((link) => link.closest("nav"))
+      .filter((link) => !["About", "Contact"].includes(link.textContent));
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "#work",
+      "#how-it-was-built",
+      "#physio",
+      "#burpees",
+    ]);
+    for (const link of links) {
+      const id = (link.getAttribute("href") ?? "").slice(1);
+      expect(document.getElementById(id)).not.toBeNull();
+    }
+
+    await user.click(screen.getByRole("link", { name: "Badass Burpees" }));
+    expect(screen.getByRole("button", { name: "Work" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(
+      screen.getByRole("heading", { name: "Badass Burpees" }),
+    ).toHaveFocus();
   });
 });

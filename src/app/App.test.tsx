@@ -14,11 +14,15 @@ describe("App", () => {
       }),
     ).toBeInTheDocument();
     const nav = screen.getByRole("navigation", { name: "Primary" });
+    expect(within(nav).getByRole("button", { name: "Work" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     expect(
       within(nav)
         .getAllByRole("link")
         .map((link) => link.getAttribute("href")),
-    ).toEqual(["#work", "#about", "#contact"]);
+    ).toEqual(["#about", "#contact"]);
   });
 
   it("tells the story in order: the work, how it's built, about and contact", () => {
@@ -72,10 +76,12 @@ describe("App", () => {
     const contact = screen.getByRole("region", {
       name: "Let's work together.",
     });
-    // The bar has one action, and it's Get in touch.
+    // The bar has one action, and it's Get in touch (Work is a menu in the nav).
+    const nav = within(bar).getByRole("navigation", { name: "Primary" });
     expect(
       within(bar)
         .getAllByRole("button")
+        .filter((b) => !nav.contains(b))
         .map((b) => b.textContent),
     ).toEqual(["Get in touch"]);
     // Hero and Contact: Get in touch first, Request my CV second.
