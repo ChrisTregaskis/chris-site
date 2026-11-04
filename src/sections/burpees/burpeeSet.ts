@@ -1,4 +1,4 @@
-/** The app's Navy SEAL burpee, one pose per 800ms beat (the app's own timing). Beat numbers show on the counted moves. */
+/** The app's Navy SEAL burpee, one pose per 800ms beat (the app's own timing). Beat numbers mark the counted moves. */
 export const SEAL_BEAT_MS = 800;
 
 export type Pose =
@@ -35,23 +35,5 @@ export const SEAL: readonly (readonly [Pose, number | null])[] = [
   ["stand", null],
 ];
 
-/** The frame shown when nothing moves (reduced motion): knee drive, beat 6. */
-export const STILL_FRAME = SEAL[6];
-
-export const REPS = 100;
-const SET_SECONDS = 20 * 60;
-/** The ring's circumference (r = 44). */
-export const RING_LENGTH = 276.5;
-
-const two = (n: number) => String(n).padStart(2, "0");
-
-/** The phone's readout at a 0 to 1 point through the set: reps done, ring offset, bar fill (0 to 1), pacing line. */
-export function setReadout(progress: number) {
-  const left = Math.round(SET_SECONDS * (1 - progress));
-  return {
-    reps: Math.round(progress * REPS),
-    ringOffset: RING_LENGTH * (1 - progress),
-    barFill: progress,
-    clock: `One every 12.0s, ${two(Math.floor(left / 60))}:${two(left % 60)} left`,
-  };
-}
+/** The pose held when nothing moves (reduced motion): a knee drive, beat 6. */
+export const STILL_POSE: Pose = SEAL[6][0];

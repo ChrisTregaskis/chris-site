@@ -73,13 +73,20 @@ describe("App under reduced motion", () => {
     expect(bench).not.toHaveStyle({ opacity: "0" });
   });
 
-  it("shows a finished Badass Burpees set", () => {
+  it("shows a finished Badass Burpees set, every call listed", async () => {
     renderWithProviders(<App />);
     const burpees = screen.getByRole("region", { name: "Badass Burpees" });
-    expect(within(burpees).getByText("100")).toBeInTheDocument();
+    // The set loads on its own.
+    expect(await within(burpees).findByText("100")).toBeInTheDocument();
     expect(
-      within(burpees).getByText("One every 12.0s, 00:00 left"),
+      within(burpees).getByText(
+        "Built for one, and shared with everyone for free.",
+        {
+          selector: "p",
+        },
+      ),
     ).toBeInTheDocument();
+    expect(burpees.querySelector(".sticky")).toBeNull();
     expect(
       within(burpees).getByRole("link", { name: /Open badass-burpees.app/ }),
     ).toHaveAttribute("href", "https://badass-burpees.app/");
