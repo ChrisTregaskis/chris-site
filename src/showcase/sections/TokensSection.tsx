@@ -97,7 +97,6 @@ const RADII = [
 const SHADOWS = [
   { name: "popover", className: "shadow-popover" },
   { name: "float", className: "shadow-float" },
-  { name: "phone", className: "shadow-phone" },
   { name: "drawer", className: "shadow-drawer" },
   { name: "focus-glow", className: "shadow-focus-glow" },
   { name: "ring-line", className: "shadow-ring-line" },
