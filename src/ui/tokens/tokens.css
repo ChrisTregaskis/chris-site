@@ -108,4 +108,22 @@
   --stagger-tight: 50ms;
   --stagger-base: 150ms;
   --stagger-loose: 300ms;
+
+  /* Scroll-feel prototype a, the night sky (?scroll=a only). Three tiles of
+     faint stars at different sizes, layered so the field never visibly
+     repeats, drawn at --sky-glow. Over the sky, each chapter's tone plate
+     becomes a veil: the tone's veil colour at --tone-veil, which lands on
+     exactly the tone over surface while the sky shows through it.
+     veil = (tone - (1 - a) x surface) / a, with a = --tone-veil. */
+  --sky-stars-fine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Ccircle cx='9' cy='30' r='0.79' fill='%23ECEBFA' fill-opacity='0.59'/%3E%3Ccircle cx='219' cy='171' r='0.64' fill='%23ECEBFA' fill-opacity='0.43'/%3E%3Ccircle cx='232' cy='305' r='0.58' fill='%23ECEBFA' fill-opacity='0.40'/%3E%3Ccircle cx='319' cy='218' r='0.56' fill='%23ECEBFA' fill-opacity='0.48'/%3E%3Ccircle cx='125' cy='224' r='0.59' fill='%23ECEBFA' fill-opacity='0.69'/%3E%3Ccircle cx='106' cy='366' r='0.56' fill='%23ECEBFA' fill-opacity='0.40'/%3E%3Ccircle cx='68' cy='124' r='0.66' fill='%23ECEBFA' fill-opacity='0.62'/%3E%3Ccircle cx='35' cy='380' r='0.67' fill='%23ECEBFA' fill-opacity='0.57'/%3E%3Ccircle cx='284' cy='402' r='0.69' fill='%23ECEBFA' fill-opacity='0.67'/%3E%3C/svg%3E");
+  --sky-stars-mid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='660' height='660'%3E%3Ccircle cx='64' cy='49' r='0.87' fill='%23ECEBFA' fill-opacity='0.57'/%3E%3Ccircle cx='215' cy='144' r='0.83' fill='%23B8A6FF' fill-opacity='0.83'/%3E%3Ccircle cx='543' cy='10' r='0.90' fill='%23ECEBFA' fill-opacity='0.53'/%3E%3Ccircle cx='60' cy='647' r='0.94' fill='%23ECEBFA' fill-opacity='0.64'/%3E%3Ccircle cx='487' cy='40' r='0.81' fill='%23ECEBFA' fill-opacity='0.71'/%3E%3Ccircle cx='647' cy='143' r='0.95' fill='%23ECEBFA' fill-opacity='0.54'/%3E%3C/svg%3E");
+  --sky-stars-bright: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1020' height='1020'%3E%3Ccircle cx='677' cy='32' r='1.24' fill='%23FFC15E' fill-opacity='0.73'/%3E%3Ccircle cx='297' cy='792' r='1.06' fill='%23B8A6FF' fill-opacity='0.65'/%3E%3Ccircle cx='415' cy='294' r='1.25' fill='%23ECEBFA' fill-opacity='0.67'/%3E%3C/svg%3E");
+  --sky-glow: 0.6;
+  --sky-lag: 20%; /* how far the field falls behind the page over the whole scroll */
+  --tone-veil: 0.25;
+  --color-veil-base: 19 20 46;
+  --color-veil-wayfinder: 43 48 126;
+  --color-veil-physio: 11 56 70;
+  --color-veil-burpees: 75 28 38;
+  --color-veil-about: 35 28 70;
 }

@@ -16,6 +16,8 @@ export interface ChapterTone {
  * The custom properties a `.chapter-tone` element reads, as inline style.
  * Inside the chapter, surface is its tone, so anything drawn in surface
  * (the figure's pipe gaps, a pinned stage's backing) sits on it seamlessly.
+ * The veils are the same two tones as see-through plates, which only the
+ * night-sky prototype (`?scroll=a`) draws.
  */
 export function chapterToneStyle({
   from,
@@ -25,6 +27,8 @@ export function chapterToneStyle({
   return {
     "--tone-from": `var(--color-tone-${from})`,
     "--tone-to": `var(--color-tone-${to})`,
+    "--tone-from-veil": `var(--color-veil-${from})`,
+    "--tone-to-veil": `var(--color-veil-${to})`,
     ...(feather ? { "--tone-feather": feather } : {}),
     ...(to === "base" ? {} : { "--color-surface": `var(--color-tone-${to})` }),
   } as CSSProperties;

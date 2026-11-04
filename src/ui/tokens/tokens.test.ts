@@ -90,4 +90,18 @@ describe("colour tokens", () => {
   it("draws the chat widget's input bar at 3:1 against the white widget", () => {
     expect(contrast("chat-field", "chat-surface")).toBeGreaterThanOrEqual(3);
   });
+
+  it("lands each night-sky veil on exactly its tone over surface", () => {
+    const colours = cssVars("color");
+    const alpha = Number(/--tone-veil:\s*([\d.]+);/.exec(css)?.[1]);
+    const channels = (name: string) => colours[name].split(/\s+/).map(Number);
+    const surface = channels("surface");
+    for (const tone of ["base", "wayfinder", "physio", "burpees", "about"]) {
+      const veil = channels(`veil-${tone}`);
+      channels(`tone-${tone}`).forEach((channel, i) => {
+        const landed = alpha * veil[i] + (1 - alpha) * surface[i];
+        expect(Math.abs(landed - channel), tone).toBeLessThanOrEqual(0.5);
+      });
+    }
+  });
 });

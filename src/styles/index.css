@@ -70,6 +70,78 @@
   }
 }
 
+@layer components {
+  /*
+   * Scroll-feel prototype a, the night sky (?scroll=a; see
+   * features/scroll-feel). A faint star field on the page's ground, the
+   * page's backmost layer: behind every chapter's tone and everything on it.
+   * It spans the whole document (the body is its containing block) and is
+   * pushed down by --sky-lag of its height over the whole scroll, so it
+   * travels a little slower than the content, and keeps moving while a
+   * chapter's stage is pinned. A CSS scroll-driven animation, so it runs on
+   * the compositor with no script; where those aren't supported, and under
+   * reduced motion, the field simply sits still on the page.
+   */
+  [data-scroll="a"] body {
+    position: relative;
+  }
+  .night-sky {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .night-sky::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: var(--sky-glow);
+    background-image:
+      var(--sky-stars-bright), var(--sky-stars-mid), var(--sky-stars-fine);
+    background-size:
+      1020px 1020px,
+      660px 660px,
+      420px 420px;
+    background-position:
+      37% 0,
+      71% 0,
+      0 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      .night-sky::before {
+        animation: night-sky-drift linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+  @keyframes night-sky-drift {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(0, var(--sky-lag), 0);
+    }
+  }
+  /*
+   * Over the sky, each tone plate is a veil: the same fade, drawn see-through
+   * in veil colours that land on exactly the tone over surface (tokens.css),
+   * so the chapters look as they always do with the stars showing through.
+   * The plates meet edge to edge here, since two see-through plates
+   * overlapping by a pixel would draw a seam.
+   */
+  [data-scroll="a"] .chapter-tone::before {
+    top: 0;
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--tone-from-veil) / var(--tone-veil)) 0,
+      rgb(var(--tone-to-veil) / var(--tone-veil)) var(--tone-feather, 360px),
+      rgb(var(--tone-to-veil) / var(--tone-veil)) 100%
+    );
+  }
+}
+
 @layer utilities {
   /*
    * An inactive step card: its text one tone quieter rather than see-through,

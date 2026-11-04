@@ -1,5 +1,6 @@
 import { CVDrawer } from "@/features/cv-request";
 import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
+import { NightSky, useScrollFeel } from "@/features/scroll-feel";
 import { AboutSection } from "@/sections/about/AboutSection";
 import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
 import { Contact } from "@/sections/contact/Contact";
@@ -28,8 +29,10 @@ const NAV_LINKS: TopNavLink[] = [
 /** chris-tregaskis.uk: one long page, a sticky top bar, and the enquiry and CV drawers. */
 export function App() {
   useAnchorScroll();
+  const scrollFeel = useScrollFeel();
   return (
     <>
+      {scrollFeel === "a" ? <NightSky /> : null}
       <a
         href="#main"
         className="sr-only z-50 rounded-badge bg-accent px-4 py-2 font-semibold text-on-accent focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
