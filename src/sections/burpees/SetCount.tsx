@@ -1,4 +1,5 @@
-import { COUNT_TYPE, FITTED_COUNT_SIZE } from "./countType";
+import { type CSSProperties } from "react";
+import { COUNT_TYPE, FITTED_COUNT_SIZE, STRAIN_STROKE_EM } from "./countType";
 import { SealFigure } from "./SealFigure";
 
 interface SetCountProps {
@@ -21,6 +22,11 @@ export function SetCount({
     <div
       data-testid="burpees-count"
       className={`relative col-start-1 row-start-1 ${COUNT_TYPE} ${FITTED_COUNT_SIZE}${strain ? " set-strain" : ""}`}
+      style={
+        strain
+          ? ({ "--strain-stroke": `${STRAIN_STROKE_EM}em` } as CSSProperties)
+          : undefined
+      }
     >
       {reps}
       <SealFigure baseline={baseline} still={still} />

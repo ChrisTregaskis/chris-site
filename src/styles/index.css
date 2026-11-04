@@ -325,7 +325,9 @@
       var(--strain-rise) * var(--strain-rise),
       clamp(0, (1 - var(--set-p, 0)) / 0.1, 1)
     );
-    -webkit-text-stroke: calc(var(--strain) * 0.035em) currentColor;
+    /* At most --strain-stroke (STRAIN_STROKE_EM, which the layout allows for). */
+    -webkit-text-stroke: calc(var(--strain) * var(--strain-stroke, 0em))
+      currentColor;
   }
 }
 

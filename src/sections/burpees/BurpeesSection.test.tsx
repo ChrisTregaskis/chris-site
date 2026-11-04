@@ -2,6 +2,7 @@ import { act, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BurpeesSection } from "./BurpeesSection";
 import { CALLS } from "./calls";
+import { STRAIN_OUTSET_EM, STRAIN_STROKE_EM } from "./countType";
 import { RUN_HEIGHT } from "./stageRun";
 import { AppProviders } from "@/app/AppProviders";
 import { renderWithProviders } from "@/test/renderWithProviders";
@@ -203,8 +204,46 @@ describe("BurpeesSection", () => {
     await nearSet();
     const stage = count().closest("[aria-hidden='true']") as HTMLElement;
     expect(count()).toHaveClass("set-strain");
+    expect(count().style.getPropertyValue("--strain-stroke")).toBe(
+      `${STRAIN_STROKE_EM}em`,
+    );
     scrollTo(0.85, at, flush);
     expect(stage.style.getPropertyValue("--set-p")).toBe("0.85");
+  });
+
+  it("prototype c: fits the count with its strained strokes, not just its digits", async () => {
+    // The ruler's digits are drawn at 500px, three of them 1080px wide: a
+    // finished set just fits the 1088px stage, until the strokes widen it.
+    const size = 500;
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation(
+      (element, pseudo) => {
+        const style = real(element, pseudo);
+        if (element.textContent !== "000") return style;
+        return new Proxy(style, {
+          get: (target, key) =>
+            key === "fontSize"
+              ? `${size}px`
+              : (Reflect.get(target, key) as unknown),
+        });
+      },
+    );
+    layOut(() => 0, 1080);
+    render(
+      <AppProviders scrollFeel="c">
+        <BurpeesSection />
+      </AppProviders>,
+    );
+    await nearSet();
+    const fit = () =>
+      Number(
+        (count().parentElement as HTMLElement).style.getPropertyValue(
+          "--count-fit",
+        ),
+      );
+    await vi.waitFor(() => expect(fit()).toBeLessThan(1));
+    const outset = size * STRAIN_OUTSET_EM;
+    expect((1080 + 2 * outset) * fit()).toBeLessThanOrEqual(1088);
   });
 
   it("leaves the count alone on the live site", async () => {
