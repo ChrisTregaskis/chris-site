@@ -1,7 +1,13 @@
 import { motion } from "framer-motion";
-import { type CSSProperties, useEffect, useReducer, useRef } from "react";
+import { type CSSProperties, useReducer } from "react";
 import { ExploreShell } from "./ExploreShell";
-import { INITIAL_LEAK, leakReducer, leakView } from "./leakTest";
+import {
+  INITIAL_LEAK,
+  leakReducer,
+  leakView,
+  type Spot,
+  spotOf,
+} from "./leakTest";
 import {
   type Org,
   ORG_HEADING,
@@ -15,29 +21,28 @@ import { DURATION, EASE } from "@/ui/tokens/motion";
 
 /*
  * Direction C, "One table, three layers", with the query on show. The
- * sessions table is three see-through sheets lying exactly on top of each
- * other, one per organisation, under the query that reads it:
+ * sessions table is three see-through sheets, one per organisation, under
+ * the query that reads it:
  *
- * 1. `select * from sessions` gets every row: one interleaved table.
- * 2. The transaction is stamped with the signed-in organisation, which
- *    filters nothing yet: the sheets sort apart in plain table order, all
- *    equally lit and all inside the one "comes back" bracket, the signed-in
- *    one marked only by a small "current organisation" stamp.
- * 3. The policy slides in as a veil: the signed-in organisation's sheet
- *    comes to the front and glows, well clear of the plane, the others sink
- *    behind it and the bracket closes round the one sheet. Then the leak
- *    test: sign in as any organisation and try to read another's sessions.
- *    The query grows the filter, that organisation's sheet lunges at the
- *    front and falls back behind the veil (which flashes), and the bracket
- *    reads "nothing comes back".
+ * 1. The table at rest: the sheets lie exactly on top of each other as one
+ *    table, every organisation's rows interleaved. No request, no query,
+ *    just the table's name.
+ * 2. A request signed in as Alder: `set local`, then `select * from
+ *    sessions`. The policy is always on, so it slides in as a veil and only
+ *    Alder's sheet comes back: it lifts out in front and glows, while the
+ *    rest of the table stays behind the veil.
+ * 3. The same picture with the policy named, and the leak test: sign in as
+ *    anyone and ask for another organisation's sessions by name. Your own
+ *    sheet drops back into the table, theirs tries to come forward, hits
+ *    the policy and falls back, and the result is an empty sheet.
  *
- * No row counts: the query and the picture carry it, with one visually
- * hidden live line for screen readers. The leak-test state is pure
- * (`leakTest.ts`, tested). The stack is decorative and takes no pointer
- * events: its 3D wrappers project over the buttons below it.
+ * No numbers: the query, the picture and one plain line under the query
+ * carry it (with a screen-reader twin). The state and where each sheet
+ * sits are pure (`leakTest.ts`, tested). The stack is decorative and takes
+ * no pointer events: its 3D wrappers project over the buttons below it.
  *
  * Real CSS 3D (perspective, preserve-3d), no library. Tilts stay shallow so
- * text on the sheets keeps at least 13px on screen.
+ * the text you can see on the sheets stays at about 14px or more on screen.
  */
 
 const W = 460;
@@ -45,75 +50,43 @@ const HEADER = 42;
 const ROW_H = 36;
 const PAD = 12;
 const FULL_H = HEADER + ORG_ROWS.length * ROW_H + PAD;
-/** Room for the stack at its tallest (pulled apart). */
+/** Room for the stack at its tallest. */
 const STACK_H = 450;
-/** Where the front sheet sits once apart: at the foot of the stack. */
-const FRONT_Y = 205;
-/**
- * Sorted apart (stage 2), in table order, front to back from the last:
- * each sheet clears the one in front of it by its own height plus a gap.
- */
-const SORTED_GAP = 34;
-const SORTED_Y = (() => {
-  const heights = ORGS.map(
-    (org) =>
-      HEADER + ORG_ROWS.filter((row) => row.org === org).length * ROW_H + PAD,
-  );
-  const ys: number[] = [];
-  let y = 300;
-  for (let place = ORGS.length - 1; place >= 0; place--) {
-    ys[place] = y;
-    y -= (heights[place - 1] ?? 0) + SORTED_GAP;
-  }
-  return ys;
-})();
+/** The one table at rest: high in the stack, close under its name. */
+const TABLE = { y: -36, z: 0 };
+/** The result: out in front, at the foot of the stack. */
+const RESULT = { y: 205, z: 80 };
+/** The pile behind the policy: its front slot, and each slot further back. */
+const HELD = { y: 40, z: -95, stepY: 64, stepZ: 25 };
+/** The policy plane's top edge and height, with room all round. */
+const PLANE = { y: -60, h: 445 };
+/** The empty result: as big as the largest result, so it covers the pile the same way. */
+const EMPTY_H = HEADER + 3 * ROW_H + PAD;
 
 const MOVE =
-  "transition-[transform,opacity,filter,height] ease-lift motion-reduce:transition-none";
+  "transition-[transform,opacity,height,box-shadow] ease-lift motion-reduce:transition-none";
 
 const timing = (index: number): CSSProperties => ({
   transitionDuration: "var(--duration-apart)",
   transitionDelay: `calc(var(--stagger-base) * ${index})`,
 });
 
-/** The whole stack's view, per stage: a shallow tilt throughout. */
-const VIEW: Record<number, string> = {
-  1: "rotateX(20deg)",
-  2: "rotateX(26deg) rotateZ(-2deg)",
-  3: "rotateX(24deg) rotateZ(-2deg)",
+/** The whole stack's view: flatter at rest, a little more tilted once apart. */
+const VIEW = {
+  rest: "rotateX(20deg)",
+  apart: "rotateX(24deg) rotateZ(-2deg)",
 };
 
-interface Pose {
-  y: number;
-  z: number;
-  opacity: number;
-  blur: number;
-}
-
-/**
- * Where a sheet sits. Lying as one (1). Sorted apart (2), in plain table
- * order by `place` (0 at the back, nobody singled out: nothing is filtered
- * yet). Then (3) by `role`: 0 is the signed-in organisation's, brought to
- * the front well clear of the policy; the rest drop behind it.
- */
-function sheetPose(stage: number, role: number, place: number): Pose {
-  if (stage === 1) return { y: 0, z: 0, opacity: 1, blur: 0 };
-  if (stage === 2) {
-    const back = ORGS.length - 1 - place;
-    return { y: SORTED_Y[place] ?? 0, z: -back * 50, opacity: 1, blur: 0 };
-  }
-  if (role === 0) {
-    return { y: FRONT_Y, z: 80, opacity: 1, blur: 0 };
-  }
+function pose(spot: Spot): { y: number; z: number } {
+  if (spot.at === "table") return TABLE;
+  if (spot.at === "result") return RESULT;
   return {
-    y: FRONT_Y - 200 - (role - 1) * 80,
-    z: -150 - (role - 1) * 60,
-    opacity: 1,
-    blur: 0,
+    y: HELD.y - spot.slot * HELD.stepY,
+    z: HELD.z - spot.slot * HELD.stepZ,
   };
 }
 
-/** A sheet's edge in its organisation's colour; the signed-in one's glows. */
+/** A sheet's edge in its organisation's colour; the result's glows. */
 function edge(org: Org, lit: boolean): string {
   const colour = `var(--color-${ORG_TINT[org].token})`;
   return lit
@@ -123,44 +96,27 @@ function edge(org: Org, lit: boolean): string {
 
 interface SheetProps {
   org: Org;
-  role: number;
-  /** Its place in table order (for the sorted, unfiltered stage). */
-  place: number;
-  /** The organisation on the transaction: carries the stamp. */
-  current: boolean;
-  stage: number;
-  asking: boolean;
-  /** Bumps up against the policy each time this changes (the leak test). */
+  spot: Spot;
+  /** Lunges at the policy each time this changes (the leak test); null when not asked for. */
   bump: number | null;
   still: boolean;
 }
 
 /** One organisation's rows on its own see-through sheet. */
-function Sheet({
-  org,
-  role,
-  place,
-  current,
-  stage,
-  asking,
-  bump,
-  still,
-}: SheetProps) {
-  const apart = stage >= 2;
-  const pose = sheetPose(stage, role, place);
+function Sheet({ org, spot, bump, still }: SheetProps) {
+  const apart = spot.at !== "table";
+  const { y, z } = pose(spot);
   const mine = ORG_ROWS.map((row, index) => ({ row, index })).filter(
     ({ row }) => row.org === org,
   );
   const height = apart ? HEADER + mine.length * ROW_H + PAD : FULL_H;
-  const trying = bump !== null;
-  // Asking for someone else's rows: the signed-in sheet's own rows don't match.
-  const quiet = asking && role === 0;
-  // Only the policy singles a sheet out: the glow is for stage 3.
-  const lit = stage >= 3 && ((role === 0 && !asking) || trying);
-  const order = stage === 2 ? ORGS.length - 1 - place : role;
+  const order = spot.at === "held" ? spot.slot : 0;
+  const lunge = bump !== null && bump > 0 && !still;
 
   return (
     <div
+      data-sheet={org}
+      data-spot={spot.at}
       className={cn(
         MOVE,
         "absolute left-0 top-0 [transform-style:preserve-3d]",
@@ -169,23 +125,25 @@ function Sheet({
         ...timing(order),
         width: W,
         height: FULL_H,
-        transform: `translate3d(0, ${pose.y}px, ${pose.z}px)`,
-        opacity: pose.opacity,
-        filter: `blur(${pose.blur}px)`,
+        transform: `translate3d(0, ${y}px, ${z}px)`,
       }}
     >
       <motion.div
-        key={trying ? `bump-${bump}` : "rest"}
+        key={lunge ? `bump-${bump}` : "rest"}
         className="absolute inset-0 [transform-style:preserve-3d]"
         animate={
-          trying && bump > 0 && !still ? { y: [0, 84, 0, 28, 0] } : undefined
+          lunge ? { y: [0, 48, 0, 16, 0], z: [0, 72, 0, 22, 0] } : undefined
         }
-        transition={{ duration: DURATION.apart, ease: [...EASE.lift] }}
+        transition={{
+          delay: DURATION.state,
+          duration: DURATION.apart,
+          ease: [...EASE.lift],
+          times: [0, 0.32, 0.62, 0.8, 1],
+        }}
       >
         {/* The sheet itself: only there once the table has come apart. */}
         <div
           aria-hidden="true"
-          data-plate={org}
           className={cn(
             MOVE,
             "absolute inset-x-0 top-0 rounded-[14px] bg-raised",
@@ -194,23 +152,13 @@ function Sheet({
           style={{
             ...timing(order),
             height,
-            boxShadow: edge(org, lit),
+            boxShadow: edge(org, spot.at === "result"),
           }}
         />
         <p
           className={cn(
             MOVE,
-            "absolute right-5 top-[11px] m-0 text-[16px] font-medium text-accent",
-            apart && current ? "opacity-100" : "opacity-0",
-          )}
-          style={{ transitionDuration: "var(--duration-slow)" }}
-        >
-          current organisation
-        </p>
-        <p
-          className={cn(
-            MOVE,
-            "absolute left-5 top-[11px] m-0 flex items-center gap-2 text-[17px] font-semibold",
+            "absolute left-5 top-[9px] m-0 flex items-center gap-2 text-[19px] font-semibold",
             ORG_TINT[org].text,
             apart ? "opacity-100" : "opacity-0",
           )}
@@ -227,8 +175,7 @@ function Sheet({
             key={row.label}
             className={cn(
               MOVE,
-              "absolute inset-x-5 grid grid-cols-[12px_1fr_auto] items-center gap-[10px] text-[17px]",
-              quiet ? "text-muted" : "text-ink",
+              "absolute inset-x-5 grid grid-cols-[12px_1fr_auto] items-center gap-[10px] text-[17px] text-ink",
             )}
             style={{
               ...timing(order),
@@ -244,7 +191,7 @@ function Sheet({
             <small
               className={cn(
                 MOVE,
-                "text-[15px] leading-none text-muted",
+                "text-[16px] leading-none text-muted",
                 apart ? "opacity-0" : "opacity-100",
               )}
               style={{ transitionDuration: "var(--duration-slow)" }}
@@ -258,6 +205,38 @@ function Sheet({
   );
 }
 
+interface EmptyResultProps {
+  shown: boolean;
+}
+
+/** Nothing comes back: an empty sheet where the result would be. */
+function EmptyResult({ shown }: EmptyResultProps) {
+  return (
+    <div
+      data-testid="empty-result"
+      data-shown={shown}
+      className={cn(
+        "absolute left-0 top-0 flex items-center justify-center rounded-[14px] border-2 border-dashed border-muted/80 bg-surface transition-opacity motion-reduce:transition-none",
+        shown ? "opacity-100" : "opacity-0",
+      )}
+      style={{
+        // In after the attempt has hit the policy; out at once.
+        transitionDuration: shown
+          ? "var(--duration-slow)"
+          : "var(--duration-fast)",
+        transitionDelay: shown
+          ? "calc(var(--duration-state) + var(--duration-state))"
+          : undefined,
+        width: W,
+        height: EMPTY_H,
+        transform: `translate3d(0, ${RESULT.y}px, ${RESULT.z}px)`,
+      }}
+    >
+      <p className="m-0 text-[19px] font-medium text-muted">No sessions</p>
+    </div>
+  );
+}
+
 interface SignedInPickerProps {
   named: boolean;
   live: boolean;
@@ -265,7 +244,7 @@ interface SignedInPickerProps {
   onPick: (org: Org) => void;
 }
 
-/** Who's asking: shown once the request names its organisation, a picker once the policy is in. */
+/** Who's asking: shown once a request arrives, a picker once the leak test is open. */
 function SignedInPicker({ named, live, who, onPick }: SignedInPickerProps) {
   return (
     <div
@@ -309,17 +288,26 @@ function SignedInPicker({ named, live, who, onPick }: SignedInPickerProps) {
 }
 
 interface PolicyPlaneProps {
+  /** In from the first request on: the policy is always on. */
   live: boolean;
-  /** Flashes each time this changes (an attempt bumping into it); 0 is at rest. */
+  /** Named and brought up for the leak test, which is testing it. */
+  named: boolean;
+  /** Flashes each time this changes (an attempt hitting it); 0 is at rest. */
   pulse: number;
   still: boolean;
 }
 
-/** The policy: a plane slid in under the signed-in organisation's sheet. */
-function PolicyPlane({ live, pulse, still }: PolicyPlaneProps) {
+/** The policy: a veil between the result and the rest of the table. */
+function PolicyPlane({ live, named, pulse, still }: PolicyPlaneProps) {
   const flash = pulse > 0 && !still;
+  const hit = {
+    delay: DURATION.state,
+    duration: DURATION.apart,
+    times: [0, 0.3, 0.42, 1],
+  };
   return (
     <div
+      data-plane
       className={cn(
         MOVE,
         "absolute left-0 top-0 [transform-style:preserve-3d]",
@@ -328,33 +316,56 @@ function PolicyPlane({ live, pulse, still }: PolicyPlaneProps) {
         transitionDuration: "var(--duration-apart)",
         transitionDelay: live ? "var(--duration-state)" : undefined,
         width: W + 80,
-        height: 430,
-        transform: `translate3d(${live ? -40 : -80}px, ${FRONT_Y - 235}px, -40px)`,
+        height: PLANE.h,
+        transform: `translate3d(${live ? -40 : -80}px, ${PLANE.y}px, -40px)`,
         opacity: live ? 1 : 0,
       }}
     >
+      {/* Remounted per attempt, so each one replays the hit. */}
       <motion.div
         key={`plane-${pulse}`}
-        className="absolute inset-0 rounded-[14px] border-2 border-dashed border-accent/70 bg-surface/75"
+        className={cn(
+          "absolute inset-0 rounded-[14px] border-2 border-dashed bg-surface/65 transition-[border-color,box-shadow] duration-slow motion-reduce:transition-none",
+          named
+            ? "border-accent shadow-[0_0_72px_-20px_rgb(var(--color-accent)/0.55)]"
+            : "border-line-strong",
+        )}
         animate={flash ? { scale: [1, 1, 1.015, 1] } : undefined}
-        transition={{
-          duration: DURATION.apart,
-          times: [0, 0.3, 0.42, 1],
-        }}
+        transition={hit}
       >
         <motion.span
           className="absolute inset-0 rounded-[12px] bg-accent"
           initial={{ opacity: 0 }}
           animate={flash ? { opacity: [0, 0, 0.28, 0] } : { opacity: 0 }}
-          transition={{
-            duration: DURATION.apart,
-            times: [0, 0.3, 0.42, 1],
-          }}
+          transition={hit}
         />
-        <p className="absolute right-5 top-3 m-0 whitespace-nowrap text-[16px] font-medium text-accent">
-          policy: organisation_id = current organisation
-        </p>
+        <div className="absolute bottom-3 left-6 whitespace-nowrap">
+          <p
+            className={cn(
+              "m-0 text-[18px] font-semibold text-accent transition-opacity duration-slow motion-reduce:transition-none",
+              named ? "opacity-100" : "opacity-0",
+            )}
+          >
+            row-level security
+          </p>
+          <p
+            className={cn(
+              "m-0 text-[16px] font-medium transition-colors duration-slow motion-reduce:transition-none",
+              named ? "text-accent" : "text-muted",
+            )}
+          >
+            policy: organisation_id = current organisation
+          </p>
+        </div>
       </motion.div>
+      {/* A soft flash, once, as the policy is named for the leak test. */}
+      <motion.span
+        key={named ? "named" : "quiet"}
+        className="absolute inset-0 rounded-[14px] bg-accent"
+        initial={{ opacity: 0 }}
+        animate={named && !still ? { opacity: [0, 0.14, 0] } : { opacity: 0 }}
+        transition={{ duration: DURATION.apart, ease: [...EASE.lift] }}
+      />
     </div>
   );
 }
@@ -367,7 +378,7 @@ interface LeakTestProps {
   onReset: () => void;
 }
 
-/** The leak test, once the policy is in. */
+/** The leak test, in the last step. */
 function LeakTest({ live, target, asking, onTry, onReset }: LeakTestProps) {
   return (
     <div
@@ -407,51 +418,9 @@ interface FigureProps {
 
 function Figure({ stage, still }: FigureProps) {
   const [leak, dispatch] = useReducer(leakReducer, INITIAL_LEAK);
-  const { who, target, asking, returned, outcome } = leakView(stage, leak);
-  const named = stage >= 2;
-  const live = stage >= 3;
-  // Front to back once the policy is in: the signed-in organisation first.
-  const order = [who, ...ORGS.filter((o) => o !== who)];
+  const view = leakView(stage, leak);
+  const { asked, testing, who, target, asking, returned } = view;
   const bump = asking ? leak.attempt : 0;
-
-  // The bracket marks what comes back. The sheets move in 3D, so it reads
-  // their projected boxes each frame while they settle (direct DOM writes).
-  const stackRef = useRef<HTMLDivElement>(null);
-  const bracketRef = useRef<HTMLDivElement>(null);
-  const brackets =
-    stage === 1
-      ? '[data-plate="all"]'
-      : (returned.length ? returned : [who])
-          .map((org) => `[data-plate="${org}"]`)
-          .join(",");
-  useEffect(() => {
-    const stack = stackRef.current;
-    const bracket = bracketRef.current;
-    if (!stack || !bracket) return undefined;
-    let frame = 0;
-    const until = performance.now() + 2800;
-    const fit = () => {
-      const box = stack.getBoundingClientRect();
-      let top = Infinity;
-      let bottom = -Infinity;
-      stack.querySelectorAll(brackets).forEach((plate) => {
-        const rect = plate.getBoundingClientRect();
-        top = Math.min(top, rect.top);
-        bottom = Math.max(bottom, rect.bottom);
-      });
-      if (top < bottom) {
-        bracket.style.top = `${top - box.top}px`;
-        bracket.style.height = `${bottom - top}px`;
-      }
-      if (performance.now() < until) frame = requestAnimationFrame(fit);
-    };
-    fit();
-    return () => cancelAnimationFrame(frame);
-  }, [brackets]);
-
-  let bracketLabel = "comes back";
-  if (!live) bracketLabel = "all of it comes back";
-  else if (asking) bracketLabel = "nothing comes back";
 
   return (
     <figure
@@ -459,48 +428,93 @@ function Figure({ stage, still }: FigureProps) {
       aria-label="A query against one sessions table holding every organisation's rows, drawn as one see-through sheet per organisation"
     >
       <SignedInPicker
-        named={named}
-        live={live}
+        named={asked}
+        live={testing}
         who={who}
         onPick={(org) => dispatch({ type: "pick", org })}
       />
-      {/* The transaction and its query, set as type. */}
-      <div className="mt-3 font-display font-medium tracking-[-0.02em]">
+      {/*
+       * The transaction and its query, set as type (at rest, just the
+       * table's name), then what comes back in one plain line, its twin
+       * speaking it in full. The block keeps room for the leak test's
+       * filter, so the stack below never moves.
+       */}
+      <div className="mt-3 min-h-[132px]">
+        <div className="font-display font-medium tracking-[-0.02em]">
+          <p
+            className={cn(
+              "m-0 text-[22px] leading-[1.25] transition-opacity duration-slow motion-reduce:transition-none",
+              asked ? "opacity-100" : "opacity-0",
+            )}
+            aria-hidden={!asked}
+          >
+            <span className="text-muted">set local</span> organisation ={" "}
+            <span className={ORG_TINT[who].text}>&lsquo;{who}&rsquo;</span>
+          </p>
+          <p className="m-0 text-[30px] leading-[1.25]">
+            {/* The query grows in front of the table's name (0fr to 1fr). */}
+            <span
+              data-testid="query-select"
+              aria-hidden={!asked}
+              className={cn(
+                "inline-grid transition-[grid-template-columns,opacity] duration-slow ease-lift motion-reduce:transition-none",
+                asked
+                  ? "grid-cols-[1fr] opacity-100"
+                  : "grid-cols-[0fr] opacity-0",
+              )}
+            >
+              <span className="overflow-hidden whitespace-nowrap">
+                <span className="text-muted">select</span> *{" "}
+                <span className="text-muted">from</span>&nbsp;
+              </span>
+            </span>
+            sessions
+          </p>
+          <div
+            className={cn(
+              "grid transition-[grid-template-rows,opacity] duration-slow ease-lift motion-reduce:transition-none",
+              asking
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0",
+            )}
+          >
+            <p
+              className="m-0 overflow-hidden whitespace-nowrap text-[30px] leading-[1.25]"
+              aria-hidden={!asking}
+              data-testid="leak-filter"
+            >
+              <span className="text-muted">where</span> organisation_id ={" "}
+              <span className={ORG_TINT[target].text}>
+                &lsquo;{target}&rsquo;
+              </span>
+            </p>
+          </div>
+        </div>
         <p
-          className={cn(
-            "m-0 text-[22px] leading-[1.25] transition-opacity duration-slow motion-reduce:transition-none",
-            named ? "opacity-100" : "opacity-0",
-          )}
+          aria-hidden="true"
+          data-testid="leak-line"
+          className="m-0 mt-1 text-[15px] leading-[1.5] text-ink"
         >
-          <span className="text-muted">set local</span> organisation ={" "}
-          <span className={ORG_TINT[who].text}>&lsquo;{who}&rsquo;</span>
+          <motion.span
+            key={view.line}
+            className="block"
+            initial={still ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: DURATION.slow }}
+          >
+            {view.line}
+          </motion.span>
         </p>
-        <p className="m-0 text-[30px] leading-[1.25]">
-          <span className="text-muted">select</span> *{" "}
-          <span className="text-muted">from</span> sessions
-        </p>
-        <p
-          className={cn(
-            "m-0 min-h-[1.25em] text-[30px] leading-[1.25] transition-opacity duration-slow motion-reduce:transition-none",
-            asking ? "opacity-100" : "opacity-0",
-          )}
-          aria-hidden={!asking}
-          data-testid="leak-filter"
-        >
-          <span className="text-muted">where</span> organisation_id ={" "}
-          <span className={ORG_TINT[target].text}>&lsquo;{target}&rsquo;</span>
+        <p className="sr-only" aria-live="polite">
+          {view.spoken}
         </p>
       </div>
-      <p className="sr-only" aria-live="polite">
-        {outcome}
-      </p>
 
       {/* The table: one see-through sheet per organisation. Decorative (the query and the line above say it), and never in the way of a click. */}
       <div
-        ref={stackRef}
         aria-hidden="true"
         data-testid="leak-stack"
-        className="pointer-events-none relative mt-4 [perspective:1800px] [perspective-origin:50%_100%]"
+        className="pointer-events-none relative mt-5 [perspective:1800px] [perspective-origin:50%_100%]"
         style={{ width: W, height: STACK_H }}
       >
         <div
@@ -510,68 +524,49 @@ function Figure({ stage, still }: FigureProps) {
           )}
           style={{
             transitionDuration: "var(--duration-apart)",
-            transform: VIEW[stage] ?? VIEW[3],
+            transform: asked ? VIEW.apart : VIEW.rest,
           }}
         >
-          {/* The one table's plate, while the sheets still lie as one. */}
+          {/* The one table's plate and its columns, while the sheets lie as one. */}
           <div
-            data-plate="all"
             className={cn(
               MOVE,
               "absolute left-0 top-0 rounded-[14px] bg-raised/60",
-              named ? "opacity-0" : "opacity-100",
+              asked ? "opacity-0" : "opacity-100",
             )}
             style={{
               transitionDuration: "var(--duration-slow)",
               width: W,
               height: FULL_H,
-              transform: "translateZ(-2px)",
+              transform: `translate3d(0, ${TABLE.y}px, ${TABLE.z - 2}px)`,
             }}
           >
-            <p className="absolute left-5 top-[12px] m-0 text-[15px] text-muted">
-              one table, every organisation
+            <p className="absolute inset-x-5 top-[12px] m-0 flex justify-between pl-[22px] text-[17px] text-muted">
+              <span>session</span>
+              <span>organisation_id</span>
             </p>
           </div>
-          {ORGS.map((org, place) => (
+          {ORGS.map((org) => (
             <Sheet
               key={org}
               org={org}
-              role={order.indexOf(org)}
-              place={place}
-              current={org === who}
-              stage={stage}
-              asking={asking}
+              spot={spotOf(view, org)}
               bump={asking && org === target ? bump : null}
               still={still}
             />
           ))}
-          <PolicyPlane live={live} pulse={bump} still={still} />
-        </div>
-        {/* What comes back: one bracket around every sheet in the result. */}
-        <div
-          ref={bracketRef}
-          className="absolute flex items-center"
-          style={{ left: W + 56, top: 0, height: 0 }}
-        >
-          <span
-            className={cn(
-              "h-full w-[10px] rounded-r-[3px] border-y-2 border-r-2",
-              returned.length ? "border-accent" : "border-dashed border-muted",
-            )}
+          <PolicyPlane
+            live={asked}
+            named={testing}
+            pulse={bump}
+            still={still}
           />
-          <span
-            className={cn(
-              "ml-2 whitespace-nowrap text-[15px] font-medium [writing-mode:vertical-rl]",
-              returned.length ? "text-accent" : "text-muted",
-            )}
-          >
-            {bracketLabel}
-          </span>
+          <EmptyResult shown={asked && returned === null} />
         </div>
       </div>
 
       <LeakTest
-        live={live}
+        live={testing}
         target={target}
         asking={asking}
         onTry={() => dispatch({ type: "try" })}
