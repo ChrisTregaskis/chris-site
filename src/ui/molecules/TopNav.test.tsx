@@ -57,6 +57,24 @@ describe("TopNav", () => {
     expect(nav).not.toContainElement(action);
   });
 
+  it("puts a menu beside the action, for the bar to show one or the other", () => {
+    renderWithProviders(
+      <TopNav
+        name="Ada Lovelace"
+        links={[{ href: "#work", label: "Work" }]}
+        action={<button type="button">Get in touch</button>}
+        menu={<button type="button">Menu</button>}
+      />,
+    );
+    const nav = screen.getByRole("navigation", { name: "Primary" });
+    const menu = screen.getByRole("button", { name: "Menu" });
+    const action = screen.getByRole("button", { name: "Get in touch" });
+    expect(nav).not.toContainElement(menu);
+    // Below wide the menu shows and the action doesn't; from wide, the reverse.
+    expect(menu.parentElement).toHaveClass("wide:hidden");
+    expect(action.parentElement).toHaveClass("hidden", "wide:contents");
+  });
+
   it("links the name home when given where home is", () => {
     renderWithProviders(
       <TopNav name="Ada Lovelace" links={[]} homeHref="#top" />,

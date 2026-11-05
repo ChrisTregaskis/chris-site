@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import { TOP_NAV_BAR_CLASSES, TOP_NAV_NAME_CLASSES } from "./topNavClasses";
 
 export type TopNavLink =
   | { href: string; label: string }
@@ -8,24 +9,27 @@ export type TopNavLink =
 export interface TopNavProps {
   name: string;
   links: TopNavLink[];
-  /** A control at the far right that stays visible at every width (the CV button). */
+  /**
+   * A control at the far right (Get in touch). Visible at every width, unless
+   * there is a `menu`: then only from `wide`, and the menu takes its place.
+   */
   action?: ReactNode;
+  /** The phone menu's button, shown below `wide` in place of the links and action. */
+  menu?: ReactNode;
   /** Where the name links to: the top of the page (`#top`). */
   homeHref?: string;
 }
 
 /**
  * The b3 `.top` bar: name left, links right (hidden below `wide`), then an
- * optional action. It doesn't position itself; the page makes it sticky.
+ * optional action, or below `wide` the phone menu. It doesn't position
+ * itself; the page makes it sticky.
  */
-export function TopNav({ name, links, action, homeHref }: TopNavProps) {
+export function TopNav({ name, links, action, menu, homeHref }: TopNavProps) {
   return (
-    <header className="flex h-nav items-center justify-between gap-4 text-body-sm leading-[1.6]">
+    <header className={TOP_NAV_BAR_CLASSES}>
       {homeHref ? (
-        <a
-          href={homeHref}
-          className="font-display text-[18px] font-semibold tracking-[-0.01em] text-ink no-underline focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal"
-        >
+        <a href={homeHref} className={TOP_NAV_NAME_CLASSES}>
           {name}
         </a>
       ) : (
@@ -52,7 +56,16 @@ export function TopNav({ name, links, action, homeHref }: TopNavProps) {
             ),
           )}
         </nav>
-        {action}
+        {menu ? (
+          <>
+            <div className="contents wide:hidden">{menu}</div>
+            {action ? (
+              <div className="hidden wide:contents">{action}</div>
+            ) : null}
+          </>
+        ) : (
+          action
+        )}
       </div>
     </header>
   );
