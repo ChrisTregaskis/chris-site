@@ -10,6 +10,10 @@ import { useAnchorScroll } from "@/hooks/useAnchorScroll";
 import { Container } from "@/ui/atoms/Container";
 import { type TopNavLink, TopNav } from "@/ui/molecules/TopNav";
 import { type NavMenuItem, NavMenu } from "@/ui/organisms/NavMenu";
+import { type PhoneMenuLink, PhoneMenu } from "@/ui/organisms/PhoneMenu";
+
+const NAME = "Chris Tregaskis";
+const HOME_HREF = "#top";
 
 /** The Work menu: each case study by its number, straight to its opener. */
 const WORK_ITEMS: NavMenuItem[] = [
@@ -19,13 +23,21 @@ const WORK_ITEMS: NavMenuItem[] = [
   { href: "#burpees", label: "Badass Burpees", numeral: "3" },
 ];
 
-const NAV_LINKS: TopNavLink[] = [
-  { label: "Work", control: <NavMenu label="Work" items={WORK_ITEMS} /> },
+const PAGE_LINKS: PhoneMenuLink[] = [
   { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
 
-/** chris-tregaskis.uk: one long page, a sticky top bar, and the enquiry and CV drawers. */
+const NAV_LINKS: TopNavLink[] = [
+  { label: "Work", control: <NavMenu label="Work" items={WORK_ITEMS} /> },
+  ...PAGE_LINKS,
+];
+
+/**
+ * chris-tregaskis.uk: one long page, a sticky top bar, and the enquiry and CV
+ * drawers. Below `wide` the bar's links and Get in touch fold into its phone
+ * menu (the same links, Get in touch at the foot).
+ */
 export function App() {
   useAnchorScroll();
   return (
@@ -39,14 +51,23 @@ export function App() {
       <div className="sticky top-0 z-30 bg-gradient-to-b from-surface/70 to-surface/0 backdrop-blur-md">
         <Container>
           <TopNav
-            name="Chris Tregaskis"
-            homeHref="#top"
+            name={NAME}
+            homeHref={HOME_HREF}
             links={NAV_LINKS}
             action={
               <EnquiryButton
                 variant="ghost"
                 size="sm"
                 className="text-accent"
+              />
+            }
+            menu={
+              <PhoneMenu
+                name={NAME}
+                homeHref={HOME_HREF}
+                items={WORK_ITEMS}
+                links={PAGE_LINKS}
+                action={<EnquiryButton />}
               />
             }
           />
