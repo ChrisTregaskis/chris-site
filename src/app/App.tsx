@@ -1,4 +1,4 @@
-import { CVDrawer } from "@/features/cv-request";
+import { CVDrawer, CVRequestButton } from "@/features/cv-request";
 import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
 import { AboutSection } from "@/sections/about/AboutSection";
 import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
@@ -36,7 +36,7 @@ const NAV_LINKS: TopNavLink[] = [
 /**
  * chris-tregaskis.uk: one long page, a sticky top bar, and the enquiry and CV
  * drawers. Below `wide` the bar's links and Get in touch fold into its phone
- * menu (the same links, Get in touch at the foot).
+ * menu (the same links, then Get in touch and Request my CV as links).
  */
 export function App() {
   useAnchorScroll();
@@ -67,7 +67,12 @@ export function App() {
                 homeHref={HOME_HREF}
                 items={WORK_ITEMS}
                 links={PAGE_LINKS}
-                action={<EnquiryButton />}
+                actions={
+                  <>
+                    <EnquiryButton variant="ghost" />
+                    <CVRequestButton variant="ghost" />
+                  </>
+                }
               />
             }
           />
