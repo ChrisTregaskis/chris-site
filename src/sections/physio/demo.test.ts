@@ -1,40 +1,55 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEMO,
-  type DemoAction,
-  demoReducer,
-  type DemoState,
-  INITIAL_DEMO,
-  nextDemoEvent,
+  INITIAL_LOOP,
+  LOOP,
+  type LoopAction,
+  loopReducer,
+  type LoopState,
+  nextLoopEvent,
   nextOrg,
 } from "./demo";
 
-/** Runs the demo on its own for `ms`, as the hook's timer would; returns each state it settles in. */
-function play(from: DemoState, ms: number) {
+/** Runs the loop on its own for `ms`, as the hook's timer would while it's on; returns each state it settles in. */
+function play(from: LoopState, ms: number) {
   let state = from;
   let clock = 0;
-  const seen: { at: number; state: DemoState }[] = [];
-  for (;;) {
-    const { delay, action } = nextDemoEvent(state);
+  const seen: { at: number; state: LoopState }[] = [];
+  while (state.looping) {
+    const { delay, action } = nextLoopEvent(state);
     if (clock + delay > ms) break;
     clock += delay;
-    state = demoReducer(state, action);
+    state = loopReducer(state, action);
     seen.push({ at: clock, state });
   }
   return { state, seen, clock };
 }
 
-const summary = ({ leak, pressing }: DemoState) =>
+const summary = ({ leak, pressing }: LoopState) =>
   pressing
     ? `press ${pressing.kind === "pick" ? pressing.org : pressing.kind}`
     : `${leak.signedIn} ${leak.ask === "other" ? "empty" : "result"}`;
 
-const visitor = (action: DemoAction & { type: "visitor" }) => action;
+const visitor = (action: LoopAction & { type: "visitor" }) => action;
 
-describe("the leak test's demo", () => {
-  it("presses each button before it acts, cycling through every organisation", () => {
-    const { seen } = play(INITIAL_DEMO, 60_000);
-    expect(seen.map(({ state }) => summary(state)).slice(0, 18)).toEqual([
+const started = loopReducer(INITIAL_LOOP, { type: "start" });
+
+describe("the leak test's example loop", () => {
+  it("is off until the visitor turns it on", () => {
+    expect(INITIAL_LOOP.looping).toBe(false);
+    expect(play(INITIAL_LOOP, 60_000).seen).toEqual([]);
+    // Nothing the loop would do on its own lands while it's off.
+    expect(
+      loopReducer(INITIAL_LOOP, { type: "press", move: { kind: "try" } }),
+    ).toBe(INITIAL_LOOP);
+    expect(loopReducer(INITIAL_LOOP, { type: "act" })).toBe(INITIAL_LOOP);
+  });
+
+  it("presses its first button at once when turned on, then each button before it acts, through every organisation", () => {
+    expect(started).toMatchObject({ looping: true, pressing: { kind: "try" } });
+    const { seen } = play(started, 60_000);
+    expect(
+      [started, ...seen.map(({ state }) => state)].map(summary).slice(0, 18),
+    ).toEqual([
       "press try",
       "Alder empty",
       "press reset",
@@ -57,77 +72,65 @@ describe("the leak test's demo", () => {
   });
 
   it("holds a result about three seconds and an empty result long enough to read", () => {
-    const tried = play(INITIAL_DEMO, DEMO.hold + DEMO.press).state;
+    expect(nextLoopEvent(started).delay).toBe(LOOP.press);
+    const tried = play(started, LOOP.press).state;
     expect(summary(tried)).toBe("Alder empty");
-    expect(nextDemoEvent(tried).delay).toBe(DEMO.empty);
-    expect(DEMO.hold).toBeGreaterThanOrEqual(2500);
-    expect(DEMO.hold).toBeLessThanOrEqual(4000);
-    expect(DEMO.empty).toBeGreaterThan(DEMO.hold);
-    expect(nextDemoEvent(INITIAL_DEMO).delay).toBe(DEMO.hold);
+    expect(nextLoopEvent(tried).delay).toBe(LOOP.empty);
+    const reset = loopReducer(
+      loopReducer(tried, { type: "press", move: { kind: "reset" } }),
+      { type: "act" },
+    );
+    expect(nextLoopEvent(reset).delay).toBe(LOOP.hold);
+    expect(LOOP.hold).toBeGreaterThanOrEqual(2500);
+    expect(LOOP.hold).toBeLessThanOrEqual(4000);
+    expect(LOOP.empty).toBeGreaterThan(LOOP.hold);
   });
 
-  it("lets the visitor's move win at once, even mid-press, then waits ten seconds", () => {
-    const pressing = demoReducer(INITIAL_DEMO, {
-      type: "press",
-      move: { kind: "try" },
-    });
-    const picked = demoReducer(
-      pressing,
+  it("stops for good when the visitor uses a button, even mid-press, showing what they asked for", () => {
+    const picked = loopReducer(
+      started,
       visitor({ type: "visitor", action: { type: "pick", org: "Cedar" } }),
     );
-    expect(picked.pressing).toBeNull();
-    expect(picked.leak).toMatchObject({ signedIn: "Cedar", ask: "every" });
-    expect(picked.by).toBe("visitor");
-    const next = nextDemoEvent(picked);
-    expect(next.delay).toBe(DEMO.idle);
-    // It picks up from where the visitor left it: Cedar signed in, so try.
-    expect(next.action).toEqual({ type: "press", move: { kind: "try" } });
+    expect(picked).toMatchObject({
+      looping: false,
+      pressing: null,
+      by: "visitor",
+      leak: { signedIn: "Cedar", ask: "every" },
+    });
+    // It never picks up again by itself.
+    expect(play(picked, 600_000).seen).toEqual([]);
   });
 
-  it("picks up from an empty result the visitor left by clearing it", () => {
-    const tried = demoReducer(
-      INITIAL_DEMO,
+  it("stops when turned off or scrolled away, dropping a press in progress", () => {
+    const stopped = loopReducer(started, { type: "stop" });
+    expect(stopped).toMatchObject({ looping: false, pressing: null });
+    expect(stopped.leak).toEqual(started.leak);
+    expect(loopReducer(stopped, { type: "stop" })).toBe(stopped);
+  });
+
+  it("starts again from where things are: clearing an empty result, or moving on after a reset", () => {
+    const tried = loopReducer(
+      INITIAL_LOOP,
       visitor({ type: "visitor", action: { type: "try" } }),
     );
-    expect(nextDemoEvent(tried)).toEqual({
-      delay: DEMO.idle,
-      action: { type: "press", move: { kind: "reset" } },
+    expect(loopReducer(tried, { type: "start" }).pressing).toEqual({
+      kind: "reset",
     });
-  });
-
-  it("moves to the next organisation after a reset, the visitor's or its own", () => {
-    const reset = demoReducer(
-      demoReducer(
-        INITIAL_DEMO,
-        visitor({ type: "visitor", action: { type: "try" } }),
-      ),
+    const reset = loopReducer(
+      tried,
       visitor({ type: "visitor", action: { type: "reset" } }),
     );
-    expect(nextDemoEvent(reset).action).toEqual({
-      type: "press",
-      move: { kind: "pick", org: "Birch" },
+    expect(loopReducer(reset, { type: "start" }).pressing).toEqual({
+      kind: "pick",
+      org: "Birch",
     });
     expect(nextOrg("Cedar")).toBe("Alder");
-  });
-
-  it("pausing drops a press in progress; playing resumes at its own pace", () => {
-    const pressing = demoReducer(INITIAL_DEMO, {
-      type: "press",
-      move: { kind: "try" },
-    });
-    const paused = demoReducer(pressing, { type: "pause" });
-    expect(paused).toMatchObject({ paused: true, pressing: null });
-    const tried = demoReducer(
-      paused,
-      visitor({ type: "visitor", action: { type: "try" } }),
-    );
-    const playing = demoReducer(tried, { type: "play" });
-    expect(playing.paused).toBe(false);
-    expect(nextDemoEvent(playing).delay).toBe(DEMO.empty);
+    // Turning it on again while it's on changes nothing.
+    expect(loopReducer(started, { type: "start" })).toBe(started);
   });
 
   it("counts each try, so every attempt replays", () => {
-    const { state } = play(INITIAL_DEMO, 40_000);
+    const { state } = play(started, 40_000);
     expect(state.leak.attempt).toBeGreaterThanOrEqual(3);
   });
 });

@@ -1,7 +1,7 @@
 import { type FocusEvent } from "react";
-import { type DemoMove } from "./demo";
+import { type LoopMove } from "./demo";
 import { type Org } from "./organisations";
-import { DEMO_PRESSED, PRESSABLE } from "./pressable";
+import { LOOP_PRESSED, PRESSABLE } from "./pressable";
 import { cn } from "@/lib/cn";
 
 interface LeakTestControlsProps {
@@ -11,23 +11,17 @@ interface LeakTestControlsProps {
   asking: boolean;
   onTry: () => void;
   onReset: () => void;
-  /** The button the demo is pressing, if any. */
-  pressing?: DemoMove | null;
+  /** The button the example loop is pressing, if any. */
+  pressing?: LoopMove | null;
   /** One button at a time (phones): Try, or while asking, ask for every session again. */
   single?: boolean;
-  /** The demo can play: offer to pause or play it. */
-  demo?: boolean;
-  paused?: boolean;
-  onPause?: () => void;
-  onPlay?: () => void;
   focusProps?: {
     onFocus: (event: FocusEvent<HTMLElement>) => void;
-    onBlur: (event: FocusEvent<HTMLElement>) => void;
   };
   className?: string;
 }
 
-/** Try to read another organisation's sessions, ask for every session again, and pause or play the demo. */
+/** Try to read another organisation's sessions, and ask for every session again. */
 export function LeakTestControls({
   live,
   target,
@@ -36,10 +30,6 @@ export function LeakTestControls({
   onReset,
   pressing = null,
   single = false,
-  demo = false,
-  paused = false,
-  onPause,
-  onPlay,
   focusProps,
   className,
 }: LeakTestControlsProps) {
@@ -61,7 +51,7 @@ export function LeakTestControls({
           className={cn(
             "border-0 border-b-2 border-accent bg-transparent p-0 pb-[2px] font-semibold text-accent",
             PRESSABLE,
-            pressing?.kind === "try" && DEMO_PRESSED,
+            pressing?.kind === "try" && LOOP_PRESSED,
           )}
         >
           Try to read {target}&rsquo;s sessions
@@ -84,32 +74,10 @@ export function LeakTestControls({
               : "border-0 bg-transparent p-0 text-muted underline-offset-4 hover:text-ink hover:underline",
             PRESSABLE,
             pressing?.kind === "reset" &&
-              cn(DEMO_PRESSED, single ? undefined : "text-ink"),
+              cn(LOOP_PRESSED, single ? undefined : "text-ink"),
           )}
         >
           Ask for every session again
-        </button>
-      ) : null}
-      {/* Laid out while the row is hidden too (before the last step), so it doesn't wrap anew as the step opens. */}
-      {demo || !live ? (
-        <button
-          type="button"
-          tabIndex={live ? 0 : -1}
-          onClick={paused ? onPlay : onPause}
-          className="ml-auto flex items-center gap-[6px] border-0 bg-transparent p-0 text-[14px] text-muted hover:text-ink"
-        >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 10 10"
-            className="size-[9px] fill-current"
-          >
-            {paused ? (
-              <path d="M2 1l7 4-7 4z" />
-            ) : (
-              <path d="M2 1h2v8H2zM6 1h2v8H6z" />
-            )}
-          </svg>
-          {paused ? "Play demo" : "Pause demo"}
         </button>
       ) : null}
     </div>

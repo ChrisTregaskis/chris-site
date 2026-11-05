@@ -189,11 +189,50 @@ describe("the physio chapter", () => {
     }
   });
 
-  it("offers no demo under reduced motion", () => {
+  it("offers an example loop under the last step's text, off until it's turned on, which any button stops", async () => {
+    // Reduced motion: the loop is still allowed; its moves are instant.
     media();
-    renderWithProviders(<PhysioSection />);
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        callback: IntersectionObserverCallback;
+        constructor(callback: IntersectionObserverCallback) {
+          this.callback = callback;
+        }
+        observe(target: Element) {
+          this.callback(
+            [{ isIntersecting: true, target } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return [];
+        }
+      },
+    );
+    const user = userEvent.setup();
+    await renderDrawn();
     expect(
-      screen.queryByRole("button", { name: /demo/ }),
+      screen.queryByRole("button", { name: /demo/i }),
     ).not.toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: "Loop the example" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    const lastStep = screen.getAllByTestId("step-text")[2];
+    expect(within(lastStep).getByTestId("loop-toggle")).toContainElement(
+      toggle,
+    );
+
+    await user.click(toggle);
+    expect(
+      screen.getByRole("button", { name: "Stop the loop" }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(screen.getByRole("button", { name: "Cedar" }));
+    expect(
+      screen.getByRole("button", { name: "Loop the example" }),
+    ).toHaveAttribute("aria-pressed", "false");
+    expect(spot("Cedar")).toBe("result");
   });
 });

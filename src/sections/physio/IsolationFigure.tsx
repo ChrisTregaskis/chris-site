@@ -112,10 +112,6 @@ export function IsolationFigure({
           onTry={test.tryOther}
           onReset={test.reset}
           pressing={pressing}
-          demo={test.demo}
-          paused={test.paused}
-          onPause={test.pause}
-          onPlay={test.play}
           focusProps={test.focusProps}
           className={depth ? "mt-3" : "mt-4"}
         />
