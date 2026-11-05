@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { STRAIN_OUTSET_EM } from "./countType";
 import {
   COUNT_SHARE,
   MIN_CALLS_PX,
@@ -81,5 +82,72 @@ describe("the stage's layout", () => {
     const a = stageLayout({ ...DESKTOP, digit: 180 });
     expect(sameLayout(a, stageLayout({ ...DESKTOP, digit: 181 }))).toBe(true);
     expect(sameLayout(a, stageLayout({ ...DESKTOP, digit: 470 }))).toBe(false);
+  });
+
+  describe("with the strain's strokes", () => {
+    /** 1440x900's count: min(24vw, 46svh) = 345.6px, so about 6px a side. */
+    const OUTSET = 345.6 * STRAIN_OUTSET_EM;
+
+    it("allows for about 6px a side at a desktop's size", () => {
+      expect(OUTSET).toBeGreaterThan(5.5);
+      expect(OUTSET).toBeLessThanOrEqual(6.1);
+    });
+
+    it("shrinks a straining 100 that would otherwise just fit", () => {
+      // 3 x 362 = 1086px fits 1088 unstrained, not with 6px either side.
+      expect(stageLayout({ ...DESKTOP, digit: 362 }).fit).toBe(1);
+      const { fit } = stageLayout({ ...DESKTOP, digit: 362, outset: OUTSET });
+      expect(fit).toBeLessThan(1);
+      expect((362 * 3 + 2 * OUTSET) * fit).toBeLessThanOrEqual(DESKTOP.width);
+    });
+
+    it("steps the calls clear of two straining digits", () => {
+      const digit = 360;
+      const { fit, beside, push } = stageLayout({
+        ...DESKTOP,
+        digit,
+        outset: OUTSET,
+      });
+      expect(beside).toBe(true);
+      expect(callsLeft + push).toBeGreaterThanOrEqual(
+        (digit * 2 + OUTSET) * fit + DESKTOP.gap,
+      );
+    });
+
+    it("never lets the count run off the stage or into the calls, at any size the browser draws it", () => {
+      const stages = [
+        { width: 800, gap: 38, wide: true },
+        { width: 1088, gap: 72, wide: true },
+        { width: 1400, gap: 72, wide: true },
+        { width: 2000, gap: 72, wide: true },
+        { width: 343, gap: 24, wide: false },
+      ];
+      for (const stage of stages) {
+        const columnPx = (stage.width - stage.gap) * COUNT_SHARE;
+        for (let digit = 60; digit <= 720; digit += 7) {
+          for (const outset of [0, 3, OUTSET, 9, 14]) {
+            const { fit, beside, push } = stageLayout({
+              ...stage,
+              digit,
+              outset,
+            });
+            const at = `${stage.width}px, ${digit}px digits, ${outset}px strokes`;
+            // 100 and its strokes, both sides, on the stage.
+            expect((digit * 3 + 2 * outset) * fit, at).toBeLessThanOrEqual(
+              stage.width + 0.01,
+            );
+            if (!beside) continue;
+            // 99's right edge and its stroke, then the gap, then the calls.
+            expect(columnPx + stage.gap + push, at).toBeGreaterThanOrEqual(
+              (digit * 2 + outset) * fit + stage.gap,
+            );
+            expect(
+              stage.width - (columnPx + stage.gap + push),
+              at,
+            ).toBeGreaterThanOrEqual(MIN_CALLS_PX);
+          }
+        }
+      }
+    });
   });
 });

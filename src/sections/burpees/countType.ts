@@ -15,6 +15,18 @@ export const COUNT_SIZE =
 export const FITTED_COUNT_SIZE =
   "text-[length:calc(min(52vw,30svh)*var(--count-fit,1))] wide:text-[length:calc(min(24vw,46svh)*var(--count-fit,1))]";
 
+/**
+ * The count's strain (`.set-strain`): the widest stroke its digits take on
+ * through the last reps, in ems of its size. The stroke is centred on each
+ * outline, so the digits reach half of it past their edges on either side
+ * (about 6px a side at a 1440px desktop's size), which the stage's layout
+ * allows for (`STRAIN_OUTSET_EM`).
+ */
+export const STRAIN_STROKE_EM = 0.035;
+
+/** How far the strained digits reach past their edges, each side, in ems. */
+export const STRAIN_OUTSET_EM = STRAIN_STROKE_EM / 2;
+
 /** A call as the app says it: display type in the signal colour. */
 export const CALL_TYPE =
   "m-0 font-display text-[clamp(34px,4vw,56px)] font-semibold leading-[1.05] tracking-[-0.02em] text-signal";

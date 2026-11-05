@@ -157,6 +157,8 @@ export function BuildStory() {
                 </li>
               ))}
             </ol>
+            {/* While the lane is pinned, a spark rides the line's head. */}
+            {layout ? <span aria-hidden="true" className="build-head" /> : null}
           </div>
           {stacked ? null : bench}
         </section>

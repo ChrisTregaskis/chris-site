@@ -71,6 +71,8 @@ describe("App under reduced motion", () => {
     const track = within(lane).getByRole("list").parentElement;
     expect(track?.style.getPropertyValue("--p")).toBe("1");
     expect(bench).not.toHaveStyle({ opacity: "0" });
+    // No spark rides it.
+    expect(lane.querySelector(".build-head")).toBeNull();
   });
 
   it("shows a finished Badass Burpees set, every call listed", async () => {
@@ -78,6 +80,10 @@ describe("App under reduced motion", () => {
     const burpees = screen.getByRole("region", { name: "Badass Burpees" });
     // The set loads on its own.
     expect(await within(burpees).findByText("100")).toBeInTheDocument();
+    // Held at 100, its strokes never strain.
+    expect(within(burpees).getByTestId("burpees-count")).not.toHaveClass(
+      "set-strain",
+    );
     expect(
       within(burpees).getByText(
         "Built for one, and shared with everyone for free.",

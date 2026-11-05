@@ -33,6 +33,8 @@ export function useStageLayout(
   grid: RefObject<HTMLElement>,
   ruler: RefObject<HTMLElement>,
   baselineMark: RefObject<HTMLElement>,
+  /** How far the digits' strokes may reach past their edges, each side, in ems (the strain; 0 without it). */
+  outsetEm = 0,
 ): MeasuredLayout {
   const [layout, setLayout] = useState(UNMEASURED);
 
@@ -52,6 +54,7 @@ export function useStageLayout(
           width: stage.getBoundingClientRect().width,
           gap: parseFloat(getComputedStyle(stage).columnGap) || 0,
           digit: box.width / FULL_DIGITS,
+          outset: size > 0 ? size * outsetEm : 0,
           wide: !window.matchMedia(BELOW_WIDE).matches,
         }),
         baseline:
@@ -81,7 +84,7 @@ export function useStageLayout(
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", schedule);
     };
-  }, [grid, ruler, baselineMark]);
+  }, [grid, ruler, baselineMark, outsetEm]);
 
   return layout;
 }
