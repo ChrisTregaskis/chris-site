@@ -57,10 +57,3 @@ export function sheetHeight(spot: Spot, rows: number): number {
     ? TABLE_H
     : SHEET.header + rows * SHEET.row + SHEET.pad;
 }
-
-/**
- * Where the 3D stack fits: a figure column at least ~540px wide beside the
- * steps, and the figure's height (about 630px) under the top bar. Narrower
- * or shorter, the figure is drawn flat.
- */
-export const DEPTH_QUERY = "(min-width: 1140px) and (min-height: 720px)";

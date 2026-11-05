@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { STACK_H } from "./depth/depthGeometry";
+import { type DepthFit, STACK_GAP_CLASS } from "./depth/fitDepth";
 import { FLAT_H } from "./flat/flatGeometry";
 import { LeakTestControls } from "./LeakTestControls";
 import { QueryLines } from "./QueryLines";
@@ -21,8 +22,8 @@ const FlatStack = lazy(() =>
 
 interface IsolationFigureProps {
   test: LeakTest;
-  /** `depth`: the 3D stack, where there's room for it; `flat`: phones and narrow screens. */
-  drawing: "depth" | "flat";
+  /** Where the 3D stack fits, and its scale (`fitDepth`); elsewhere, or before it's measured, the flat drawing. */
+  fit: DepthFit | null;
   /** The picker and the leak test's buttons live in the figure (side by side), or with the last step (stacked). */
   controlsInside: boolean;
   /** Draw the stack (the visitor is near); until then its room is kept empty. */
@@ -37,26 +38,32 @@ interface IsolationFigureProps {
  */
 export function IsolationFigure({
   test,
-  drawing,
+  fit,
   controlsInside,
   drawn,
   still,
 }: IsolationFigureProps) {
   const { view, attempt, pressing } = test;
+  const depth = fit?.depth ? fit : null;
   const room = (
     <div
       aria-hidden="true"
-      className={drawing === "depth" ? "mt-5" : "mt-3"}
-      style={{ height: drawing === "depth" ? STACK_H : FLAT_H }}
+      className={depth ? STACK_GAP_CLASS[depth.query] : "mt-3"}
+      style={{ height: depth ? STACK_H * depth.scale : FLAT_H }}
     />
   );
-  const Stack = drawing === "depth" ? DepthStack : FlatStack;
   return (
     <figure
-      className={cn(
-        "m-0 w-full",
-        drawing === "depth" ? "max-w-[560px]" : "max-w-[480px]",
-      )}
+      className={cn("m-0 w-full", depth ? "max-w-[560px]" : "max-w-[480px]")}
+      // Stacked (tablets held upright), an inset keeps the policy plane's overhang on screen.
+      style={
+        depth?.inset
+          ? {
+              paddingLeft: depth.inset,
+              maxWidth: 560 * depth.scale + depth.inset,
+            }
+          : undefined
+      }
       aria-label="One sessions table holding every organisation's rows, drawn as one sheet per organisation under the query that reads it"
     >
       {controlsInside ? (
@@ -72,7 +79,7 @@ export function IsolationFigure({
       ) : null}
       <QueryLines
         view={view}
-        size={drawing === "depth" ? "large" : "compact"}
+        size={depth ? depth.query : "compact"}
         still={still}
       />
       <p className="sr-only" aria-live="polite">
@@ -80,7 +87,16 @@ export function IsolationFigure({
       </p>
       {drawn ? (
         <Suspense fallback={room}>
-          <Stack view={view} attempt={attempt} still={still} />
+          {depth ? (
+            <DepthStack
+              view={view}
+              attempt={attempt}
+              still={still}
+              fit={depth}
+            />
+          ) : (
+            <FlatStack view={view} attempt={attempt} still={still} />
+          )}
         </Suspense>
       ) : (
         room
@@ -98,7 +114,7 @@ export function IsolationFigure({
           onPause={test.pause}
           onPlay={test.play}
           focusProps={test.focusProps}
-          className={drawing === "flat" ? "mt-4" : "mt-3"}
+          className={depth ? "mt-3" : "mt-4"}
         />
       ) : null}
     </figure>
