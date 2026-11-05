@@ -1,10 +1,8 @@
 import { type RefObject, useEffect, useState } from "react";
-import { fitScale, zoomFor } from "./zoom";
+import { figureEdge, fitScale, zoomFor } from "./zoom";
 import { frameThrottle } from "@/lib/frameThrottle";
 import { topClearance } from "@/lib/topClearance";
 
-/** How close to the window's left edge the grown figure may come, px. */
-const EDGE_PX = 24;
 /** Clear space kept under the top bar, px. */
 const CEILING_PX = 12;
 
@@ -51,7 +49,9 @@ export function useFigureZoom(
           top,
           bottom: top + rect.height,
           ceiling: topClearance() + CEILING_PX,
-          edge: EDGE_PX,
+          edge: figureEdge(
+            getComputedStyle(element).getPropertyValue("--figure-edge"),
+          ),
         });
       }
       // Rounded, so a 1px resize doesn't re-lay every tag.

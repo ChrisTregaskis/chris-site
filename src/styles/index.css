@@ -75,21 +75,27 @@
    * Scroll-feel prototype b, chapter progress (?scroll=b or bc;
    * ChapterRail): a gauge of how far through each case study the visitor
    * is, and of when it's finished. Each case study carries its numeral at
-   * the window's left edge, a book's thumb index, over a short hairline
-   * rail. Violet says how far, as everywhere on the page: the rail fills in
-   * the chapter numeral's violet as the chapter is read (empty as it
-   * reaches the top bar, full once its end is a third of the way up the
-   * window, by when the next chapter has taken over and anything still
-   * playing out at its end, the build lane, has finished), and once it's
-   * full the chapter settles: the hollow numeral fills and the line lights
-   * to lilac. It keeps to the edge because the Wayfinder
-   * figure grows into the margin while apart.
+   * the window's left edge, a book's thumb index, over a small ring and a
+   * short hairline rail, the three centred on the window's height. Violet
+   * says how far, as everywhere on the page: the rail fills in the chapter
+   * numeral's violet as the chapter is read (empty as it reaches the top
+   * bar, full once its end is a third of the way up the window, by when the
+   * next chapter has taken over and anything still playing out at its end,
+   * the build lane, has finished), and once it's full the chapter settles:
+   * the ring fills, and the numeral and the line light to lilac. It keeps to
+   * the edge because the Wayfinder figure grows into the margin while apart,
+   * and the figure keeps clear of it there (--figure-edge, below).
+   *
+   * The numeral's treatment is picked with &num= (data-num), to compare: a,
+   * the chapter's own numeral in miniature (the default); b, light, like a
+   * step's number; c, a small tabular count, the number of case studies
+   * after it.
    *
    * So it never reads as a second scrollbar, a gauge shows only while its
    * chapter is in view: it fades in as the chapter reaches the top, holds
    * its finished state a moment, and fades out before the next one's comes
-   * in. Phones keep the rail alone (no numeral), with
-   * a dot at its head that fills when the chapter is finished.
+   * in. Phones (below sheet) have none at all: the screen is small, and the
+   * dead-zone cues cover the stretches where nothing else moves.
    *
    * All of it is CSS scroll-driven animation on the chapter's view timeline
    * (the column spans the chapter), opacity and transforms only, so it runs
@@ -101,11 +107,23 @@
   }
   @supports (animation-timeline: view()) {
     .chapter-rail {
+      /* The gauge's centre line, in from the window's edge. */
+      --rail-x: clamp(12px, 1.1vw, 20px);
+      /* Its parts' heights, set here so the whole is known and can sit centred. */
+      --rail-label: 22px;
+      --rail-label-gap: 12px;
+      --rail-dot: 7px;
+      --rail-dot-gap: 6px;
+      --rail-track: min(40svh, 360px);
+      --rail-height: calc(
+        var(--rail-label) + var(--rail-label-gap) + var(--rail-dot) +
+          var(--rail-dot-gap) + var(--rail-track)
+      );
       position: absolute;
       top: 0;
       bottom: 0;
       /* From the chapter's centre out to the window's edge, then back in. */
-      left: calc(50% - 50vw + clamp(7px, 1vw, 12px));
+      left: calc(50% - 50vw + var(--rail-x));
       display: block;
       width: 0;
       pointer-events: none;
@@ -113,10 +131,16 @@
       view-timeline-inset: var(--size-nav) 0px;
     }
   }
+  /* The grown Wayfinder figure stops this far from the window's edge (useFigureZoom), clear of the gauge. */
+  :root[data-scroll="b"],
+  :root[data-scroll="bc"] {
+    --figure-edge: 64px;
+  }
   .chapter-rail__pin {
     position: sticky;
-    top: calc(var(--size-nav) + 24px);
-    width: 24px;
+    /* Centred on the window's height, never under the top bar. */
+    top: max(var(--size-nav) + 16px, (100svh - var(--rail-height)) / 2);
+    width: 48px;
     transform: translateX(-50%);
     animation: chapter-rail-in linear both;
     animation-timeline: --chapter-rail;
@@ -126,20 +150,30 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
     animation: chapter-rail-out linear both;
     animation-timeline: --chapter-rail;
     animation-range: exit 36% exit 56%;
   }
-  /* Hollow while the chapter is read; filled (::after) once it's finished. */
+  .chapter-rail__label {
+    display: flex;
+    align-items: baseline;
+    height: var(--rail-label);
+    margin-bottom: var(--rail-label-gap);
+    line-height: var(--rail-label);
+    white-space: nowrap;
+  }
+  /*
+   * a: the chapter's numeral in miniature, as its heading sets it (display
+   * face, bold, its optical size and violet); it lights to lilac (::after)
+   * once the chapter is finished.
+   */
   .chapter-rail__numeral {
     position: relative;
     font-family: var(--font-display);
-    font-size: 15px;
+    font-size: var(--rail-label);
     font-weight: 700;
-    line-height: 1;
-    color: transparent;
-    -webkit-text-stroke: 1px rgb(var(--color-accent));
+    font-variation-settings: "opsz" 96;
+    color: rgb(var(--color-accent-strong));
   }
   .chapter-rail__numeral::after {
     content: attr(data-numeral);
@@ -151,10 +185,85 @@
     animation-timeline: --chapter-rail;
     animation-range: exit 22% exit 33%;
   }
+  /* b: light and a little larger, like a step's number. */
+  .chapter-rail[data-num="b"] {
+    --rail-label: 26px;
+  }
+  .chapter-rail[data-num="b"] .chapter-rail__numeral {
+    font-weight: 300;
+    font-variation-settings: normal;
+  }
+  /*
+   * c: a count in the body face, small and tabular, like the Inside lists'
+   * numbers: the number in lilac (too small for the violet), the total a
+   * line quieter. The ring and the line carry its settling.
+   */
+  .chapter-rail[data-num="c"] {
+    --rail-label: 14px;
+  }
+  .chapter-rail[data-num="c"] .chapter-rail__numeral {
+    font-family: var(--font-body);
+    font-size: calc(var(--rail-label) - 1px);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-variation-settings: normal;
+    color: rgb(var(--color-accent));
+  }
+  .chapter-rail__of {
+    font-family: var(--font-body);
+    font-size: calc(var(--rail-label) - 1px);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--color-line-strong));
+  }
+  /*
+   * Tablets, below wide: the text column starts at the gutter (25 to 34px
+   * in), so the gauge keeps nearer the edge and a size smaller.
+   */
+  @media (max-width: 860px) {
+    .chapter-rail {
+      --rail-x: 10px;
+      --rail-label: 18px;
+    }
+    .chapter-rail[data-num="b"] {
+      --rail-label: 22px;
+    }
+    .chapter-rail[data-num="c"] {
+      --rail-label: 13px;
+    }
+  }
+  /* Phones, below sheet: none. */
+  @media (max-width: 620px) {
+    .chapter-rail {
+      display: none;
+    }
+  }
+  /* The ring at the rail's head, which fills once the chapter is finished. */
+  .chapter-rail__dot {
+    position: relative;
+    flex: none;
+    width: var(--rail-dot);
+    height: var(--rail-dot);
+    margin-bottom: var(--rail-dot-gap);
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1.5px rgb(var(--color-accent));
+  }
+  .chapter-rail__dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgb(var(--color-accent));
+    opacity: 0;
+    animation: chapter-rail-done linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: exit 22% exit 33%;
+  }
   .chapter-rail__track {
     position: relative;
+    flex: none;
     width: 2px;
-    height: min(40svh, 360px);
+    height: var(--rail-track);
     border-radius: 2px;
     background: rgb(var(--color-line) / 0.5);
     overflow: hidden;
@@ -178,28 +287,6 @@
     animation: chapter-rail-done linear both;
     animation-timeline: --chapter-rail;
     animation-range: exit 22% exit 33%;
-  }
-  /* Phones: the rail alone, thinner, headed by a dot rather than the numeral. */
-  @media (max-width: 620px) {
-    .chapter-rail__gauge {
-      gap: 8px;
-    }
-    .chapter-rail__numeral {
-      width: 5px;
-      height: 5px;
-      border-radius: 999px;
-      font-size: 0;
-      -webkit-text-stroke: 0;
-      box-shadow: inset 0 0 0 1px rgb(var(--color-accent));
-    }
-    .chapter-rail__numeral::after {
-      content: "";
-      border-radius: 999px;
-      background: rgb(var(--color-accent));
-    }
-    .chapter-rail__track {
-      width: 1.5px;
-    }
   }
   @media (prefers-reduced-motion: reduce) {
     .chapter-rail__fill {

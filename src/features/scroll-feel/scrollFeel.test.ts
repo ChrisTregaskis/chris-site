@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_RAIL_NUMERAL,
+  railNumeralFrom,
   scrollFeelFrom,
   showsChapterRails,
   showsDeadZoneCues,
@@ -35,5 +37,21 @@ describe("what each prototype shows", () => {
   it("draws neither on the live site", () => {
     expect(showsChapterRails(null)).toBe(false);
     expect(showsDeadZoneCues(null)).toBe(false);
+  });
+});
+
+describe("railNumeralFrom", () => {
+  it("picks a numeral treatment from &num=", () => {
+    expect(railNumeralFrom("?scroll=bc&num=a")).toBe("a");
+    expect(railNumeralFrom("?scroll=bc&num=b")).toBe("b");
+    expect(railNumeralFrom("?num=c&scroll=b")).toBe("c");
+  });
+
+  it("falls back to the recommended one without it, or with anything else", () => {
+    expect(DEFAULT_RAIL_NUMERAL).toBe("a");
+    expect(railNumeralFrom("?scroll=bc")).toBe("a");
+    expect(railNumeralFrom("?scroll=bc&num=")).toBe("a");
+    expect(railNumeralFrom("?scroll=bc&num=d")).toBe("a");
+    expect(railNumeralFrom("?scroll=bc&num=B")).toBe("a");
   });
 });
