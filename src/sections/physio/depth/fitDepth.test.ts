@@ -7,16 +7,28 @@ import { DEPTH_INK, fitDepth, MAX_BOOST, MIN_SCALE } from "./fitDepth";
  * a 1200px container less its gutters, the gap, then the figure's 1.1fr of
  * two columns side by side; the content width stacked.
  */
+function gutterOf(viewport: number): number {
+  return Math.min(56, Math.max(16, viewport * 0.04));
+}
+
 function room(viewport: number, stacked: boolean): number {
-  const gutter = Math.min(56, Math.max(16, viewport * 0.04));
+  const gutter = gutterOf(viewport);
   const content = Math.min(viewport, 1200) - 2 * gutter;
   if (stacked) return content;
   const gap = Math.min(72, Math.max(24, viewport * 0.05));
   return ((content - gap) * 1.1) / 2;
 }
 
+/** The column's left edge on screen: the page's gutter, or more once the 1200px container is centred. */
+const columnLeft = (w: number) => Math.max(gutterOf(w), (w - 1200) / 2 + 56);
+
 const side = (w: number, h: number) =>
-  fitDepth({ width: room(w, false), height: h, stacked: false });
+  fitDepth({
+    width: room(w, false),
+    height: h,
+    stacked: false,
+    gutter: columnLeft(w),
+  });
 const stacked = (w: number, h: number) =>
   fitDepth({ width: room(w, true), height: h, stacked: true });
 
@@ -52,12 +64,29 @@ describe("fitting the 3D stack", () => {
     }
   });
 
-  it("reaches tablets in landscape and windows down to about 910 x 649", () => {
+  it("reaches tablets in landscape and windows down to about 930 x 649", () => {
     expect(side(1024, 700).depth).toBe(true);
-    expect(side(910, 700).depth).toBe(true);
-    expect(side(900, 700).depth).toBe(false);
+    expect(side(930, 700).depth).toBe(true);
+    expect(side(920, 700).depth).toBe(false);
     expect(side(1280, 649).depth).toBe(true);
     expect(side(1280, 640).depth).toBe(false);
+  });
+
+  it("keeps the plane's overhang on screen beside the steps, stepping the figure in where the gutter is narrow", () => {
+    for (let w = 900; w <= 1600; w += 10) {
+      const fit = side(w, 900);
+      if (!fit.depth) continue;
+      const width = room(w, false);
+      const figureLeft = columnLeft(w) + Math.max(0, (width - 560) / 2);
+      const ink = figureLeft + fit.inset - DEPTH_INK.left * fit.scale;
+      expect(ink, `${w}px wide`).toBeGreaterThanOrEqual(7.5);
+      // Its right edge stays within the column and the gap beside it.
+      expect(fit.inset + DEPTH_INK.right * fit.scale).toBeLessThanOrEqual(
+        width + 1,
+      );
+    }
+    expect(side(1024, 768).inset).toBeGreaterThan(0);
+    expect(side(1440, 900).inset).toBe(0);
   });
 
   it("stacks it above the steps on tablets held upright, inset so the plane stays on screen", () => {
