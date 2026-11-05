@@ -7,6 +7,7 @@ import { Drawer } from "@/ui/organisms/Drawer";
 import { NumberedDropdown, pad2 } from "@/ui/organisms/NumberedDropdown";
 import { NavMenu } from "@/ui/organisms/NavMenu";
 import { Odometer } from "@/ui/organisms/Odometer";
+import { PhoneMenu } from "@/ui/organisms/PhoneMenu";
 
 const OPTIONS = [
   { value: 1, label: "A first part" },
@@ -28,8 +29,10 @@ export function OrganismsSection() {
       <p className="mb-6 max-w-measure text-muted">
         NumberedDropdown with an Odometer label (pick 6 from 1 to watch it roll
         through every number), a Drawer (a bottom sheet below 621px), a NavMenu
-        (the top bar's Work disclosure: ArrowDown opens it, Escape closes it)
-        and a RevealList. Placeholder copy.
+        (the top bar's Work disclosure: ArrowDown opens it, Escape closes it), a
+        PhoneMenu (the bar's menu below the wide breakpoint: full screen, the
+        Work entries, the plain links, then the call to action; Close, Escape or
+        choosing anything closes it) and a RevealList. Placeholder copy.
       </p>
       <div className="flex max-w-[460px] items-stretch gap-[10px]">
         <NumberedDropdown
@@ -89,6 +92,23 @@ export function OrganismsSection() {
             { href: "#organisms", label: "A second study", numeral: "2" },
             { href: "#organisms", label: "A third study", numeral: "3" },
           ]}
+        />
+      </div>
+      <div className="mt-8 text-body-sm">
+        <PhoneMenu
+          name="Ada Lovelace"
+          homeHref="#organisms"
+          items={[
+            { href: "#organisms", label: "A first study", numeral: "1" },
+            { href: "#organisms", label: "How it was made", sub: true },
+            { href: "#organisms", label: "A second study", numeral: "2" },
+            { href: "#organisms", label: "A third study", numeral: "3" },
+          ]}
+          links={[
+            { href: "#layout", label: "About" },
+            { href: "#form-fields", label: "Contact" },
+          ]}
+          action={<Button>Say hello</Button>}
         />
       </div>
       <RevealList className="m-0 mt-48 grid list-none gap-4 p-0 sheet:grid-cols-3">
