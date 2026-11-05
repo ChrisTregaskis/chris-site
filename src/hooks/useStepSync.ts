@@ -18,6 +18,12 @@ export interface StepSyncOptions {
   reducedMotion: boolean;
   /** Off: no scroll tracking (e.g. a static layout); clicks still select. */
   enabled?: boolean;
+  /**
+   * Anything other than a resize that moves the focus line, such as a pinned
+   * figure changing height once it's measured: the focus band is measured
+   * again whenever this changes.
+   */
+  remeasure?: unknown;
 }
 
 export interface StepSync {
@@ -50,6 +56,7 @@ export function useStepSync({
   measure,
   reducedMotion,
   enabled = true,
+  remeasure,
 }: StepSyncOptions): StepSync {
   const [current, setCurrent] = useState(0);
   const steps = useRef<(HTMLElement | null)[]>([]);
@@ -126,7 +133,7 @@ export function useStepSync({
       window.clearTimeout(settleTimer.current);
       window.clearTimeout(safetyTimer.current);
     };
-  }, [enabled, release]);
+  }, [enabled, release, remeasure]);
 
   const goTo = useCallback(
     (n: number, { instant = false, align = "focus" }: GoToOptions = {}) => {

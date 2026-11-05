@@ -18,6 +18,7 @@ function fakeObserver() {
     },
   );
   return {
+    count: () => observers.length,
     margin: () => observers.at(-1)?.margin,
     cross: (target: Element) =>
       act(() => observers.at(-1)?.callback([{ isIntersecting: true, target }])),
@@ -31,14 +32,17 @@ function Story({
   reducedMotion = false,
   track,
   align,
+  focusY = 450,
 }: {
   reducedMotion?: boolean;
   track?: "step" | "card";
   align?: "end";
+  focusY?: number;
 }) {
   const { current, stepRef, cardRef, goTo } = useStepSync({
-    measure: () => ({ focusY: 450, topLimit: 20, track }),
+    measure: () => ({ focusY, topLimit: 20, track }),
     reducedMotion,
+    remeasure: focusY,
   });
   return (
     <>
@@ -127,6 +131,18 @@ describe("useStepSync", () => {
     });
     io.cross(screen.getByTestId("step-2"));
     expect(screen.getByRole("status")).toHaveTextContent("2");
+  });
+
+  it("measures the focus band again when told the line has moved", () => {
+    const io = fakeObserver();
+    const { rerender } = render(<Story />);
+    const first = io.margin();
+    rerender(<Story />);
+    expect(io.count()).toBe(1);
+    // A pinned figure grows once it's measured: the line moves down the screen.
+    rerender(<Story focusY={600} />);
+    expect(io.count()).toBe(2);
+    expect(io.margin()).not.toBe(first);
   });
 
   it("can track the cards instead of their scroll boxes (stacked phones)", () => {

@@ -61,15 +61,17 @@ export function PhysioSection() {
     const pinnedTop = parseFloat(getComputedStyle(stage).top) || 0;
     return focusLine(window.innerHeight, pinnedTop + stage.offsetHeight);
   }, []);
+  const fit = useDepthFit(stageRef, stacked);
   const { current, stepRef, cardRef } = useStepSync({
     measure,
     reducedMotion: still,
     enabled: !still,
+    // Stacked, the pinned panel's height (so the reading line) follows the drawing that fits.
+    remeasure: fit,
   });
   const stage = still ? 3 : Math.max(1, current);
   const test = useLeakTest(stage, { still, watch: stageRef });
   const { view, pressing } = test;
-  const fit = useDepthFit(stageRef, stacked);
   const drawn = useNearScreen(stageRef, still);
   const reveal = useMotionPreset("fadeUp");
 
