@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { STACK_H } from "./depth/depthGeometry";
 import { type DepthFit, STACK_GAP_CLASS } from "./depth/fitDepth";
-import { FLAT_H } from "./flat/flatGeometry";
+import { SCENE_BOX_H, ZOOM_CLASSES } from "./glass/glassGeometry";
 import { LeakTestControls } from "./LeakTestControls";
 import { QueryLines } from "./QueryLines";
 import { SignedInPicker } from "./SignedInPicker";
@@ -16,13 +16,13 @@ import { cn } from "@/lib/cn";
 const DepthStack = lazy(() =>
   import("./depth/DepthStack").then((m) => ({ default: m.DepthStack })),
 );
-const FlatStack = lazy(() =>
-  import("./flat/FlatStack").then((m) => ({ default: m.FlatStack })),
+const GlassStack = lazy(() =>
+  import("./glass/GlassStack").then((m) => ({ default: m.GlassStack })),
 );
 
 interface IsolationFigureProps {
   test: LeakTest;
-  /** Where the 3D stack fits, and its scale (`fitDepth`); elsewhere, or before it's measured, the flat drawing. */
+  /** Where the 3D stack fits, and its scale (`fitDepth`); elsewhere, or before it's measured, the glass floor. */
   fit: DepthFit | null;
   /** The picker and the leak test's buttons live in the figure (side by side), or with the last step (stacked). */
   controlsInside: boolean;
@@ -49,12 +49,15 @@ export function IsolationFigure({
     <div
       aria-hidden="true"
       className={depth ? STACK_GAP_CLASS[depth.query] : "mt-3"}
-      style={{ height: depth ? STACK_H * depth.scale : FLAT_H }}
+      style={{ height: depth ? STACK_H * depth.scale : SCENE_BOX_H }}
     />
   );
   return (
     <figure
-      className={cn("m-0 w-full", depth ? "max-w-[560px]" : "max-w-[480px]")}
+      className={cn(
+        "m-0 w-full",
+        depth ? "max-w-[560px]" : ["max-w-[480px]", ZOOM_CLASSES],
+      )}
       // Stacked (tablets held upright), an inset keeps the policy plane's overhang on screen.
       style={
         depth?.inset
@@ -95,7 +98,7 @@ export function IsolationFigure({
               fit={depth}
             />
           ) : (
-            <FlatStack view={view} attempt={attempt} still={still} />
+            <GlassStack view={view} attempt={attempt} still={still} />
           )}
         </Suspense>
       ) : (

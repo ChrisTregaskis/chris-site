@@ -1,6 +1,6 @@
 import { act, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { FLAT_H } from "./flat/flatGeometry";
+import { SCENE_BOX_H } from "./glass/glassGeometry";
 import { IsolationFigure } from "./IsolationFigure";
 import { LINE_GAP, QUERY_LEADING, QUERY_TYPE, SIZES } from "./QueryLines";
 import { ORGS } from "./organisations";
@@ -63,6 +63,6 @@ describe("the phone panel's height", () => {
     expect(states.map((test) => test.view.line)).toContain(
       "The policy holds back Birch's, even when you ask by name.",
     );
-    expect([...seen]).toEqual([`${FLAT_H}px ${SIZES.compact.block}`]);
+    expect([...seen]).toEqual([`${SCENE_BOX_H} ${SIZES.compact.block}`]);
   });
 });
