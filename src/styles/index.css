@@ -28,6 +28,15 @@
     outline: 2px solid rgb(var(--color-signal));
     outline-offset: 3px;
   }
+
+  /*
+   * Focus moved by script after a tap or click (quietFocus) shows no ring;
+   * iOS Safari would paint one. Important, to beat each control's own
+   * focus-visible utilities; the mark clears on the next key press.
+   */
+  [data-quiet-focus]:focus-visible {
+    outline: none !important;
+  }
 }
 
 @layer components {

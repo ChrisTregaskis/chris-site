@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { PhoneMenu } from "./PhoneMenu";
 import { type NavMenuItem } from "./NavMenuLinks";
+import { QUIET_FOCUS_ATTRIBUTE } from "@/lib/quietFocus";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 const ITEMS: NavMenuItem[] = [
@@ -39,7 +40,7 @@ function renderMenu(onAction = vi.fn()) {
 }
 
 describe("PhoneMenu", () => {
-  it("is a Menu button that opens the page's links, focusing the first", async () => {
+  it("is a Menu button that opens the page's links, focus moving into it", async () => {
     const user = userEvent.setup();
     const { button, dialog } = renderMenu();
     expect(button).toHaveAttribute("aria-expanded", "false");
@@ -70,9 +71,35 @@ describe("PhoneMenu", () => {
     expect(
       within(menu).getByRole("button", { name: "Say hello" }),
     ).toBeInTheDocument();
-    expect(
-      within(menu).getByRole("link", { name: "First study" }),
-    ).toHaveFocus();
+    // A click lands focus on the menu itself; the keyboard, on its first link.
+    expect(menu).toHaveFocus();
+  });
+
+  it("shows no focus ring after a tap or click, and shows it after the keyboard", async () => {
+    const user = userEvent.setup();
+    const { button } = renderMenu();
+    const quiet = (element: Element) =>
+      element.hasAttribute(QUIET_FOCUS_ATTRIBUTE);
+
+    // Tapped open: focus on the menu itself, no ring, no link looking chosen.
+    await user.click(button);
+    const menu = screen.getByRole("dialog", { name: "Menu" });
+    expect(menu).toHaveFocus();
+    expect(quiet(menu)).toBe(true);
+    // Tapped shut: focus back on Menu, again with no ring.
+    await user.click(screen.getByRole("button", { name: "Close menu" }));
+    expect(button).toHaveFocus();
+    expect(quiet(button)).toBe(true);
+
+    // From the keyboard, both moves keep their ring.
+    await user.keyboard("{Enter}");
+    const first = screen.getByRole("link", { name: "First study" });
+    expect(first).toHaveFocus();
+    expect(quiet(first)).toBe(false);
+    await user.keyboard("{Escape}");
+    fireEvent(menu, new Event("cancel", { cancelable: true }));
+    expect(button).toHaveFocus();
+    expect(quiet(button)).toBe(false);
   });
 
   it("closes on Escape, handing focus back to the button", async () => {
