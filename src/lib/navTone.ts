@@ -45,3 +45,13 @@ export function toneAt(
     Math.round(from[i] + (to[i] - from[i]) * t),
   ) as unknown as Rgb;
 }
+
+/**
+ * Whether a sticky element is stuck at its `top` offset right now (its box
+ * sits there to within half a pixel), rather than still on its way up or
+ * already pushed off by the end of its container. A `top` of `auto` (NaN)
+ * means it isn't sticky at this width.
+ */
+export function isStuck(rectTop: number, stickyTop: number): boolean {
+  return Number.isFinite(stickyTop) && Math.abs(rectTop - stickyTop) < 0.5;
+}

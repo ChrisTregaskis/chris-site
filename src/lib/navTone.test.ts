@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { featherPx, parseRgb, toneAt } from "./navTone";
+import { featherPx, isStuck, parseRgb, toneAt } from "./navTone";
 
 describe("parseRgb", () => {
   it("reads a tone token's channels", () => {
@@ -44,5 +44,18 @@ describe("toneAt", () => {
   it("clamps above the chapter and survives a zero feather", () => {
     expect(toneAt(from, to, 360, -50)).toEqual(from);
     expect(toneAt(from, to, 0, 0)).toEqual(to);
+  });
+});
+
+describe("isStuck", () => {
+  it("is stuck only while sitting at its sticky offset", () => {
+    expect(isStuck(68, 68)).toBe(true);
+    expect(isStuck(68.3, 68)).toBe(true);
+    expect(isStuck(240, 68)).toBe(false);
+    expect(isStuck(-120, 68)).toBe(false);
+  });
+
+  it("is never stuck without a sticky offset", () => {
+    expect(isStuck(0, Number.NaN)).toBe(false);
   });
 });

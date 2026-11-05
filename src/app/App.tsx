@@ -53,7 +53,7 @@ export function App() {
       >
         Skip to content
       </a>
-      <div ref={bar} className="sticky top-0 z-30 bg-surface">
+      <div ref={bar} className="top-bar sticky top-0 z-30">
         <Container>
           <TopNav
             name={NAME}
