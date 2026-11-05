@@ -24,6 +24,9 @@ import { PART_ORDER } from "./parts";
 /** The most the figure grows. */
 export const MAX_ZOOM = 1.5;
 
+/** How close to the window's left edge the grown figure may come, px. */
+export const EDGE_PX = 24;
+
 /** Room kept for a row of number tags above the topmost piece, px. */
 const TAG_ROOM_PX = 40;
 
@@ -67,6 +70,16 @@ export interface ZoomRoom {
   ceiling: number;
   /** The nearest it may come to the window's left edge, px. */
   edge: number;
+}
+
+/**
+ * The edge to keep, from the page's `--figure-edge` (px) where it sets one
+ * (wide screens, where the chapter rails sit in that margin), else
+ * `EDGE_PX`.
+ */
+export function figureEdge(custom: string): number {
+  const px = parseFloat(custom);
+  return Number.isFinite(px) && px > 0 ? px : EDGE_PX;
 }
 
 /** User units to px for an SVG drawn into a box (`meet`, centred). */

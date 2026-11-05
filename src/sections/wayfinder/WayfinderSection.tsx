@@ -1,5 +1,6 @@
 import { BuildStory } from "./BuildStory";
 import { Wayfinder } from "@/features/wayfinder";
+import { ChapterRail } from "@/ui/atoms/ChapterRail";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
 
@@ -11,6 +12,7 @@ export function WayfinderSection() {
       labelledBy="wayfinder-title"
       tone={{ from: "base", to: "wayfinder" }}
     >
+      <ChapterRail numeral="1" total="3" />
       <ChapterHeading
         id="wayfinder-title"
         numeral="1"
