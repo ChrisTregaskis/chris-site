@@ -67,11 +67,17 @@ export function LeakTestControls({
           Try to read {target}&rsquo;s sessions
         </button>
       )}
-      {asking ? (
+      {/*
+       * Beside the steps it's always laid out, and only shown while asking,
+       * so the row wraps the same way in every state (in a narrow column a
+       * row that wrapped only while asking moved the whole figure).
+       */}
+      {asking || !single ? (
         <button
           type="button"
-          tabIndex={live ? 0 : -1}
+          tabIndex={live && asking ? 0 : -1}
           onClick={onReset}
+          style={asking ? undefined : { visibility: "hidden" }}
           className={cn(
             single
               ? "border-0 border-b-2 border-accent bg-transparent p-0 pb-[2px] font-semibold text-accent"
@@ -84,7 +90,8 @@ export function LeakTestControls({
           Ask for every session again
         </button>
       ) : null}
-      {demo ? (
+      {/* Laid out while the row is hidden too (before the last step), so it doesn't wrap anew as the step opens. */}
+      {demo || !live ? (
         <button
           type="button"
           tabIndex={live ? 0 : -1}
