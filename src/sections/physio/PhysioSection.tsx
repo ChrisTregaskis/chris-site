@@ -1,6 +1,6 @@
 import { useReducedMotion } from "framer-motion";
 import { useCallback, useRef } from "react";
-import { DEPTH_QUERY } from "./depth/depthGeometry";
+import { useDepthFit } from "./depth/useDepthFit";
 import { IsolationFigure } from "./IsolationFigure";
 import { LeakTestControls } from "./LeakTestControls";
 import { PHYSIO_STEPS } from "./organisations";
@@ -35,7 +35,8 @@ const SHORT_PHONE_NUMERAL =
  * anyone, ask for another organisation's sessions by name, get nothing).
  *
  * Side by side, the figure pins beside the steps under the top bar, drawn
- * in 3D where there's room (`DEPTH_QUERY`) and flat where there isn't.
+ * in 3D where there's room (`fitDepth`, shrunk if need be) and flat where
+ * there isn't.
  * Stacked (phones), the flat figure pins under the top bar on an opaque
  * panel whose height never changes (the query keeps room for its filter,
  * the drawing for its tallest state), the cards read beneath it, and the
@@ -45,7 +46,6 @@ const SHORT_PHONE_NUMERAL =
 export function PhysioSection() {
   const still = useReducedMotion() ?? false;
   const stacked = useMediaQuery(BELOW_WIDE);
-  const roomy = useMediaQuery(DEPTH_QUERY);
   const stageRef = useRef<HTMLDivElement>(null);
   const measure = useCallback(() => {
     const stage = stageRef.current;
@@ -64,7 +64,7 @@ export function PhysioSection() {
   const stage = still ? 3 : Math.max(1, current);
   const test = useLeakTest(stage, { still, watch: stageRef });
   const { view, pressing } = test;
-  const drawing = roomy && !stacked ? "depth" : "flat";
+  const fit = useDepthFit(stageRef, stacked);
   const drawn = useNearScreen(stageRef, still);
 
   return (
@@ -93,7 +93,7 @@ export function PhysioSection() {
         >
           <IsolationFigure
             test={test}
-            drawing={drawing}
+            fit={fit}
             controlsInside={!stacked}
             drawn={drawn}
             still={still}

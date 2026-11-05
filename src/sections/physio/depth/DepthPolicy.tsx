@@ -60,7 +60,7 @@ export function DepthPolicy({ live, named, attempt, still }: DepthPolicyProps) {
         <div className="absolute bottom-3 left-6 whitespace-nowrap">
           <p
             className={cn(
-              "m-0 text-[18px] font-semibold text-accent transition-opacity duration-slow motion-reduce:transition-none",
+              "m-0 text-[length:calc(18px*var(--k,1))] font-semibold text-accent transition-opacity duration-slow motion-reduce:transition-none",
               named ? "opacity-100" : "opacity-0",
             )}
           >
@@ -68,7 +68,7 @@ export function DepthPolicy({ live, named, attempt, still }: DepthPolicyProps) {
           </p>
           <p
             className={cn(
-              "m-0 text-[16px] font-medium transition-colors duration-slow motion-reduce:transition-none",
+              "m-0 text-[length:calc(16px*var(--k,1))] font-medium transition-colors duration-slow motion-reduce:transition-none",
               named ? "text-accent" : "text-muted",
             )}
           >

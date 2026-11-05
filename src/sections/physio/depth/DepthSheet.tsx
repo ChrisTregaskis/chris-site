@@ -67,7 +67,7 @@ export function DepthSheet({ org, spot, attempt, still }: DepthSheetProps) {
         <p
           className={cn(
             MOVE,
-            "absolute left-5 top-[9px] m-0 flex items-center gap-2 text-[19px] font-semibold",
+            "absolute left-5 top-[9px] m-0 flex items-center gap-2 text-[length:calc(19px*var(--k,1))] font-semibold",
             ORG_TINT[org].text,
             apart ? "opacity-100" : "opacity-0",
           )}
@@ -81,7 +81,7 @@ export function DepthSheet({ org, spot, attempt, still }: DepthSheetProps) {
             key={row.label}
             className={cn(
               MOVE,
-              "absolute inset-x-5 grid grid-cols-[12px_1fr_auto] items-center gap-[10px] text-[17px] text-ink",
+              "absolute inset-x-5 grid grid-cols-[12px_1fr_auto] items-center gap-[10px] text-[length:calc(17px*var(--k,1))] text-ink",
             )}
             style={{
               ...apartTiming(order),
@@ -94,7 +94,7 @@ export function DepthSheet({ org, spot, attempt, still }: DepthSheetProps) {
             <small
               className={cn(
                 MOVE,
-                "text-[16px] leading-none text-muted",
+                "text-[length:calc(16px*var(--k,1))] leading-none text-muted",
                 apart ? "opacity-0" : "opacity-100",
               )}
               style={{ transitionDuration: "var(--duration-slow)" }}
