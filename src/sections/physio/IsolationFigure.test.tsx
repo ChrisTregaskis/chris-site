@@ -57,8 +57,8 @@ describe("the phone panel's height", () => {
     for (const test of states) {
       rerender(figure(test));
       const stack = screen.getByTestId("sessions-stack");
-      const block = screen.getByTestId("query-outcome").parentElement;
-      seen.add(`${stack.style.height} ${block?.className ?? ""}`);
+      const block = screen.getByTestId("query");
+      seen.add(`${stack.style.height} ${block.className}`);
     }
     expect(states.map((test) => test.view.line)).toContain(
       "The policy holds back Birch's, even when you ask by name.",
