@@ -291,16 +291,24 @@
     );
   }
   @screen wide {
+    /*
+     * Side by side, the head's box is the lane's width laid out to its left,
+     * the spark on its right edge: carried right, it never runs past the
+     * window, which would let the page scroll sideways.
+     */
     .build-head {
+      inset: 0 100% 0 -100%;
       transform: translate3d(calc(var(--p, 0) * 100%), 0, 0);
     }
     /* 12.5px down, side by side. */
     .build-head::before {
-      left: 0;
+      left: auto;
+      right: 0;
       top: 12.5px;
     }
     .build-head::after {
-      left: -96px;
+      left: auto;
+      right: 0;
       top: 11px;
       width: 96px;
       height: 3px;
