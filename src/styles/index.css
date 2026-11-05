@@ -368,6 +368,36 @@
   }
 }
 
+@layer components {
+  /*
+   * The sticky top bar: solid, in --bar-tone (useNavTone sets it to the
+   * chapter tone under the bar; surface otherwise), with a short fade below
+   * it so content slides away under the bar rather than meeting a hard edge.
+   * The fade drops while a stage pinned flush to the bar ([data-bar-flush],
+   * the Wayfinder figure) is stuck there: it has its own backing.
+   */
+  .top-bar {
+    background-color: rgb(var(--bar-tone, var(--color-surface)));
+  }
+  .top-bar::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 1.5rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--bar-tone, var(--color-surface))),
+      rgb(var(--bar-tone, var(--color-surface)) / 0)
+    );
+    transition: opacity var(--duration-state) var(--ease-enter);
+  }
+  .top-bar[data-flush]::after {
+    opacity: 0;
+  }
+}
+
 @layer utilities {
   /*
    * An inactive step card: its text one tone quieter rather than see-through,

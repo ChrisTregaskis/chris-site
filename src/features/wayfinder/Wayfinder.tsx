@@ -159,6 +159,7 @@ export function Wayfinder() {
     <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
       <div
         ref={stageRef}
+        data-bar-flush=""
         className="sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
       >
         {/* Wide, it sits a little low in the stage: taken apart, the figure
