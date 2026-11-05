@@ -16,7 +16,7 @@ export interface NavMenuLinksProps {
   onLinkClick?: () => void;
   /** Id of the text that names the list (the phone menu's "Work"). */
   labelledBy?: string;
-  /** Taller rows, for a finger (the phone menu). */
+  /** Taller rows that hug their words, for a finger (the phone menu). */
   roomy?: boolean;
 }
 
@@ -48,7 +48,10 @@ export function NavMenuLinks({
               item.sub
                 ? "-mt-[2px] pb-[10px] pl-[44px] text-[14px] leading-[1.5] text-muted hover:text-ink"
                 : "py-[7px] text-ink",
-              roomy && (item.sub ? "pb-[12px]" : "py-[10px]"),
+              // Rows a finger can hit; each hugs its words, and a sub-entry
+              // keeps clear of the ring on the entry above it.
+              roomy && "w-fit",
+              roomy && (item.sub ? "mt-0 pb-[12px] pt-1.5" : "py-[10px]"),
             )}
           >
             {item.sub ? null : (

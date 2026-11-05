@@ -73,7 +73,8 @@ export function PhoneMenu({
         onCancel={menu.onCancel}
         onClose={menu.onClose}
         onClick={menu.onClick}
-        className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none animate-menu-in overflow-y-auto overscroll-contain border-0 bg-surface p-0 text-ink backdrop:bg-transparent motion-reduce:animate-none"
+        tabIndex={-1}
+        className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none animate-menu-in overflow-y-auto overscroll-contain border-0 bg-surface p-0 text-ink outline-none backdrop:bg-transparent motion-reduce:animate-none"
       >
         <Container>
           <div className={TOP_NAV_BAR_CLASSES}>
