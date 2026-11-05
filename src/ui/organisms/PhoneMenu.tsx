@@ -23,8 +23,12 @@ export interface PhoneMenuProps {
   itemsLabel?: string;
   /** Plain links after them (About, Contact). */
   links: PhoneMenuLink[];
-  /** Under the links: the call to action (Get in touch). Choosing it closes the menu. */
-  action?: ReactNode;
+  /**
+   * Under the links: the calls to action (Get in touch, Request my CV), in
+   * the link style; the menu's only buttons are its own. Choosing one closes
+   * the menu, focus back on Menu, before it opens whatever it opens.
+   */
+  actions?: ReactNode;
 }
 
 // The b3 bar's compact ghost button (as Get in touch was), stretched to a
@@ -35,7 +39,7 @@ const TOGGLE_CLASSES = "-mr-2 min-h-[44px] px-2 text-accent";
  * The top bar's menu below `wide`: a Menu button that opens the page's
  * navigation full screen, on the page's own surface, under a copy of the bar
  * whose Close sits where Menu was. The numbered case studies (as in the Work
- * menu), then the plain links, then the call to action, all on one text edge
+ * menu), then the plain links, then the calls to action, all on one text edge
  * with the numerals hanging left of it. No boxes or rules. It fades in, its
  * links rising a little (none of it under reduced motion), and closes at once.
  */
@@ -45,7 +49,7 @@ export function PhoneMenu({
   items,
   itemsLabel = "Work",
   links,
-  action,
+  actions,
 }: PhoneMenuProps) {
   const dialogId = useId();
   const itemsLabelId = useId();
@@ -103,7 +107,11 @@ export function PhoneMenu({
                 <NavMenuLinks items={links} roomy />
               </div>
             </nav>
-            {action ? <div className="mt-8 pl-[44px]">{action}</div> : null}
+            {actions ? (
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 pl-[44px]">
+                {actions}
+              </div>
+            ) : null}
           </div>
         </Container>
       </dialog>

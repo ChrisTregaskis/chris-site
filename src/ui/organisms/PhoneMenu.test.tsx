@@ -24,7 +24,7 @@ function renderMenu(onAction = vi.fn()) {
       homeHref="#top"
       items={ITEMS}
       links={LINKS}
-      action={
+      actions={
         <button type="button" onClick={onAction}>
           Say hello
         </button>

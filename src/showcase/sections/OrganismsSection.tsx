@@ -31,8 +31,9 @@ export function OrganismsSection() {
         through every number), a Drawer (a bottom sheet below 621px), a NavMenu
         (the top bar's Work disclosure: ArrowDown opens it, Escape closes it), a
         PhoneMenu (the bar's menu below the wide breakpoint: full screen, the
-        Work entries, the plain links, then the call to action; Close, Escape or
-        choosing anything closes it) and a RevealList. Placeholder copy.
+        Work entries, the plain links, then the calls to action as links; Close,
+        Escape or choosing anything closes it) and a RevealList. Placeholder
+        copy.
       </p>
       <div className="flex max-w-[460px] items-stretch gap-[10px]">
         <NumberedDropdown
@@ -108,7 +109,12 @@ export function OrganismsSection() {
             { href: "#layout", label: "About" },
             { href: "#form-fields", label: "Contact" },
           ]}
-          action={<Button>Say hello</Button>}
+          actions={
+            <>
+              <Button variant="ghost">Say hello</Button>
+              <Button variant="ghost">Ask for more</Button>
+            </>
+          }
         />
       </div>
       <RevealList className="m-0 mt-48 grid list-none gap-4 p-0 sheet:grid-cols-3">
