@@ -1,4 +1,4 @@
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useRef } from "react";
 import { useDepthFit } from "./depth/useDepthFit";
 import { IsolationFigure } from "./IsolationFigure";
@@ -12,7 +12,7 @@ import { useNearScreen } from "@/hooks/useNearScreen";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
-import { stepNumeralClasses } from "@/ui/atoms/stepNumeralClasses";
+import { useMotionPreset } from "@/ui/motion/useMotionPreset";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
@@ -24,8 +24,13 @@ import { ChapterRail } from "@/ui/atoms/ChapterRail";
  */
 const SHORT_PHONE_CARD =
   "[@media(max-width:860px)_and_(max-height:700px)]:py-3";
-const SHORT_PHONE_NUMERAL =
-  "[@media(max-width:860px)_and_(max-height:700px)]:text-[40px]";
+
+/*
+ * A step's text fades up into place the first time it scrolls a little way
+ * into view (the site's reveal), so each step arrives as it scrolls up. The
+ * steps aren't numbered: the chapters are.
+ */
+const REVEAL_VIEW = { once: true, margin: "0px 0px -15% 0px" } as const;
 
 /**
  * Chapter 2: the physio and wellness platform's tenant isolation. Three
@@ -67,6 +72,7 @@ export function PhysioSection() {
   const { view, pressing } = test;
   const fit = useDepthFit(stageRef, stacked);
   const drawn = useNearScreen(stageRef, still);
+  const reveal = useMotionPreset("fadeUp");
 
   return (
     <Section
@@ -130,44 +136,49 @@ export function PhysioSection() {
                     !on && "wide:tone-dim",
                   )}
                 >
-                  <span className={stepNumeralClasses(on, SHORT_PHONE_NUMERAL)}>
-                    {n}
-                  </span>
-                  <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
-                    {step.title}
-                  </h3>
-                  <p className="m-0 text-[17px] text-muted">{step.text}</p>
-                  {last && stacked ? (
-                    <div
-                      data-testid="leak-test-card"
-                      className="mt-3 grid gap-2"
-                    >
-                      <SignedInPicker
-                        shown
-                        live={view.testing}
-                        who={view.who}
-                        onPick={test.pick}
-                        pressing={
-                          pressing?.kind === "pick" ? pressing.org : null
-                        }
-                        focusProps={test.focusProps}
-                      />
-                      <LeakTestControls
-                        live={view.testing}
-                        target={view.target}
-                        asking={view.asking}
-                        onTry={test.tryOther}
-                        onReset={test.reset}
-                        pressing={pressing}
-                        single
-                        demo={test.demo}
-                        paused={test.paused}
-                        onPause={test.pause}
-                        onPlay={test.play}
-                        focusProps={test.focusProps}
-                      />
-                    </div>
-                  ) : null}
+                  <motion.div
+                    data-testid="step-text"
+                    initial={still ? false : reveal.initial}
+                    whileInView={reveal.animate}
+                    viewport={REVEAL_VIEW}
+                    transition={reveal.transition}
+                  >
+                    <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
+                      {step.title}
+                    </h3>
+                    <p className="m-0 text-[17px] text-muted">{step.text}</p>
+                    {last && stacked ? (
+                      <div
+                        data-testid="leak-test-card"
+                        className="mt-3 grid gap-2"
+                      >
+                        <SignedInPicker
+                          shown
+                          live={view.testing}
+                          who={view.who}
+                          onPick={test.pick}
+                          pressing={
+                            pressing?.kind === "pick" ? pressing.org : null
+                          }
+                          focusProps={test.focusProps}
+                        />
+                        <LeakTestControls
+                          live={view.testing}
+                          target={view.target}
+                          asking={view.asking}
+                          onTry={test.tryOther}
+                          onReset={test.reset}
+                          pressing={pressing}
+                          single
+                          demo={test.demo}
+                          paused={test.paused}
+                          onPause={test.pause}
+                          onPlay={test.play}
+                          focusProps={test.focusProps}
+                        />
+                      </div>
+                    ) : null}
+                  </motion.div>
                 </div>
               </div>
             );
