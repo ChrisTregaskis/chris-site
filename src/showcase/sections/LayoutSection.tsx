@@ -7,7 +7,8 @@ import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { ChipList } from "@/ui/molecules/ChipList";
 import { Section } from "@/ui/molecules/Section";
 import { TopNav } from "@/ui/molecules/TopNav";
-import { NavMenu } from "@/ui/organisms/NavMenu";
+import { type NavMenuItem, NavMenu } from "@/ui/organisms/NavMenu";
+import { PhoneMenu } from "@/ui/organisms/PhoneMenu";
 
 const STEPS = [
   {
@@ -26,6 +27,17 @@ const STEPS = [
   },
 ];
 
+const STUDIES: NavMenuItem[] = [
+  { href: "#layout", label: "A first study", numeral: "1" },
+  { href: "#layout", label: "How it was made", sub: true },
+  { href: "#layout", label: "A second study", numeral: "2" },
+];
+
+const PAGE_LINKS = [
+  { href: "#layout", label: "About" },
+  { href: "#layout", label: "Contact" },
+];
+
 export function LayoutSection() {
   return (
     <ShowcaseSection title="Layout">
@@ -33,11 +45,11 @@ export function LayoutSection() {
         A mini page: TopNav (the name links home; Work is a NavMenu), a toned
         Section fading in from surface, a numbered ChapterHeading, and two open
         steps: the first selected, its numeral shown; the second a tone quieter,
-        its numeral hidden until hovered. The nav links hide below the wide
-        breakpoint. From 1280px, its ChapterRail is at the window&apos;s left
-        edge while it&apos;s in view: its number out of the total, over a ring
-        and a rail that fills as you scroll past, the ring filling once
-        it&apos;s read.
+        its numeral hidden until hovered. Below the wide breakpoint the nav
+        links hide and a PhoneMenu takes their place. From 1280px, its
+        ChapterRail is at the window&apos;s left edge while it&apos;s in view:
+        its number out of the total, over a ring and a rail that fills as you
+        scroll past, the ring filling once it&apos;s read.
       </p>
       <div className="relative">
         <ChapterRail numeral="1" total="2" />
@@ -49,32 +61,18 @@ export function LayoutSection() {
               links={[
                 {
                   label: "Work",
-                  control: (
-                    <NavMenu
-                      label="Work"
-                      items={[
-                        {
-                          href: "#layout",
-                          label: "A first study",
-                          numeral: "1",
-                        },
-                        {
-                          href: "#layout",
-                          label: "How it was made",
-                          sub: true,
-                        },
-                        {
-                          href: "#layout",
-                          label: "A second study",
-                          numeral: "2",
-                        },
-                      ]}
-                    />
-                  ),
+                  control: <NavMenu label="Work" items={STUDIES} />,
                 },
-                { href: "#layout", label: "About" },
-                { href: "#layout", label: "Contact" },
+                ...PAGE_LINKS,
               ]}
+              menu={
+                <PhoneMenu
+                  name="Ada Lovelace"
+                  homeHref="#layout"
+                  items={STUDIES}
+                  links={PAGE_LINKS}
+                />
+              }
             />
           </Container>
           <Section
