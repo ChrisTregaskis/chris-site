@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { easeOutCubic, glidePlan } from "@/lib/anchorGlide";
+import { quietFocus } from "@/lib/quietFocus";
 import { topClearance } from "@/lib/topClearance";
 import { DURATION } from "@/ui/tokens/motion";
 
@@ -19,16 +20,25 @@ function targetTop(target: HTMLElement): number {
 /**
  * After an anchor scroll, focus goes to what the target is named by (a
  * section's heading), else its first heading, else the target itself, so
- * keyboard and screen-reader users carry on from there.
+ * keyboard and screen-reader users carry on from there. The heading isn't a
+ * control, so it is ringed only when the link was followed from the
+ * keyboard; after a tap or click it takes focus quietly (no ring), and the
+ * next key press brings rings back.
  */
-function focusTarget(target: HTMLElement): void {
+function focusTarget(target: HTMLElement, keyboard: boolean): void {
   const labelId = target.getAttribute("aria-labelledby");
   const heading =
     (labelId ? document.getElementById(labelId) : null) ??
     target.querySelector<HTMLElement>("h1, h2, h3");
   const element = heading ?? target;
   if (!element.hasAttribute("tabindex")) element.setAttribute("tabindex", "-1");
-  element.focus({ preventScroll: true });
+  if (keyboard) element.focus({ preventScroll: true });
+  else quietFocus(element);
+}
+
+export interface ScrollToAnchorOptions {
+  /** The link was followed from the keyboard: ring the heading it lands on. */
+  keyboard?: boolean;
 }
 
 let cancelGlide: (() => void) | null = null;
@@ -38,11 +48,14 @@ let cancelGlide: (() => void) | null = null;
  * it glides; a far target is cut to within one reach first (see glidePlan),
  * so the long scroll stories between don't all play out on the way.
  */
-export function scrollToAnchor(target: HTMLElement): void {
+export function scrollToAnchor(
+  target: HTMLElement,
+  { keyboard = false }: ScrollToAnchorOptions = {},
+): void {
   cancelGlide?.();
   if (window.matchMedia(REDUCED_MOTION).matches) {
     window.scrollTo({ top: targetTop(target), behavior: "instant" });
-    focusTarget(target);
+    focusTarget(target, keyboard);
     return;
   }
   const plan = glidePlan(
@@ -73,7 +86,7 @@ export function scrollToAnchor(target: HTMLElement): void {
       frame = requestAnimationFrame(step);
     } else {
       stop();
-      focusTarget(target);
+      focusTarget(target, keyboard);
     }
   };
   for (const type of INTERRUPTS) {
@@ -86,7 +99,9 @@ export function scrollToAnchor(target: HTMLElement): void {
 /**
  * Every in-page link (`href="#…"`) on the page scrolls to its target rather
  * than jumping (see scrollToAnchor), and the URL takes the hash without a
- * second jump. Modified clicks (new tab and the like) are left alone.
+ * second jump. Modified clicks (new tab and the like) are left alone. The
+ * heading it lands on is ringed only when the link was followed from the
+ * keyboard (see focusTarget).
  */
 export function useAnchorScroll(): void {
   useEffect(() => {
@@ -121,7 +136,8 @@ export function useAnchorScroll(): void {
       if (window.location.hash !== link.hash) {
         window.history.pushState(null, "", link.hash);
       }
-      scrollToAnchor(target);
+      // A click the keyboard made (Enter on a link) has no presses: detail 0.
+      scrollToAnchor(target, { keyboard: event.detail === 0 });
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
