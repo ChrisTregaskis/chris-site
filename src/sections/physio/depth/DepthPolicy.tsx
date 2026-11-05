@@ -43,10 +43,8 @@ export function DepthPolicy({ live, named, attempt, still }: DepthPolicyProps) {
       <motion.div
         key={`policy-${attempt}`}
         className={cn(
-          "absolute inset-0 rounded-[14px] border-2 border-dashed bg-surface/65 transition-[border-color,box-shadow] duration-slow motion-reduce:transition-none",
-          named
-            ? "border-accent shadow-[0_0_72px_-20px_rgb(var(--color-accent)/0.55)]"
-            : "border-line-strong",
+          "absolute inset-0 rounded-[14px] border-2 border-dashed bg-surface/65 transition-[border-color] duration-slow motion-reduce:transition-none",
+          named ? "border-accent" : "border-line-strong",
         )}
         animate={flash ? { scale: [1, 1, 1.015, 1] } : undefined}
         transition={hit}
