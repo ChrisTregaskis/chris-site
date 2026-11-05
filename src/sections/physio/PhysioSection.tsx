@@ -3,6 +3,7 @@ import { useCallback, useRef } from "react";
 import { useDepthFit } from "./depth/useDepthFit";
 import { IsolationFigure } from "./IsolationFigure";
 import { LeakTestControls } from "./LeakTestControls";
+import { LoopToggle } from "./LoopToggle";
 import { PHYSIO_STEPS } from "./organisations";
 import { PHYSIO_HEADING } from "./physioHeading";
 import { SignedInPicker } from "./SignedInPicker";
@@ -24,6 +25,8 @@ import { ChapterRail } from "@/ui/atoms/ChapterRail";
  */
 const SHORT_PHONE_CARD =
   "[@media(max-width:860px)_and_(max-height:700px)]:py-3";
+const SHORT_PHONE_TEXT =
+  "[@media(max-width:860px)_and_(max-height:700px)]:text-[16px] [@media(max-width:860px)_and_(max-height:700px)]:leading-[1.5]";
 
 /*
  * A step's text fades up into place the first time it scrolls a little way
@@ -38,7 +41,9 @@ const REVEAL_VIEW = { once: true, margin: "0px 0px -15% 0px" } as const;
  * table at rest, holding every organisation's rows; a request signed in as
  * one organisation, which gets only its own sessions back because the
  * policy is always on; and the policy named, with a leak test (sign in as
- * anyone, ask for another organisation's sessions by name, get nothing).
+ * anyone, ask for another organisation's sessions by name, get nothing)
+ * that the visitor can also set looping as an example (`LoopToggle`, under
+ * the last step's text). Nothing plays by itself.
  *
  * The figure is drawn as the 3D stack where there's room (`fitDepth`,
  * shrunk if need be) and as the glass floor where there isn't. Side by
@@ -71,7 +76,8 @@ export function PhysioSection() {
     remeasure: fit,
   });
   const stage = still ? 3 : Math.max(1, current);
-  const test = useLeakTest(stage, { still, watch: stageRef });
+  const chapterRef = useRef<HTMLDivElement>(null);
+  const test = useLeakTest(stage, { watch: chapterRef });
   const { view, pressing } = test;
   const drawn = useNearScreen(stageRef, still);
   const reveal = useMotionPreset("fadeUp");
@@ -90,7 +96,10 @@ export function PhysioSection() {
         lede={PHYSIO_HEADING.lede}
         chips={PHYSIO_HEADING.chips}
       />
-      <div className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]">
+      <div
+        ref={chapterRef}
+        className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]"
+      >
         <div
           ref={stageRef}
           data-testid="physio-stage"
@@ -148,7 +157,22 @@ export function PhysioSection() {
                     <h3 className="m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em]">
                       {step.title}
                     </h3>
-                    <p className="m-0 text-[17px] text-muted">{step.text}</p>
+                    <p
+                      className={cn(
+                        "m-0 text-[17px] text-muted",
+                        SHORT_PHONE_TEXT,
+                      )}
+                    >
+                      {step.text}
+                    </p>
+                    {last ? (
+                      <LoopToggle
+                        live={view.testing}
+                        looping={test.looping}
+                        onToggle={test.toggleLoop}
+                        className="mt-2"
+                      />
+                    ) : null}
                     {last && stacked ? (
                       <div
                         data-testid="leak-test-card"
@@ -172,10 +196,6 @@ export function PhysioSection() {
                           onReset={test.reset}
                           pressing={pressing}
                           single
-                          demo={test.demo}
-                          paused={test.paused}
-                          onPause={test.pause}
-                          onPlay={test.play}
                           focusProps={test.focusProps}
                         />
                       </div>

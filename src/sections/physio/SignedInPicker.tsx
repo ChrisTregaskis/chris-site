@@ -1,6 +1,6 @@
 import { type FocusEvent } from "react";
 import { type Org, ORG_TINT, ORGS } from "./organisations";
-import { DEMO_PRESSED, PRESSABLE } from "./pressable";
+import { LOOP_PRESSED, PRESSABLE } from "./pressable";
 import { cn } from "@/lib/cn";
 
 interface SignedInPickerProps {
@@ -10,11 +10,10 @@ interface SignedInPickerProps {
   live: boolean;
   who: Org;
   onPick: (org: Org) => void;
-  /** The organisation the demo is pressing, if any. */
+  /** The organisation the example loop is pressing, if any. */
   pressing?: Org | null;
   focusProps?: {
     onFocus: (event: FocusEvent<HTMLElement>) => void;
-    onBlur: (event: FocusEvent<HTMLElement>) => void;
   };
   className?: string;
 }
@@ -58,7 +57,7 @@ export function SignedInPicker({
               chosen && "text-ink",
               chosen && live && "border-current",
               visible ? "opacity-100" : "pointer-events-none opacity-0",
-              pressing === org && cn(DEMO_PRESSED, "text-ink"),
+              pressing === org && cn(LOOP_PRESSED, "text-ink"),
             )}
           >
             <i

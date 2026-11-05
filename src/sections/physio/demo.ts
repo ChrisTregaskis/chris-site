@@ -7,98 +7,103 @@ import {
 import { type Org, ORGS } from "./organisations";
 
 /*
- * The leak test plays itself while nobody is using it: try to read another
- * organisation's sessions, hold on the empty result, ask for every session
- * again, sign in as the next organisation, try again, round and round. Each
- * move first "presses" its button (so it reads as the demo clicking, not
- * the page moving on its own), then acts. The moment the visitor does
- * anything, their move wins and the demo waits until they've been idle a
- * while. Pure, so the loop can be tested without a browser; the hook only
- * runs `nextDemoEvent`'s timer while the demo may play.
+ * The leak test's example loop, which plays only when the visitor turns it
+ * on: try to read another organisation's sessions, hold on the empty
+ * result, ask for every session again, sign in as the next organisation,
+ * try again, round and round. Each move first "presses" its button (so it
+ * reads as the loop clicking, not the page moving on its own), then acts.
+ * The moment the visitor uses a button themselves, their move wins and the
+ * loop stops; it never starts again by itself. Pure, so the loop can be
+ * tested without a browser; the hook only runs `nextLoopEvent`'s timer
+ * while it plays.
  */
 
 /** Timings, ms. */
-export const DEMO = {
+export const LOOP = {
   /** A result on screen before the next move. */
   hold: 3200,
   /** The empty result: long enough to see the attempt fail and read why. */
   empty: 4800,
   /** A button shows pressed this long before its move happens. */
   press: 450,
-  /** After the visitor's last move, before the demo picks up again. */
-  idle: 10_000,
 } as const;
 
 /** A move, by the button that makes it. */
-export type DemoMove =
+export type LoopMove =
   | { kind: "try" }
   | { kind: "reset" }
   | { kind: "pick"; org: Org };
 
-export interface DemoState {
+export interface LoopState {
   leak: LeakState;
-  /** The button the demo is pressing, about to act. */
-  pressing: DemoMove | null;
+  /** The visitor has turned the loop on (and nothing has stopped it since). */
+  looping: boolean;
+  /** The button the loop is pressing, about to act. */
+  pressing: LoopMove | null;
   /** The last move made (by anyone): what comes next follows from it. */
-  last: DemoMove["kind"] | null;
+  last: LoopMove["kind"] | null;
   /** Who made it: only the visitor's moves are announced. */
-  by: "visitor" | "demo";
-  /** The visitor paused the demo. */
-  paused: boolean;
+  by: "visitor" | "loop";
 }
 
-export const INITIAL_DEMO: DemoState = {
+export const INITIAL_LOOP: LoopState = {
   leak: INITIAL_LEAK,
+  looping: false,
   pressing: null,
   last: null,
   by: "visitor",
-  paused: false,
 };
 
-export type DemoAction =
-  /** The visitor used the leak test: their move wins. */
+export type LoopAction =
+  /** The visitor used the leak test: their move wins, and the loop stops. */
   | { type: "visitor"; action: LeakAction }
-  | { type: "press"; move: DemoMove }
-  | { type: "act" }
-  | { type: "pause" }
-  | { type: "play" };
+  /** The visitor turned the loop on: its first move is pressed at once. */
+  | { type: "start" }
+  /** Turned off, or stopped by scrolling away. */
+  | { type: "stop" }
+  | { type: "press"; move: LoopMove }
+  | { type: "act" };
 
-function toLeakAction(move: DemoMove): LeakAction {
+function toLeakAction(move: LoopMove): LeakAction {
   return move.kind === "pick"
     ? { type: "pick", org: move.org }
     : { type: move.kind };
 }
 
-function kindOf(action: LeakAction): DemoMove["kind"] {
-  return action.type;
-}
-
-export function demoReducer(state: DemoState, action: DemoAction): DemoState {
+export function loopReducer(state: LoopState, action: LoopAction): LoopState {
   switch (action.type) {
     case "visitor":
       return {
         ...state,
         leak: leakReducer(state.leak, action.action),
+        looping: false,
         pressing: null,
-        last: kindOf(action.action),
+        last: action.action.type,
         by: "visitor",
       };
+    case "start":
+      if (state.looping) return state;
+      return {
+        ...state,
+        looping: true,
+        pressing: nextLoopMove(state),
+        by: "loop",
+      };
+    case "stop":
+      if (!state.looping && !state.pressing) return state;
+      return { ...state, looping: false, pressing: null };
     case "press":
+      if (!state.looping) return state;
       return { ...state, pressing: action.move };
     case "act":
-      if (!state.pressing) return state;
+      if (!state.looping || !state.pressing) return state;
       return {
         ...state,
         leak: leakReducer(state.leak, toLeakAction(state.pressing)),
         pressing: null,
         last: state.pressing.kind,
-        by: "demo",
+        by: "loop",
       };
-    case "pause":
-      return { ...state, paused: true, pressing: null };
-    case "play":
-      // Picks up at the demo's own pace, not after the idle wait.
-      return { ...state, paused: false, by: "demo" };
     default:
       return state;
   }
@@ -109,8 +114,8 @@ export function nextOrg(org: Org): Org {
   return ORGS[(ORGS.indexOf(org) + 1) % ORGS.length];
 }
 
-/** What the demo does next from here: clear an empty result, move on after a reset, otherwise try. */
-export function nextDemoMove(state: DemoState): DemoMove {
+/** What the loop does next from here: clear an empty result, move on after a reset, otherwise try. */
+export function nextLoopMove(state: LoopState): LoopMove {
   if (state.leak.ask === "other") return { kind: "reset" };
   if (state.last === "reset") {
     return { kind: "pick", org: nextOrg(state.leak.signedIn) };
@@ -118,14 +123,12 @@ export function nextDemoMove(state: DemoState): DemoMove {
   return { kind: "try" };
 }
 
-/** The demo's next event and how long to wait for it. */
-export function nextDemoEvent(state: DemoState): {
+/** The loop's next event and how long to wait for it (only asked while it's looping). */
+export function nextLoopEvent(state: LoopState): {
   delay: number;
-  action: DemoAction;
+  action: LoopAction;
 } {
-  if (state.pressing) return { delay: DEMO.press, action: { type: "act" } };
-  let delay: number = DEMO.hold;
-  if (state.by === "visitor" && state.last !== null) delay = DEMO.idle;
-  else if (state.leak.ask === "other") delay = DEMO.empty;
-  return { delay, action: { type: "press", move: nextDemoMove(state) } };
+  if (state.pressing) return { delay: LOOP.press, action: { type: "act" } };
+  const delay = state.leak.ask === "other" ? LOOP.empty : LOOP.hold;
+  return { delay, action: { type: "press", move: nextLoopMove(state) } };
 }

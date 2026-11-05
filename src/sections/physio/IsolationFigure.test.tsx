@@ -11,9 +11,7 @@ const watch = { current: null };
 
 /** The leak test's hook in a stage, signed in as `org`, asking or not. */
 function testFor(stage: number, org: (typeof ORGS)[number], asking: boolean) {
-  const { result } = renderHook(() =>
-    useLeakTest(stage, { still: true, watch }),
-  );
+  const { result } = renderHook(() => useLeakTest(stage, { watch }));
   act(() => result.current.pick(org));
   if (asking) act(() => result.current.tryOther());
   return result.current;

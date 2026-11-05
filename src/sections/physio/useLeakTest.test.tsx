@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { type FocusEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DEMO } from "./demo";
+import { LOOP } from "./demo";
 import { useLeakTest } from "./useLeakTest";
 
 type Callback = (entries: Partial<IntersectionObserverEntry>[]) => void;
@@ -30,12 +30,11 @@ beforeEach(() => {
 
 const watch = { current: document.createElement("div") };
 
-/** The hook in the last step, its figure on screen. */
-function setup(stage = 3, still = false) {
-  const hook = renderHook(
-    ({ stage: s, still: st }) => useLeakTest(s, { still: st, watch }),
-    { initialProps: { stage, still } },
-  );
+/** The hook in a step (the last by default), its chapter on screen. */
+function setup(stage = 3) {
+  const hook = renderHook(({ stage: s }) => useLeakTest(s, { watch }), {
+    initialProps: { stage },
+  });
   onScreen(true);
   return hook;
 }
@@ -49,99 +48,114 @@ const advance = (...steps: number[]) => {
   }
 };
 
-describe("the leak test playing itself", () => {
-  it("presses Try, then shows the empty result, without announcing it", () => {
+/** A keyboard focus event on one of the leak test's buttons. */
+function keyboardFocus() {
+  const target = document.createElement("button");
+  target.matches = () => true;
+  return { target } as unknown as FocusEvent<HTMLElement>;
+}
+
+describe("the leak test's example loop", () => {
+  it("never plays by itself", () => {
+    const { result } = setup();
+    expect(result.current.loopable).toBe(true);
+    expect(result.current.looping).toBe(false);
+    advance(120_000);
+    expect(result.current.pressing).toBeNull();
+    expect(result.current.view.asking).toBe(false);
+    expect(result.current.view.who).toBe("Alder");
+  });
+
+  it("plays once turned on: presses Try at once, then shows the empty result, without announcing it", () => {
     const { result } = setup();
     const spoken = result.current.spoken;
-    expect(result.current.demo).toBe(true);
-    advance(DEMO.hold);
+    act(() => result.current.toggleLoop());
+    expect(result.current.looping).toBe(true);
     expect(result.current.pressing).toEqual({ kind: "try" });
-    expect(result.current.view.asking).toBe(false);
-    advance(DEMO.press);
-    expect(result.current.pressing).toBeNull();
+    advance(LOOP.press);
     expect(result.current.view.asking).toBe(true);
-    expect(result.current.view.returned).toBeNull();
-    // The figure's line moves on; the live region doesn't.
     expect(result.current.view.line).toMatch(/holds back Birch's/);
+    // The figure's line moves on; the live region doesn't.
     expect(result.current.spoken).toBe(spoken);
-    advance(DEMO.empty, DEMO.press);
+    advance(LOOP.empty, LOOP.press);
     expect(result.current.view.asking).toBe(false);
-    advance(DEMO.hold, DEMO.press);
+    advance(LOOP.hold, LOOP.press);
     expect(result.current.view.who).toBe("Birch");
   });
 
-  it("stops at once for the visitor, announces their move, and picks up after ten idle seconds", () => {
+  it("turns off again from the toggle", () => {
     const { result } = setup();
-    advance(DEMO.hold); // the demo is pressing Try
+    act(() => result.current.toggleLoop());
+    act(() => result.current.toggleLoop());
+    expect(result.current.looping).toBe(false);
+    expect(result.current.pressing).toBeNull();
+    advance(60_000);
+    expect(result.current.view.asking).toBe(false);
+  });
+
+  it("stops for good when the visitor uses a button, showing and announcing what they clicked", () => {
+    const { result } = setup();
+    act(() => result.current.toggleLoop());
     act(() => result.current.pick("Cedar"));
+    expect(result.current.looping).toBe(false);
     expect(result.current.pressing).toBeNull();
     expect(result.current.view.who).toBe("Cedar");
-    expect(result.current.view.asking).toBe(false);
     expect(result.current.spoken).toBe(
       "Only Cedar's sessions come back, with no filter in the query.",
     );
-    advance(DEMO.idle - 1);
-    expect(result.current.pressing).toBeNull();
-    advance(1);
-    expect(result.current.pressing).toEqual({ kind: "try" });
+    // No pick-up after an idle wait: nothing plays by itself any more.
+    advance(120_000);
+    expect(result.current.view.asking).toBe(false);
+    expect(result.current.looping).toBe(false);
   });
 
-  it("holds while paused, and plays again at its own pace", () => {
+  it("stops when the visitor arrives on a button with the keyboard", () => {
     const { result } = setup();
-    act(() => result.current.pause());
-    expect(result.current.paused).toBe(true);
+    act(() => result.current.toggleLoop());
+    act(() => result.current.focusProps.onFocus(keyboardFocus()));
+    expect(result.current.looping).toBe(false);
+  });
+
+  it("stops when the last step is no longer current, and stays off on coming back", () => {
+    const { result, rerender } = setup();
+    act(() => result.current.toggleLoop());
+    rerender({ stage: 2 });
+    expect(result.current.looping).toBe(false);
+    expect(result.current.loopable).toBe(false);
+    rerender({ stage: 3 });
+    expect(result.current.looping).toBe(false);
     advance(60_000);
     expect(result.current.view.asking).toBe(false);
-    expect(result.current.view.who).toBe("Alder");
-    act(() => result.current.play());
-    advance(DEMO.hold, DEMO.press);
-    expect(result.current.view.asking).toBe(true);
   });
 
-  it("holds while the controls have keyboard focus", () => {
+  it("stops when the chapter goes off screen, and stays off on coming back", () => {
     const { result } = setup();
-    const target = document.createElement("button");
-    target.matches = () => true;
-    act(() =>
-      result.current.focusProps.onFocus({
-        target,
-      } as unknown as FocusEvent<HTMLElement>),
-    );
-    advance(60_000);
-    expect(result.current.view.asking).toBe(false);
-    act(() =>
-      result.current.focusProps.onBlur({
-        relatedTarget: null,
-        currentTarget: document.createElement("div"),
-      } as unknown as FocusEvent<HTMLElement>),
-    );
-    advance(DEMO.hold, DEMO.press);
-    expect(result.current.view.asking).toBe(true);
-  });
-
-  it("holds while the figure is off screen or the tab is hidden", () => {
-    const { result } = setup();
+    act(() => result.current.toggleLoop());
     onScreen(false);
-    advance(60_000);
-    expect(result.current.view.asking).toBe(false);
+    expect(result.current.looping).toBe(false);
     onScreen(true);
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    advance(60_000);
+    expect(result.current.looping).toBe(false);
+    expect(result.current.view.asking).toBe(false);
+  });
+
+  it("holds while the browser tab is hidden, and carries on once it's back", () => {
+    const { result } = setup();
+    act(() => result.current.toggleLoop());
+    const hidden = vi
+      .spyOn(document, "visibilityState", "get")
+      .mockReturnValue("hidden");
     act(() => {
       document.dispatchEvent(new Event("visibilitychange"));
     });
     advance(60_000);
+    expect(result.current.looping).toBe(true);
     expect(result.current.view.asking).toBe(false);
-  });
-
-  it("only plays in the last step, and never under reduced motion", () => {
-    const { result, rerender } = setup(2);
-    expect(result.current.demo).toBe(false);
-    advance(60_000);
-    expect(result.current.view.asking).toBe(false);
-    rerender({ stage: 3, still: true });
-    expect(result.current.demo).toBe(false);
-    advance(60_000);
-    expect(result.current.view.asking).toBe(false);
-    expect(result.current.view.who).toBe("Alder");
+    hidden.mockReturnValue("visible");
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    advance(LOOP.press);
+    expect(result.current.view.asking).toBe(true);
   });
 });
