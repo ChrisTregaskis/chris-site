@@ -39,14 +39,14 @@ const REVEAL_VIEW = { once: true, margin: "0px 0px -15% 0px" } as const;
  * policy is always on; and the policy named, with a leak test (sign in as
  * anyone, ask for another organisation's sessions by name, get nothing).
  *
- * Side by side, the figure pins beside the steps under the top bar, drawn
- * in 3D where there's room (`fitDepth`, shrunk if need be) and flat where
- * there isn't.
- * Stacked (phones), the flat figure pins under the top bar on an opaque
- * panel whose height never changes (the query keeps room for its filter,
- * the drawing for its tallest state), the cards read beneath it, and the
- * leak test's picker and button move into the last card. Static (reduced motion): the end
- * state, no pinning, every state change instant.
+ * The figure is drawn as the 3D stack where there's room (`fitDepth`,
+ * shrunk if need be) and as the glass floor where there isn't. Side by
+ * side, it pins beside the steps under the top bar. Stacked (phones, and
+ * tablets held upright), it pins under the top bar on an opaque panel
+ * whose height never changes (the query keeps room for its filter, the
+ * drawing one box for every state), the cards read beneath it, and the
+ * leak test's picker and button move into the last card. Static (reduced
+ * motion): the end state, no pinning, every state change instant.
  */
 export function PhysioSection() {
   const still = useReducedMotion() ?? false;

@@ -142,13 +142,13 @@ describe("the physio chapter", () => {
     media(BELOW_WIDE);
     room(358, 844);
     const { unmount } = await renderDrawn();
-    await waitFor(() => expect(drawing()).toBe("flat"));
+    await waitFor(() => expect(drawing()).toBe("glass"));
     unmount();
     // Side by side, but too short for the 3D stack even shrunk.
     media();
     room(600, 600);
     await renderDrawn();
-    await waitFor(() => expect(drawing()).toBe("flat"));
+    await waitFor(() => expect(drawing()).toBe("glass"));
   });
 
   it("keeps the stack out of the way of clicks", async () => {
