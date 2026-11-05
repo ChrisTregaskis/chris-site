@@ -5,9 +5,8 @@ import { cn } from "@/lib/cn";
  * hidden until its step is the selected one, then comes into focus (from
  * soft and a touch small to sharp) and fades back out as the step passes;
  * keyboard focus shows it too, so a focused number is never invisible.
- * Reduced motion: shown and hidden at once. Shared by the Wayfinder steps
- * (a button) and the physio steps (a span); the Wayfinder steps also show
- * it on hover (`group-hover`).
+ * Reduced motion: shown and hidden at once. Used by the Wayfinder steps (a
+ * button), which also show it on hover (`group-hover`).
  */
 export function stepNumeralClasses(on: boolean, className?: string): string {
   return cn(

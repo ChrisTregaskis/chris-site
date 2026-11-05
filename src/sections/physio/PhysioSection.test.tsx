@@ -178,6 +178,17 @@ describe("the physio chapter", () => {
     );
   });
 
+  it("shows every step's text at once under reduced motion, unnumbered", () => {
+    media();
+    renderWithProviders(<PhysioSection />);
+    const texts = screen.getAllByTestId("step-text");
+    expect(texts).toHaveLength(3);
+    for (const text of texts) {
+      expect(text).not.toHaveStyle({ opacity: "0" });
+      expect(text.parentElement?.children).toHaveLength(1);
+    }
+  });
+
   it("offers no demo under reduced motion", () => {
     media();
     renderWithProviders(<PhysioSection />);
