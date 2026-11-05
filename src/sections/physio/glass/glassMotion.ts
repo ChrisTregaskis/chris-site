@@ -9,6 +9,16 @@ export const MOVE_3D =
   "transition-[transform,opacity,box-shadow] ease-lift motion-reduce:transition-none";
 
 /**
+ * Shown or hidden for real. WebKit doesn't apply an element's opacity to
+ * the children it draws in 3D, so nothing that holds 3D children is ever
+ * faded as a whole: its own pieces fade, and it goes `visibility: hidden`
+ * once they have (a transition keeps it visible for as long as it runs).
+ */
+export function shown(on: boolean): { visibility: "visible" | "hidden" } {
+  return { visibility: on ? "visible" : "hidden" };
+}
+
+/**
  * A row's move: rows fade as a sheet tips over (so they're seen going),
  * and open once a sheet has arrived.
  */

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { POLICY_RULE } from "../organisations";
 import { FLASH_TIMES } from "../stackMotion";
 import { across, FACING, GLASS } from "./glassGeometry";
+import { shown } from "./glassMotion";
 import { cn } from "@/lib/cn";
 import { DURATION, EASE } from "@/ui/tokens/motion";
 
@@ -34,10 +35,11 @@ export function GlassPolicy({ live, named, attempt, still }: GlassPolicyProps) {
       {/* The glass: lying flat, running back from its front edge. */}
       <div
         data-policy
-        className="absolute top-0 origin-bottom transition-[transform,opacity] ease-lift [transform-style:preserve-3d] motion-reduce:transition-none"
+        className="absolute top-0 origin-bottom transition-[transform,opacity,visibility] ease-lift motion-reduce:transition-none"
         style={{
           ...glass,
           ...timing,
+          ...shown(live),
           height: GLASS.depth,
           transform: `translate3d(0, ${GLASS.y - GLASS.depth + (live ? 0 : 24)}px, 0) rotateX(90deg)`,
           opacity: live ? 1 : 0,
@@ -74,12 +76,13 @@ export function GlassPolicy({ live, named, attempt, still }: GlassPolicyProps) {
       {/* The glass's front edge, facing you: its rule, then (step 3) its name. */}
       <div
         className={cn(
-          "absolute top-0 origin-top rounded-b-[8px] border-2 border-t-0 border-dashed bg-surface transition-[transform,opacity,border-color] ease-lift motion-reduce:transition-none wide:bg-tone-physio",
+          "absolute top-0 origin-top rounded-b-[8px] border-2 border-t-0 border-dashed bg-surface transition-[transform,opacity,visibility,border-color] ease-lift motion-reduce:transition-none wide:bg-tone-physio",
           named ? "border-accent" : "border-line-strong",
         )}
         style={{
           ...glass,
           ...timing,
+          ...shown(live),
           height: GLASS.edge.h,
           transform: `translate3d(0, ${GLASS.y + (live ? 0 : 24)}px, 0) ${FACING}`,
           opacity: live ? 1 : 0,

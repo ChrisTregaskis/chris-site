@@ -2,15 +2,18 @@ import { motion } from "framer-motion";
 import { type Org, ORG_TINT, sheetEdge } from "../organisations";
 import { HIT_TIMES } from "../stackMotion";
 import { GLASS, slabSpan } from "./glassGeometry";
+import { shown } from "./glassMotion";
 import { cn } from "@/lib/cn";
 import { DURATION, EASE } from "@/ui/tokens/motion";
 
 interface GlassSlabProps {
   org: Org;
-  /** Its column under the glass: table order, so a slab never moves while it's held. */
+  /** Its column under the glass: table order, so a slab never moves. */
   column: number;
-  /** Held back: lying under the glass. */
-  held: boolean;
+  /** Lying under the glass: from the first request on (the table has come apart). */
+  apart: boolean;
+  /** Its organisation's sheet is what comes back: its tab says so, without moving. */
+  selected: boolean;
   /** Lifts at the glass each time this changes; null when not the one asked for. */
   attempt: number | null;
   still: boolean;
@@ -20,32 +23,40 @@ interface GlassSlabProps {
 const SPINE_FACING = `rotateX(${-90 - GLASS.apart}deg)`;
 
 /**
- * A held sheet, lying flat under the glass floor in its own column, its
- * name on a strip along its front edge turned up to face the viewer. In
- * the leak test, the sheet asked for lifts its far end up through the
- * glass and falls back.
+ * One organisation's place under the glass floor: a sheet lying flat in
+ * its own column, its name on a tab along its front edge turned up to face
+ * the viewer. Every organisation's lies there, in the same place, from the
+ * first request on; the one whose sheet comes back stands on the glass
+ * above it, and its tab lights up in its colour. In the leak test, the
+ * sheet asked for lifts its far end up through the glass and falls back.
  */
 export function GlassSlab({
   org,
   column,
-  held,
+  apart,
+  selected,
   attempt,
   still,
 }: GlassSlabProps) {
   const lift = attempt !== null && attempt > 0 && !still;
+  // In once the rest of the table has tipped over; out quickly.
+  const fade = {
+    opacity: apart ? 1 : 0,
+    transitionDuration: apart ? "var(--duration-slow)" : "var(--duration-fast)",
+    transitionDelay: apart ? "var(--duration-together)" : undefined,
+  };
   return (
     <div
       data-slab={org}
-      className="absolute top-0 origin-bottom transition-opacity ease-lift [transform-style:preserve-3d] motion-reduce:transition-none"
+      data-selected={selected}
+      className="absolute top-0 origin-bottom transition-[visibility] [transform-style:preserve-3d] motion-reduce:transition-none"
       style={{
         ...slabSpan(column),
+        ...shown(apart),
+        transitionDuration: fade.transitionDuration,
+        transitionDelay: fade.transitionDelay,
         height: GLASS.slab.depth,
         transform: `translate3d(0, ${GLASS.slab.y - GLASS.slab.depth}px, 0) rotateX(90deg)`,
-        opacity: held ? 1 : 0,
-        transitionDuration: held
-          ? "var(--duration-slow)"
-          : "var(--duration-fast)",
-        transitionDelay: held ? "var(--duration-together)" : undefined,
       }}
     >
       {/* Remounted per attempt, so each one replays. */}
@@ -63,18 +74,20 @@ export function GlassSlab({
         }}
       >
         <div
-          className="absolute inset-0 rounded-[8px] bg-raised"
-          style={{ boxShadow: sheetEdge(org, false) }}
+          className="absolute inset-0 rounded-[8px] bg-raised transition-opacity ease-lift motion-reduce:transition-none"
+          style={{ ...fade, boxShadow: sheetEdge(org, false) }}
         />
         <p
+          data-tab={org}
           className={cn(
-            "absolute inset-x-0 top-full m-0 flex origin-top items-center gap-[7px] rounded-[6px] bg-raised px-[10px] text-[15px] font-semibold leading-none",
+            "absolute inset-x-0 top-full m-0 flex origin-top items-center gap-[7px] rounded-[6px] bg-raised px-[10px] text-[15px] font-semibold leading-none transition-[opacity,box-shadow] ease-lift motion-reduce:transition-none",
             ORG_TINT[org].text,
           )}
           style={{
+            ...fade,
             height: GLASS.slab.spine,
             transform: SPINE_FACING,
-            boxShadow: sheetEdge(org, false),
+            boxShadow: sheetEdge(org, selected, 20),
           }}
         >
           <i className={cn("size-[7px] rounded-pill", ORG_TINT[org].bg)} />
