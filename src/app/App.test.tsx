@@ -125,14 +125,15 @@ describe("App", () => {
     const contact = screen.getByRole("region", {
       name: "Let's work together.",
     });
-    // The bar has one action, and it's Get in touch (Work is a menu in the nav).
+    // The bar has one action, Get in touch (Work is a menu in the nav), and
+    // the phone menu that takes its place below wide.
     const nav = within(bar).getByRole("navigation", { name: "Primary" });
     expect(
       within(bar)
         .getAllByRole("button")
         .filter((b) => !nav.contains(b))
         .map((b) => b.textContent),
-    ).toEqual(["Get in touch"]);
+    ).toEqual(["Menu", "Get in touch"]);
     // Hero and Contact: Get in touch first, Request my CV second.
     for (const region of [hero, contact]) {
       expect(
@@ -166,6 +167,38 @@ describe("App", () => {
     await opensTheEnquiry(bar);
     await opensTheEnquiry(hero);
     await opensTheEnquiry(contact);
+  });
+
+  it("folds the bar into a phone menu: the Work menu's case studies, About, Contact, then Get in touch", async () => {
+    vi.stubEnv("VITE_CHRIS_API", "https://api.test");
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+    const nav = screen.getByRole("navigation", { name: "Primary" });
+    await user.click(within(nav).getByRole("button", { name: "Work" }));
+    const work = within(nav)
+      .getAllByRole("link")
+      .map((link) => [link.textContent, link.getAttribute("href")]);
+    await user.keyboard("{Escape}");
+
+    const button = screen.getByRole("button", { name: "Menu" });
+    await user.click(button);
+    const menu = screen.getByRole("dialog", { name: "Menu" });
+    expect(
+      within(menu)
+        .getAllByRole("link")
+        .map((link) => [link.textContent, link.getAttribute("href")]),
+    ).toEqual([["Chris Tregaskis", "#top"], ...work]);
+
+    // Get in touch: the menu closes and the enquiry opens; closing that
+    // comes back to Menu.
+    await user.click(
+      within(menu).getByRole("button", { name: "Get in touch" }),
+    );
+    expect(menu).not.toHaveAttribute("open");
+    const drawer = screen.getByRole("dialog", { name: "Get in touch" });
+    expect(drawer).toHaveAttribute("open");
+    fireEvent(drawer, new Event("cancel", { cancelable: true }));
+    expect(button).toHaveFocus();
   });
 
   it("opens the CV drawer from any Request my CV button and closes it again", async () => {
