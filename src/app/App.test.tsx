@@ -50,6 +50,15 @@ describe("App", () => {
     }
   });
 
+  it("sends a spark along the build lane's pinned run", () => {
+    renderWithProviders(<App />);
+    const lane = screen.getByRole("region", { name: "How it was built" });
+    expect(lane.querySelector(".build-head")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+  });
+
   it("tells the story in order: the work, how it's built, about and contact", () => {
     renderWithProviders(<App />);
     expect(

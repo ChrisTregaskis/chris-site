@@ -2,6 +2,7 @@ import { type CSSProperties, useRef } from "react";
 import { AllCalls } from "./AllCalls";
 import { CallList } from "./CallList";
 import { SET_REPS } from "./calls";
+import { STRAIN_OUTSET_EM } from "./countType";
 import { CountRuler } from "./CountRuler";
 import { DoneCall } from "./DoneCall";
 import { SetCount } from "./SetCount";
@@ -31,7 +32,14 @@ export function CalledSet({ still }: CalledSetProps) {
   const rulerRef = useRef<HTMLSpanElement>(null);
   const baselineRef = useRef<HTMLSpanElement>(null);
   const { reps, called } = useCalledSet(still, runRef, stageRef);
-  const layout = useStageLayout(gridRef, rulerRef, baselineRef);
+  // The count strains through the slow last reps (never when still), so
+  // the layout allows for its strokes.
+  const layout = useStageLayout(
+    gridRef,
+    rulerRef,
+    baselineRef,
+    still ? 0 : STRAIN_OUTSET_EM,
+  );
   const done = !still && reps >= SET_REPS;
   // Still, the calls are listed under the count, but the count keeps its
   // column, so the figure stays in front of it.

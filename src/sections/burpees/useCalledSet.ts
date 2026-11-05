@@ -7,7 +7,8 @@ import { stickyProgress } from "@/lib/scrollProgress";
  * The set as the visitor scrolls through its run: reps done and the call
  * last made, from how far the pinned stage has travelled. Coarse state, so
  * a frame that changes neither re-renders nothing. Still (reduced motion):
- * the finished set.
+ * the finished set. It also writes the run's 0 to 1 progress to the stage
+ * as `--set-p`, to the thousandth, for the count's strain.
  */
 export function useCalledSet(
   still: boolean,
@@ -17,6 +18,7 @@ export function useCalledSet(
   const [reps, setReps] = useState(0);
   const [called, setCalled] = useState(0);
   const stickTop = useRef(0);
+  const written = useRef(-1);
 
   const onFrame = useCallback(
     (resized: boolean) => {
@@ -35,6 +37,11 @@ export function useCalledSet(
       );
       setReps(repsAt(progress));
       setCalled(callAt(progress));
+      const rounded = Math.round(progress * 1000) / 1000;
+      if (rounded !== written.current) {
+        written.current = rounded;
+        pinned.style.setProperty("--set-p", String(rounded));
+      }
     },
     [run, stage],
   );

@@ -2,6 +2,7 @@ import { act, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BurpeesSection } from "./BurpeesSection";
 import { CALLS } from "./calls";
+import { STRAIN_OUTSET_EM, STRAIN_STROKE_EM } from "./countType";
 import { RUN_HEIGHT } from "./stageRun";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
@@ -189,5 +190,50 @@ describe("BurpeesSection", () => {
     );
     expect(fit).toBeLessThan(1);
     expect(1500 * fit).toBeLessThanOrEqual(1088);
+  });
+
+  it("strains the count through the last reps, from the set's progress", async () => {
+    const at = { top: 0 };
+    layOut(() => at.top);
+    renderWithProviders(<BurpeesSection />);
+    await nearSet();
+    const stage = count().closest("[aria-hidden='true']") as HTMLElement;
+    expect(count()).toHaveClass("set-strain");
+    expect(count().style.getPropertyValue("--strain-stroke")).toBe(
+      `${STRAIN_STROKE_EM}em`,
+    );
+    scrollTo(0.85, at, flush);
+    expect(stage.style.getPropertyValue("--set-p")).toBe("0.85");
+  });
+
+  it("fits the count with its strained strokes, not just its digits", async () => {
+    // The ruler's digits are drawn at 500px, three of them 1080px wide: a
+    // finished set just fits the 1088px stage, until the strokes widen it.
+    const size = 500;
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation(
+      (element, pseudo) => {
+        const style = real(element, pseudo);
+        if (element.textContent !== "000") return style;
+        return new Proxy(style, {
+          get: (target, key) =>
+            key === "fontSize"
+              ? `${size}px`
+              : (Reflect.get(target, key) as unknown),
+        });
+      },
+    );
+    layOut(() => 0, 1080);
+    renderWithProviders(<BurpeesSection />);
+    await nearSet();
+    const fit = () =>
+      Number(
+        (count().parentElement as HTMLElement).style.getPropertyValue(
+          "--count-fit",
+        ),
+      );
+    await vi.waitFor(() => expect(fit()).toBeLessThan(1));
+    const outset = size * STRAIN_OUTSET_EM;
+    expect((1080 + 2 * outset) * fit()).toBeLessThanOrEqual(1088);
   });
 });
