@@ -16,6 +16,7 @@ import {
   SCENE_H,
   TABLE_FACE_H,
 } from "./glassGeometry";
+import { shown } from "./glassMotion";
 import { cn } from "@/lib/cn";
 
 interface GlassStackProps {
@@ -65,12 +66,12 @@ export function GlassStack({ view, attempt, still }: GlassStackProps) {
           {/* The one table's plate and its columns, while the sheets stand as one. */}
           <div
             className={cn(
-              MOVE,
-              "absolute top-0 rounded-[10px] bg-raised/60",
+              "absolute top-0 rounded-[10px] bg-raised/60 transition-[opacity,visibility] ease-lift motion-reduce:transition-none",
               view.asked ? "opacity-0" : "opacity-100",
             )}
             style={{
               ...across(GLASS.inset),
+              ...shown(!view.asked),
               height: TABLE_FACE_H,
               transitionDuration: "var(--duration-slow)",
               transform: `translate3d(0, ${GLASS.table.y}px, -1px)`,
@@ -97,7 +98,8 @@ export function GlassStack({ view, attempt, still }: GlassStackProps) {
               key={org}
               org={org}
               column={column}
-              held={spotOf(view, org).at === "held"}
+              apart={view.asked}
+              selected={spotOf(view, org).at === "result"}
               attempt={view.asking && org === view.target ? attempt : null}
               still={still}
             />
