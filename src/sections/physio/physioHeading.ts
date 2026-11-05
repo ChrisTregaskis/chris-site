@@ -1,7 +1,6 @@
 /**
- * The physio chapter's opener, as approved by Chris (4 Nov 2026). No
- * AI-workflow mention here: that story belongs to the Badass Burpees case
- * study.
+ * The physio chapter's opener, as approved by Chris (4 Nov 2026). It
+ * deliberately makes no mention of an AI workflow.
  */
 export const PHYSIO_HEADING = {
   title: "A multi-tenant platform for physio and wellness",
