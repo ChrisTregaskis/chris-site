@@ -23,6 +23,7 @@ export function useDepthFit(
         width: stage.clientWidth,
         height: document.documentElement.clientHeight,
         stacked,
+        gutter: stage.getBoundingClientRect().left,
       });
       setFit((last) => (last && sameFit(last, next) ? last : next));
     };

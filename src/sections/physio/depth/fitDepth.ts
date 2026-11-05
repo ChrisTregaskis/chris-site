@@ -8,7 +8,7 @@ import { QUERY_TYPE } from "../QueryLines";
  * to `MAX_BOOST`), so the text on the sheets stays the size it is on a
  * desktop (about 13.6px on screen, the em measured down the tilted sheet).
  * Below `MIN_SCALE` it would have to get smaller still, so the screen gets
- * the glass floor instead. Side by side that reaches about 910 x 649;
+ * the glass floor instead. Side by side that reaches about 930 x 649;
  * stacked above the steps, about 513 x 870 (tablets held upright).
  */
 
@@ -29,6 +29,12 @@ const NAV = 68;
 
 /** Breathing room kept round the figure in the pinned column. */
 const AIR = 16;
+
+/** Side by side, the least room kept between the plane's overhang and the screen's edge. */
+const EDGE = 8;
+
+/** The figure's widest beside the steps (`max-w-[560px]`), centred in its column. */
+const FIGURE_W = 560;
 
 /** Side by side, the figure's fixed parts round the stack: picker row, the gap above the stack, the controls row. */
 const SIDE_FIXED = 28 + 12 + 12 + 30;
@@ -52,7 +58,7 @@ export interface DepthFit {
   boost: number;
   /** The query's size above it: medium once the stack has shrunk. */
   query: DepthQuerySize;
-  /** Stacked, the figure's inset so the plane's overhang stays on screen. */
+  /** The figure's inset so the plane's overhang stays on screen (stacked, or a narrow gutter side by side). */
   inset: number;
 }
 
@@ -63,25 +69,41 @@ export interface FitInput {
   height: number;
   /** One column (below `wide`): the figure pins above the steps. */
   stacked: boolean;
+  /** Side by side, the room left of the pinned column, out to the screen's edge (the page's gutter). */
+  gutter?: number;
 }
 
 function round(value: number): number {
   return Math.floor(value * 1000) / 1000;
 }
 
-/** The stack's scale for its room down and across, with the query at a size. */
+/** The stack's scale for its room down and across, with the query at a size and the figure inset. */
 function scaleFor(
   { width, height, stacked }: FitInput,
   query: DepthQuerySize,
+  inset = 0,
 ): number {
   const block = QUERY_TYPE[query].block + STACK_GAP[query];
   const across = stacked
     ? width / (DEPTH_INK.left + DEPTH_INK.right)
-    : width / DEPTH_INK.right;
+    : (width - inset) / DEPTH_INK.right;
   const down = stacked
     ? (height - NAV - PANEL_PAD - block - CARD_ROOM) / STACK_H
     : (height - NAV - 2 * AIR - SIDE_FIXED - block) / STACK_H;
   return Math.min(1, across, down);
+}
+
+/**
+ * How far the figure steps in so the plane's overhang stays on screen:
+ * stacked, all of it; side by side, only what the page's gutter (and the
+ * figure's centring in its column) leaves short.
+ */
+function insetFor(input: FitInput, scale: number): number {
+  const overhang = DEPTH_INK.left * scale;
+  if (input.stacked) return Math.round(overhang);
+  const figureLeft =
+    (input.gutter ?? Infinity) + Math.max(0, (input.width - FIGURE_W) / 2);
+  return Math.max(0, Math.ceil(overhang + EDGE - figureLeft));
 }
 
 /**
@@ -92,14 +114,18 @@ function scaleFor(
 export function fitDepth(input: FitInput): DepthFit {
   const full = scaleFor(input, "large");
   const query: DepthQuerySize = full < 1 ? "medium" : "large";
-  const scale = round(query === "large" ? full : scaleFor(input, "medium"));
+  const first = query === "large" ? full : scaleFor(input, "medium");
+  // A narrow gutter side by side steps the figure in, which leaves it a little less room across.
+  const scale = round(
+    Math.min(first, scaleFor(input, query, insetFor(input, first))),
+  );
   const depth = scale >= MIN_SCALE;
   return {
     depth,
     scale,
     boost: round(Math.min(MAX_BOOST, 1 / Math.max(scale, 0.01))),
     query,
-    inset: input.stacked ? Math.round(DEPTH_INK.left * scale) : 0,
+    inset: insetFor(input, scale),
   };
 }
 
