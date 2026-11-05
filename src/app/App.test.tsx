@@ -169,7 +169,7 @@ describe("App", () => {
     await opensTheEnquiry(contact);
   });
 
-  it("folds the bar into a phone menu: the Work menu's case studies, About, Contact, then Get in touch", async () => {
+  it("folds the bar into a phone menu: the Work menu's case studies, About, Contact, then Get in touch and Request my CV", async () => {
     vi.stubEnv("VITE_CHRIS_API", "https://api.test");
     const user = userEvent.setup();
     renderWithProviders(<App />);
@@ -189,16 +189,32 @@ describe("App", () => {
         .map((link) => [link.textContent, link.getAttribute("href")]),
     ).toEqual([["Chris Tregaskis", "#top"], ...work]);
 
-    // Get in touch: the menu closes and the enquiry opens; closing that
+    // Get in touch, then Request my CV, both as links (no filled buttons in
+    // the menu). Each closes the menu and opens its drawer; closing that
     // comes back to Menu.
-    await user.click(
-      within(menu).getByRole("button", { name: "Get in touch" }),
-    );
-    expect(menu).not.toHaveAttribute("open");
-    const drawer = screen.getByRole("dialog", { name: "Get in touch" });
-    expect(drawer).toHaveAttribute("open");
-    fireEvent(drawer, new Event("cancel", { cancelable: true }));
-    expect(button).toHaveFocus();
+    const actions = within(menu)
+      .getAllByRole("button")
+      .filter((b) => b.textContent !== "Close");
+    expect(actions.map((b) => b.textContent)).toEqual([
+      "Get in touch",
+      "Request my CV",
+    ]);
+    for (const action of actions) {
+      expect(action).not.toHaveClass("bg-accent");
+      expect(action).toHaveClass("underline");
+    }
+    const opensItsDrawer = async (name: string) => {
+      if (!menu.hasAttribute("open")) await user.click(button);
+      await user.click(within(menu).getByRole("button", { name }));
+      expect(menu).not.toHaveAttribute("open");
+      const drawer = screen.getByRole("dialog", { name });
+      expect(drawer).toHaveAttribute("open");
+      fireEvent(drawer, new Event("cancel", { cancelable: true }));
+      expect(drawer).not.toHaveAttribute("open");
+      expect(button).toHaveFocus();
+    };
+    await opensItsDrawer("Get in touch");
+    await opensItsDrawer("Request my CV");
   });
 
   it("opens the CV drawer from any Request my CV button and closes it again", async () => {
