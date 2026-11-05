@@ -44,7 +44,7 @@ describe("the phone panel's height", () => {
     const figure = (test: (typeof states)[number]) => (
       <IsolationFigure
         test={test}
-        drawing="flat"
+        fit={null}
         controlsInside={false}
         drawn
         still

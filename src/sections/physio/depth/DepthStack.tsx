@@ -1,3 +1,4 @@
+import { type CSSProperties } from "react";
 import { EmptyResult } from "../EmptyResult";
 import { type LeakView, spotOf } from "../leakTest";
 import { ORGS } from "../organisations";
@@ -15,12 +16,15 @@ import {
   VANISHING_Y,
   VIEW,
 } from "./depthGeometry";
+import { type DepthFit, STACK_GAP_CLASS } from "./fitDepth";
 import { cn } from "@/lib/cn";
 
 interface DepthStackProps {
   view: LeakView;
   attempt: number;
   still: boolean;
+  /** Its scale as a whole, and how much its type grows to make up (`fitDepth`). */
+  fit: Pick<DepthFit, "scale" | "boost" | "query">;
 }
 
 /**
@@ -28,72 +32,89 @@ interface DepthStackProps {
  * preserve-3d), one per organisation: lying as one table at rest, then the
  * result out in front of the policy and the rest held back behind it. Tilts
  * stay shallow so the text you can see stays at about 14px or more on
- * screen. Decorative (the query and its line say it all) and never in the
- * way of a click: its 3D wrappers project over the controls below it.
+ * screen; where it's shrunk to fit, its type grows to make up (`--k`).
+ * Decorative (the query and its line say it all) and never in the way of
+ * a click: its 3D wrappers project over the controls below it.
  */
-export function DepthStack({ view, attempt, still }: DepthStackProps) {
+export function DepthStack({ view, attempt, still, fit }: DepthStackProps) {
   return (
     <div
       aria-hidden="true"
       data-testid="sessions-stack"
       data-drawing="depth"
-      className="pointer-events-none relative mt-5 [perspective:1800px]"
-      style={{
-        width: SHEET.w,
-        height: STACK_H,
-        perspectiveOrigin: `50% ${VANISHING_Y}px`,
-      }}
+      className={cn("pointer-events-none relative", STACK_GAP_CLASS[fit.query])}
+      style={{ width: SHEET.w * fit.scale, height: STACK_H * fit.scale }}
     >
       <div
-        className={cn(
-          MOVE,
-          "absolute inset-x-0 top-[24px] [transform-style:preserve-3d]",
-        )}
-        style={{
-          transitionDuration: "var(--duration-apart)",
-          transform: view.asked ? VIEW.apart : VIEW.rest,
-        }}
+        className="absolute left-0 top-0 origin-top-left"
+        style={
+          {
+            transform: `scale(${fit.scale})`,
+            "--k": fit.boost,
+          } as CSSProperties
+        }
       >
-        {/* The one table's plate and its columns, while the sheets lie as one. */}
+        {/* The stack at full size, in its perspective. */}
         <div
-          className={cn(
-            MOVE,
-            "absolute left-0 top-0 rounded-[14px] bg-raised/60",
-            view.asked ? "opacity-0" : "opacity-100",
-          )}
+          className="relative [perspective:1800px]"
           style={{
-            transitionDuration: "var(--duration-slow)",
             width: SHEET.w,
-            height: TABLE_H,
-            transform: `translate3d(0, ${TABLE.y}px, ${TABLE.z - 2}px)`,
+            height: STACK_H,
+            perspectiveOrigin: `50% ${VANISHING_Y}px`,
           }}
         >
-          <TableColumns className="absolute inset-x-5 top-[12px] pl-[22px] text-[17px]" />
+          <div
+            className={cn(
+              MOVE,
+              "absolute inset-x-0 top-[24px] [transform-style:preserve-3d]",
+            )}
+            style={{
+              transitionDuration: "var(--duration-apart)",
+              transform: view.asked ? VIEW.apart : VIEW.rest,
+            }}
+          >
+            {/* The one table's plate and its columns, while the sheets lie as one. */}
+            <div
+              className={cn(
+                MOVE,
+                "absolute left-0 top-0 rounded-[14px] bg-raised/60",
+                view.asked ? "opacity-0" : "opacity-100",
+              )}
+              style={{
+                transitionDuration: "var(--duration-slow)",
+                width: SHEET.w,
+                height: TABLE_H,
+                transform: `translate3d(0, ${TABLE.y}px, ${TABLE.z - 2}px)`,
+              }}
+            >
+              <TableColumns className="absolute inset-x-5 top-[12px] pl-[22px] text-[length:calc(17px*var(--k,1))]" />
+            </div>
+            {ORGS.map((org) => (
+              <DepthSheet
+                key={org}
+                org={org}
+                spot={spotOf(view, org)}
+                attempt={view.asking && org === view.target ? attempt : null}
+                still={still}
+              />
+            ))}
+            <DepthPolicy
+              live={view.asked}
+              named={view.testing}
+              attempt={attempt}
+              still={still}
+            />
+            <EmptyResult
+              shown={view.asked && view.returned === null}
+              className="left-0 top-0 rounded-[14px] text-[length:calc(19px*var(--k,1))]"
+              style={{
+                width: SHEET.w,
+                height: EMPTY_H,
+                transform: `translate3d(0, ${RESULT.y}px, ${RESULT.z}px)`,
+              }}
+            />
+          </div>
         </div>
-        {ORGS.map((org) => (
-          <DepthSheet
-            key={org}
-            org={org}
-            spot={spotOf(view, org)}
-            attempt={view.asking && org === view.target ? attempt : null}
-            still={still}
-          />
-        ))}
-        <DepthPolicy
-          live={view.asked}
-          named={view.testing}
-          attempt={attempt}
-          still={still}
-        />
-        <EmptyResult
-          shown={view.asked && view.returned === null}
-          className="left-0 top-0 rounded-[14px] text-[19px]"
-          style={{
-            width: SHEET.w,
-            height: EMPTY_H,
-            transform: `translate3d(0, ${RESULT.y}px, ${RESULT.z}px)`,
-          }}
-        />
       </div>
     </div>
   );
