@@ -47,10 +47,8 @@ export function GlassPolicy({ live, named, attempt, still }: GlassPolicyProps) {
       >
         <div
           className={cn(
-            "absolute inset-0 rounded-[12px] border-2 border-dashed bg-surface/55 transition-[border-color,box-shadow] duration-slow motion-reduce:transition-none",
-            named
-              ? "border-accent shadow-[0_0_40px_-14px_rgb(var(--color-accent)/0.55)]"
-              : "border-line-strong",
+            "absolute inset-0 rounded-[12px] border-2 border-dashed bg-surface/55 transition-[border-color] duration-slow motion-reduce:transition-none",
+            named ? "border-accent" : "border-line-strong",
           )}
         />
         {/* A soft flash as the policy is named; a hard one each time an attempt hits it. */}
