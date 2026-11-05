@@ -149,6 +149,14 @@ export default {
         "sheet-up": {
           from: { transform: "translateY(40px)", opacity: "0" },
         },
+        // The phone menu: the whole of it fades in (fade), its links rise
+        // a little as they do (fadeUp).
+        "menu-in": {
+          from: { opacity: "0" },
+        },
+        "fade-up": {
+          from: { transform: "translateY(16px)", opacity: "0" },
+        },
         // The chat mock's typing dots (b3 "bl").
         "typing-dot": {
           "50%": { opacity: "0.25" },
@@ -157,6 +165,8 @@ export default {
       animation: {
         "drawer-in": "drawer-in var(--duration-enter) var(--ease-enter)",
         "sheet-up": "sheet-up var(--duration-enter) var(--ease-enter)",
+        "menu-in": "menu-in var(--duration-enter) var(--ease-enter)",
+        "fade-up": "fade-up var(--duration-enter) var(--ease-enter)",
         "typing-dot": "typing-dot 1s infinite",
       },
     },
