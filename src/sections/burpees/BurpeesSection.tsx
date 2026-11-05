@@ -6,6 +6,7 @@ import { CALLS } from "./calls";
 import { RUN_HEIGHT } from "./stageRun";
 import { useStageReady } from "./useStageReady";
 import { cn } from "@/lib/cn";
+import { ChapterRail } from "@/ui/atoms/ChapterRail";
 import { ChapterHeading } from "@/ui/molecules/ChapterHeading";
 import { Section } from "@/ui/molecules/Section";
 
@@ -36,6 +37,7 @@ export function BurpeesSection() {
       labelledBy="burpees-title"
       tone={{ from: "physio", to: "burpees", feather: "70vh" }}
     >
+      <ChapterRail numeral="3" total="3" />
       <ChapterHeading
         id="burpees-title"
         numeral="3"

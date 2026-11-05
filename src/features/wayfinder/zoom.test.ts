@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { APART_EXTENT, fitScale, MAX_ZOOM, zoomFor } from "./zoom";
+import {
+  APART_EXTENT,
+  EDGE_PX,
+  figureEdge,
+  fitScale,
+  MAX_ZOOM,
+  zoomFor,
+} from "./zoom";
 
 /** The figure's column at 1440×900: about 560px wide, pinned mid-stage. */
 const AT_1440 = {
@@ -42,5 +49,25 @@ describe("the figure's growth while taken apart", () => {
     const cramped = { ...AT_1440, left: 0, right: 558 };
     expect(zoomFor(cramped)).toBe(1);
     expect(zoomFor({ ...AT_1440, right: AT_1440.left })).toBe(1);
+  });
+});
+
+describe("the edge the grown figure keeps", () => {
+  it("is the page's --figure-edge where it sets one", () => {
+    expect(figureEdge("64px")).toBe(64);
+    expect(figureEdge(" 64px")).toBe(64);
+  });
+
+  it("is 24px otherwise", () => {
+    expect(EDGE_PX).toBe(24);
+    expect(figureEdge("")).toBe(EDGE_PX);
+    expect(figureEdge("auto")).toBe(EDGE_PX);
+    expect(figureEdge("0px")).toBe(EDGE_PX);
+  });
+
+  it("holds the figure further in, so it grows less where the margin is tight", () => {
+    const kept = zoomFor({ ...AT_1440, edge: 64 });
+    expect(kept).toBeLessThan(zoomFor(AT_1440));
+    expect(kept).toBeGreaterThan(1.2);
   });
 });

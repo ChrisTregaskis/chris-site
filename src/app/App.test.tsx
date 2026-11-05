@@ -50,6 +50,21 @@ describe("App", () => {
     }
   });
 
+  it("gives each case study a progress rail out of three, as decoration", () => {
+    const { container } = renderWithProviders(<App />);
+    const rails = [...container.querySelectorAll(".chapter-rail")];
+    expect(rails.map((rail) => rail.textContent)).toEqual([
+      "1/3",
+      "2/3",
+      "3/3",
+    ]);
+    for (const rail of rails) {
+      expect(rail).toHaveAttribute("aria-hidden", "true");
+      // It spans its chapter, whose view it is driven by.
+      expect(rail.parentElement).toHaveClass("chapter-tone");
+    }
+  });
+
   it("sends a spark along the build lane's pinned run", () => {
     renderWithProviders(<App />);
     const lane = screen.getByRole("region", { name: "How it was built" });

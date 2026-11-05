@@ -72,6 +72,196 @@
 
 @layer components {
   /*
+   * A case study's progress (ChapterRail): how far through it the visitor
+   * is, and when it's finished, at the window's left edge like a book's
+   * thumb index. Its number out of the total sits over a small ring and a
+   * short hairline rail, the three centred on the window's height. Violet
+   * says how far, as everywhere on the page: the rail fills in the chapter
+   * numeral's violet as the chapter is read (empty as it reaches the top
+   * bar, full once its end is a third of the way up the window, by when the
+   * next chapter has taken over and anything still playing out at its end,
+   * the build lane, has finished), and once it's full the chapter settles:
+   * the ring fills and the line lights to lilac.
+   *
+   * Only from xl (1280px), where the page has a margin for it; any closer
+   * and it crowds the content. The Wayfinder figure grows into that margin
+   * while apart, so there it keeps clear of the gauge (--figure-edge, read
+   * by useFigureZoom).
+   *
+   * So it never reads as a second scrollbar, a gauge shows only while its
+   * chapter is in view: it fades in as the chapter reaches the top, holds
+   * its finished state a moment, and fades out before the next one's comes
+   * in.
+   *
+   * All of it is CSS scroll-driven animation on the chapter's view timeline
+   * (the column spans the chapter), opacity and transforms only, so it runs
+   * on the compositor. Without support it isn't drawn; under reduced motion
+   * the rail fills in quarters, never continuously.
+   */
+  .chapter-rail {
+    display: none;
+  }
+  @supports (animation-timeline: view()) {
+    @screen xl {
+      :root {
+        --figure-edge: 64px;
+      }
+      .chapter-rail {
+        /* The gauge's centre line, in from the window's edge. */
+        --rail-x: min(1.1vw, 20px);
+        /* Its parts' heights, so the whole is known and can sit centred. */
+        --rail-label: 14px;
+        --rail-label-gap: 12px;
+        --rail-dot: 7px;
+        --rail-dot-gap: 6px;
+        --rail-track: min(40svh, 360px);
+        --rail-height: calc(
+          var(--rail-label) + var(--rail-label-gap) + var(--rail-dot) +
+            var(--rail-dot-gap) + var(--rail-track)
+        );
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        /* From the chapter's centre out to the window's edge, then back in. */
+        left: calc(50% - 50vw + var(--rail-x));
+        display: block;
+        width: 0;
+        pointer-events: none;
+        view-timeline: --chapter-rail block;
+        view-timeline-inset: var(--size-nav) 0px;
+      }
+    }
+  }
+  .chapter-rail__pin {
+    position: sticky;
+    /* Centred on the window's height, never under the top bar. */
+    top: max(var(--size-nav) + 16px, (100svh - var(--rail-height)) / 2);
+    width: 48px;
+    transform: translateX(-50%);
+    animation: chapter-rail-in linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: entry 55% entry 100%;
+  }
+  .chapter-rail__gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: chapter-rail-out linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: exit 36% exit 56%;
+  }
+  /* The count, small and tabular like the Inside lists' numbers: the number in lilac, the total a line quieter. */
+  .chapter-rail__label {
+    display: flex;
+    align-items: baseline;
+    height: var(--rail-label);
+    margin-bottom: var(--rail-label-gap);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    line-height: var(--rail-label);
+    white-space: nowrap;
+  }
+  .chapter-rail__numeral {
+    font-weight: 600;
+    color: rgb(var(--color-accent));
+  }
+  .chapter-rail__total {
+    font-weight: 500;
+    color: rgb(var(--color-line-strong));
+  }
+  /* The ring at the rail's head, which fills once the chapter is finished. */
+  .chapter-rail__dot {
+    position: relative;
+    flex: none;
+    width: var(--rail-dot);
+    height: var(--rail-dot);
+    margin-bottom: var(--rail-dot-gap);
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1.5px rgb(var(--color-accent));
+  }
+  .chapter-rail__dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgb(var(--color-accent));
+    opacity: 0;
+    animation: chapter-rail-done linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: exit 22% exit 33%;
+  }
+  .chapter-rail__track {
+    position: relative;
+    flex: none;
+    width: 2px;
+    height: var(--rail-track);
+    border-radius: 2px;
+    background: rgb(var(--color-line) / 0.5);
+    overflow: hidden;
+  }
+  .chapter-rail__fill,
+  .chapter-rail__done {
+    position: absolute;
+    inset: 0;
+  }
+  .chapter-rail__fill {
+    transform-origin: top;
+    transform: scaleY(0);
+    background: rgb(var(--color-accent-strong));
+    animation: chapter-rail-fill linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: contain 0% exit 33%;
+  }
+  .chapter-rail__done {
+    background: rgb(var(--color-accent));
+    opacity: 0;
+    animation: chapter-rail-done linear both;
+    animation-timeline: --chapter-rail;
+    animation-range: exit 22% exit 33%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chapter-rail__fill {
+      animation-timing-function: steps(4, end);
+    }
+  }
+  @keyframes chapter-rail-fill {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  /* The last stretch of the read: the chapter settles as the rail fills. */
+  @keyframes chapter-rail-done {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes chapter-rail-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes chapter-rail-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}
+
+@layer components {
+  /*
    * Dead-zone cues: one small cue in each stretch where scrolling otherwise
    * changed next to nothing (found by scrolling the page slowly at 1440x900
    * and 390x844), each in its own chapter's terms, at every width. Amber
