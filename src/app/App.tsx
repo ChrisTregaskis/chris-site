@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { CVDrawer, CVRequestButton } from "@/features/cv-request";
 import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
 import { AboutSection } from "@/sections/about/AboutSection";
@@ -7,6 +8,7 @@ import { Hero } from "@/sections/hero/Hero";
 import { PhysioSection } from "@/sections/physio/PhysioSection";
 import { WayfinderSection } from "@/sections/wayfinder/WayfinderSection";
 import { useAnchorScroll } from "@/hooks/useAnchorScroll";
+import { useNavTone } from "@/hooks/useNavTone";
 import { Container } from "@/ui/atoms/Container";
 import { type TopNavLink, TopNav } from "@/ui/molecules/TopNav";
 import { type NavMenuItem, NavMenu } from "@/ui/organisms/NavMenu";
@@ -34,12 +36,15 @@ const NAV_LINKS: TopNavLink[] = [
 ];
 
 /**
- * chris-tregaskis.uk: one long page, a sticky top bar, and the enquiry and CV
- * drawers. Below `wide` the bar's links and Get in touch fold into its phone
+ * chris-tregaskis.uk: one long page, a solid sticky top bar (in the tone of
+ * the chapter under it, so nothing shows through behind it), and the enquiry
+ * and CV drawers. Below `wide` the bar's links and Get in touch fold into its phone
  * menu (the same links, then Get in touch and Request my CV as links).
  */
 export function App() {
   useAnchorScroll();
+  const bar = useRef<HTMLDivElement>(null);
+  useNavTone(bar);
   return (
     <>
       <a
@@ -48,7 +53,7 @@ export function App() {
       >
         Skip to content
       </a>
-      <div className="sticky top-0 z-30 bg-gradient-to-b from-surface/70 to-surface/0 backdrop-blur-md">
+      <div ref={bar} className="sticky top-0 z-30 bg-surface">
         <Container>
           <TopNav
             name={NAME}
