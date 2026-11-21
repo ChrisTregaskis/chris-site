@@ -11,7 +11,7 @@ export function AllCalls() {
             className={
               index === CALLS.length - 1
                 ? CALL_TYPE
-                : "m-0 font-display text-[20px] font-semibold leading-[1.05] tracking-[-0.02em] text-muted"
+                : "m-0 font-display text-[20px] font-medium leading-[1.05] tracking-[-0.02em] text-muted"
             }
           >
             {item.call}

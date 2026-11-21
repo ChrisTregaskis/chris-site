@@ -4,15 +4,15 @@ export interface ChapterNumeralProps {
 }
 
 /**
- * A case study's number, set very large in the accent above its title: the
- * page's numbered journey. Decorative (the order is the page's own), so
- * hidden from assistive tech.
+ * A case study's number, set large and light in the mono above its title,
+ * like a drawing's sheet number: the page's numbered journey. Decorative
+ * (the order is the page's own), so hidden from assistive tech.
  */
 export function ChapterNumeral({ children }: ChapterNumeralProps) {
   return (
     <span
       aria-hidden="true"
-      className="mb-1 block font-display text-numeral font-bold text-accent-strong [font-variation-settings:'opsz'_96]"
+      className="mb-4 block font-code text-numeral font-light text-ink"
     >
       {children}
     </span>

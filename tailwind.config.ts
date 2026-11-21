@@ -7,6 +7,7 @@ const COLOUR_TOKENS = [
   "surface",
   "panel",
   "raised",
+  "sheet",
   "line",
   "line-strong",
   "line-hover",
@@ -17,6 +18,7 @@ const COLOUR_TOKENS = [
   "accent-strong",
   "on-accent",
   "signal",
+  "marker",
   "danger",
   "danger-ink",
   "tone-wayfinder",
@@ -27,7 +29,10 @@ const COLOUR_TOKENS = [
   "figure-top",
   "figure-left",
   "figure-right",
+  "figure-on-top",
   "figure-on-left",
+  "figure-on-right",
+  "figure-base-top",
   "figure-base-left",
   "figure-base-right",
   "figure-base-on",
@@ -63,14 +68,15 @@ export default {
         code: "var(--font-code)",
       },
       fontSize: {
-        // A chapter's number: set very large, bold and tight, above its title.
+        // A chapter's number: a drawing's sheet number, set large and light
+        // in the mono above its title.
         numeral: [
-          "clamp(88px, 12vw, 176px)",
-          { lineHeight: "0.8", letterSpacing: "-0.06em" },
+          "clamp(64px, 8vw, 112px)",
+          { lineHeight: "0.85", letterSpacing: "-0.04em" },
         ],
         "display-xl": [
-          "clamp(min(38px, 6svh), min(6.4vw, 9.4svh), 84px)",
-          { lineHeight: "1.02", letterSpacing: "-0.025em" },
+          "clamp(min(38px, 6svh), min(6vw, 9svh), 80px)",
+          { lineHeight: "1.06", letterSpacing: "-0.025em" },
         ],
         "display-lg": [
           "clamp(30px, 4.2vw, 54px)",
@@ -91,7 +97,7 @@ export default {
         "body-sm": ["15px", { lineHeight: "1.5", letterSpacing: "0" }],
         label: ["14px", { lineHeight: "1.4", letterSpacing: "0" }],
         caption: ["13px", { lineHeight: "1.4", letterSpacing: "0" }],
-        eyebrow: ["13px", { lineHeight: "1.4", letterSpacing: "0.06em" }],
+        eyebrow: ["13px", { lineHeight: "1.4", letterSpacing: "0" }],
         "mono-sm": ["12px", { lineHeight: "1.6", letterSpacing: "0" }],
       },
       spacing: {

@@ -11,7 +11,7 @@ export function Label({ htmlFor, children, optional = false }: LabelProps) {
   return (
     <label
       htmlFor={htmlFor}
-      className="text-label font-semibold leading-[normal]"
+      className="text-label font-medium leading-[normal]"
     >
       {children}
       {optional ? (

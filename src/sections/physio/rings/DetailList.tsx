@@ -17,8 +17,8 @@ interface DetailListProps {
 /**
  * A step's details: the readable twin of what it adds to the drawing, as
  * Wayfinder's "Inside" lists are (without numbers: the chapters are
- * numbered, the steps aren't). Each is a toggle that picks its part out in
- * amber; pointing at or focusing one previews it. One tab stop per list:
+ * numbered, the steps aren't). Each is a toggle that picks its part out with
+ * the highlighter; pointing at or focusing one previews it. One tab stop per list:
  * the arrow keys, Home and End move along it.
  */
 export function DetailList({
@@ -81,15 +81,16 @@ export function DetailList({
                 className={cn(
                   "inline-block size-[7px] shrink-0 translate-y-[-1px] rounded-pill border-[1.5px] transition-colors duration-base motion-reduce:transition-none",
                   on
-                    ? "border-signal bg-signal"
-                    : "border-accent group-hover/detail:border-signal group-focus-visible/detail:border-signal",
+                    ? "border-ink bg-marker"
+                    : "border-line-strong group-hover/detail:border-ink group-focus-visible/detail:border-ink",
                 )}
               />
               <span
                 className={cn(
-                  "underline decoration-[1.5px] underline-offset-[5px] transition-[color,text-decoration-color] duration-base motion-reduce:transition-none",
+                  "underline decoration-[1.5px] underline-offset-[5px] transition-[color,text-decoration-color,background-color] duration-base motion-reduce:transition-none",
+                  // Picked out, the words are highlighted as the drawing is.
                   on
-                    ? "text-ink decoration-signal"
+                    ? "bg-marker/60 text-ink decoration-transparent [box-decoration-break:clone]"
                     : "text-muted decoration-transparent group-hover/detail:text-ink group-hover/detail:decoration-line-field group-focus-visible/detail:text-ink",
                 )}
               >

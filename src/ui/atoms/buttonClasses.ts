@@ -5,19 +5,22 @@ export type ButtonVariant = "primary" | "ghost";
 export type ButtonSize = "md" | "sm";
 
 const BASE =
-  "inline-flex items-center justify-center gap-[10px] rounded-pill font-body font-semibold leading-[normal] no-underline cursor-pointer transition-[background-color,box-shadow,opacity] duration-base ease-enter motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal aria-disabled:cursor-progress aria-disabled:opacity-[0.85]";
+  "inline-flex items-center justify-center gap-[10px] rounded-control font-body font-medium leading-[normal] no-underline cursor-pointer transition-[background-color,box-shadow,opacity] duration-base ease-enter motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal aria-disabled:cursor-progress aria-disabled:opacity-[0.85]";
 
 const SIZES: Record<ButtonSize, string> = {
-  md: "px-[22px] py-[13px] text-body-sm",
+  md: "px-5 py-3 text-body-sm",
   sm: "px-4 py-2 text-label",
 };
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-on-accent aria-pressed:bg-signal",
-  // Secondary actions are links in look: a lilac underline that thickens on
-  // hover, no outline or fill. Only primary actions are filled.
+  // The red pen: the one filled control. Pressed (a toggle that's on, the
+  // demo running), it's inked in, graphite with white text.
+  primary:
+    "bg-accent text-on-accent hover:bg-accent-strong aria-pressed:bg-ink",
+  // Secondary actions are links in look: a pencil underline that the red pen
+  // goes over on hover, no outline or fill. Only primary actions are filled.
   ghost:
-    "rounded-[2px] bg-transparent px-0 text-ink underline decoration-accent decoration-[1.5px] underline-offset-[7px] transition-[color,text-decoration-thickness] hover:text-accent hover:decoration-[3px] aria-pressed:decoration-[3px]",
+    "rounded-badge bg-transparent px-0 text-ink underline decoration-line-strong decoration-[1.5px] underline-offset-[7px] transition-[color,text-decoration-color,text-decoration-thickness] hover:decoration-accent hover:decoration-2 aria-pressed:decoration-accent aria-pressed:decoration-2",
 };
 
 /** The button look, shared by Button and ButtonLink. */

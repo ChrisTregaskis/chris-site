@@ -275,11 +275,12 @@ export function Wayfinder() {
                         aria-pressed={live}
                         onClick={() => demo.swapPlatform(platform)}
                         className={cn(
-                          // The live platform: lilac on a solid underline; the
-                          // others on a dotted one, so they still read as choices.
-                          "cursor-pointer border-0 bg-transparent px-[2px] py-[5px] text-[13px] font-semibold leading-[normal] underline decoration-[1.5px] underline-offset-[6px] transition-colors duration-base hover:text-ink motion-reduce:transition-none",
+                          // The live platform: ink on a solid underline, as its
+                          // cartridge is inked in the figure; the others on a
+                          // dotted one, so they still read as choices.
+                          "cursor-pointer border-0 bg-transparent px-[2px] py-[5px] font-code text-[13px] font-medium leading-[normal] underline decoration-[1.5px] underline-offset-[6px] transition-colors duration-base hover:text-ink motion-reduce:transition-none",
                           live
-                            ? "text-accent decoration-accent decoration-solid"
+                            ? "text-ink decoration-ink decoration-solid"
                             : "text-muted decoration-line-field decoration-dotted",
                         )}
                       >

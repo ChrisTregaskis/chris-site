@@ -28,7 +28,7 @@ export function ChapterHeading({
       {numeral ? <ChapterNumeral>{numeral}</ChapterNumeral> : null}
       <h2
         id={id}
-        className="m-0 text-balance font-display text-display-lg font-semibold"
+        className="m-0 text-balance font-display text-display-lg font-medium"
       >
         {title}
       </h2>

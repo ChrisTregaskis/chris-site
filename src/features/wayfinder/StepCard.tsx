@@ -90,12 +90,12 @@ export function StepCard({
         >
           {badge ?? n}
         </button>
-        <span className="mb-[6px] block text-[14px] font-medium text-muted">
+        <span className="mb-2 block font-code text-[13px] text-muted">
           {kicker}
         </span>
         <h3
           className={cn(
-            "m-0 mb-[10px] font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.02em] underline decoration-transparent decoration-[1.5px] underline-offset-[6px] transition-[text-decoration-color] duration-base motion-reduce:transition-none",
+            "m-0 mb-3 font-display text-[28px] font-medium leading-[1.15] tracking-[-0.02em] underline decoration-transparent decoration-[1.5px] underline-offset-[6px] transition-[text-decoration-color] duration-base motion-reduce:transition-none",
             !on && "group-hover:decoration-accent",
           )}
         >

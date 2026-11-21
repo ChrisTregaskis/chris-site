@@ -1,7 +1,7 @@
 import { type NodeId, type RouteKey } from "./geometry";
 import { type RingId } from "./story";
 
-/** What a step's detail picks out of the drawing, in amber. */
+/** What a step's detail picks out of the drawing, with the highlighter. */
 export interface Highlight {
   nodes: ReadonlySet<NodeId>;
   routes: ReadonlySet<RouteKey>;

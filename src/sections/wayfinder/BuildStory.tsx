@@ -57,7 +57,7 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
         transition={preset.transition}
         className="flex max-w-[640px] flex-col gap-3 sheet:flex-row sheet:items-center sheet:gap-4 wide:col-span-3 wide:col-start-3 wide:justify-self-end"
       >
-        <span aria-hidden="true" className="shrink-0 text-signal">
+        <span aria-hidden="true" className="shrink-0 text-ink">
           <svg viewBox="0 0 24 24" className="size-[30px]">
             <path
               d="M9 3h6M10 3v6l-5.2 9.2A1.9 1.9 0 0 0 6.5 21h11a1.9 1.9 0 0 0 1.7-2.8L14 9V3"
@@ -69,7 +69,7 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
         <div className="text-[15px] leading-[1.6] text-muted">
           <h4
             id="bench-title"
-            className="m-0 mb-[2px] font-display text-[22px] font-semibold leading-[normal] text-ink"
+            className="m-0 mb-1 font-display text-[22px] font-medium leading-[normal] text-ink"
           >
             {BENCH.name}
           </h4>
@@ -80,7 +80,13 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
   );
 }
 
-/** How Wayfinder was built: five stages lit one by one as the section is scrolled through, with the eval bench as a note beneath. */
+/**
+ * How Wayfinder was built: five stages measured off one by one as the
+ * section is scrolled through, with the eval bench as a note beneath. The
+ * lane is a dimension line (the look's signature, as the chapter rails are):
+ * a pencil line with an oblique tick at each stage, which the red pen draws
+ * over and ticks off as it goes.
+ */
 export function BuildStory() {
   const still = useReducedMotion() ?? false;
   const stacked = useMediaQuery(BELOW_WIDE);
@@ -112,7 +118,7 @@ export function BuildStory() {
         >
           <h3
             id="build-title"
-            className="m-0 mb-[6px] font-display text-title-lg font-semibold leading-[normal]"
+            className="m-0 mb-2 font-display text-title-lg font-medium leading-[normal]"
           >
             How it was built
           </h3>
@@ -124,16 +130,17 @@ export function BuildStory() {
             ref={trackRef}
             className="relative pl-[34px] wide:pl-0 wide:pt-[34px]"
           >
-            {/* The 3px line runs through the dots' centres: each 21px dot
-                sits at the track's left edge (stacked) or 2px from its top
-                (side by side), so its centre is 10.5px in, or 12.5px down. */}
+            {/* The pencil line runs through the ticks' centres: each 21px
+                tick box sits at the track's left edge (stacked) or 2px from
+                its top (side by side), so its centre is 10.5px in, or 12.5px
+                down. The red pen's 2px line draws over it. */}
             <span
               aria-hidden="true"
-              className="absolute left-[9px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-[11px] wide:h-[3px] wide:w-auto"
+              className="absolute left-[10px] top-0 h-full w-px bg-line-strong wide:left-0 wide:right-0 wide:top-[12px] wide:h-px wide:w-auto"
             />
             <span
               aria-hidden="true"
-              className="absolute left-[9px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-gradient-to-b from-accent to-signal wide:left-0 wide:top-[11px] wide:h-[3px] wide:w-[calc(var(--p,0)*100%)] wide:bg-gradient-to-r"
+              className="absolute left-[9.5px] top-0 h-[calc(var(--p,0)*100%)] w-[2px] bg-accent wide:left-0 wide:top-[11.5px] wide:h-[2px] wide:w-[calc(var(--p,0)*100%)]"
             />
             <ol className="m-0 grid list-none gap-[22px] p-0 wide:grid-cols-5 wide:gap-4">
               {STEPS.map((step, index) => (
@@ -141,16 +148,17 @@ export function BuildStory() {
                   key={step.name}
                   className="relative text-[15px] leading-[1.6] text-muted"
                 >
+                  {/* A dimension tick: an oblique stroke across the line, inked red once the stage is reached. */}
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[3px] transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
+                      "absolute -left-[34px] top-[3px] size-[21px] transition-colors duration-base before:absolute before:left-[2px] before:top-1/2 before:h-[1.5px] before:w-[17px] before:-translate-y-1/2 before:-rotate-45 before:bg-current before:content-[''] motion-reduce:transition-none wide:-top-8 wide:left-0",
                       index < lit
-                        ? "border-signal bg-signal"
-                        : "border-line bg-surface",
+                        ? "text-accent before:h-[2px]"
+                        : "text-line-strong",
                     )}
                   />
-                  <b className="mb-[2px] block font-display text-[18px] font-semibold leading-[normal] text-ink">
+                  <b className="mb-1 block font-display text-[18px] font-medium leading-[normal] text-ink">
                     {step.name}
                   </b>
                   {step.text}

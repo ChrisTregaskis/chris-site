@@ -59,7 +59,7 @@ export function StepPicker({
             className="h-8 min-w-0 flex-1 wide:h-[34px]"
             renderItem={(n) => (
               <>
-                <span className="inline-grid h-8 flex-none place-items-center font-display text-[20px] font-semibold tabular-nums tracking-[-0.02em] text-accent wide:h-[34px] [&>svg]:size-[22px]">
+                <span className="inline-grid h-8 flex-none place-items-center font-code text-[17px] font-medium tabular-nums text-ink wide:h-[34px] [&>svg]:size-[22px]">
                   {marker(n)}
                 </span>
                 <span className="overflow-hidden text-ellipsis">{name(n)}</span>
@@ -80,7 +80,7 @@ export function StepPicker({
           <Button
             variant="ghost"
             onClick={toggle.onClick}
-            className="gap-2 text-[14px] [&>svg]:size-4 [&>svg]:text-accent"
+            className="gap-2 text-[14px] [&>svg]:size-4 [&>svg]:text-muted"
           >
             {toggle.glyph}
             {toggle.label}

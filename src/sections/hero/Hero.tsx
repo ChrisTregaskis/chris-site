@@ -18,17 +18,17 @@ export function Hero() {
         aria-labelledby="hero-title"
         className="box-border flex min-h-[calc(100vh-var(--size-nav))] flex-col justify-center pb-[clamp(16px,min(9vw,32svh_-_178px),110px)] pt-[clamp(16px,min(12vw,45svh_-_255px),150px)] supports-[min-height:100svh]:min-h-[calc(100svh-var(--size-nav))]"
       >
-        <p className="m-0 mb-[clamp(10px,2.6svh,18px)] text-body-sm leading-[1.6] text-muted">
+        <p className="m-0 mb-[clamp(12px,3svh,24px)] font-code text-[14px] leading-[1.6] text-muted">
           Chris Tregaskis, senior full-stack TypeScript developer
         </p>
         <h1
           id="hero-title"
-          className="m-0 mb-[clamp(14px,4svh,28px)] max-w-[15ch] font-display text-display-xl font-semibold"
+          className="m-0 mb-[clamp(16px,4svh,32px)] max-w-[20ch] font-display text-display-xl font-medium"
         >
           I build whole products, end to end, built properly and shipped quickly
           with AI in the workflow.
         </h1>
-        <p className="m-0 mb-[clamp(18px,4.3svh,30px)] max-w-measure text-lede text-muted">
+        <p className="m-0 mb-[clamp(20px,4.4svh,32px)] max-w-measure text-lede text-muted">
           Front end, back end, agents and the cloud underneath. Scroll down and
           watch one of them assemble.
         </p>

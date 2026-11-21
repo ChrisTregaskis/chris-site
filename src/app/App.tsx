@@ -63,7 +63,7 @@ export function App() {
               <EnquiryButton
                 variant="ghost"
                 size="sm"
-                className="text-accent"
+                className="decoration-accent"
               />
             }
             menu={

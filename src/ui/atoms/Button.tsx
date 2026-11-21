@@ -27,7 +27,7 @@ export interface ButtonProps extends Omit<
   loading?: boolean;
   /** Visible text beside the spinner while loading, e.g. "Unlocking". */
   loadingText?: ReactNode;
-  /** Toggle state (b3 "Try it"); a pressed primary turns signal. */
+  /** Toggle state (b3 "Try it"); a pressed primary is inked in. */
   pressed?: boolean;
 }
 

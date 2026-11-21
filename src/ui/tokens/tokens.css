@@ -1,48 +1,73 @@
 /*
- * Design tokens, extracted from the locked b3 look. The only place raw values
- * live: components use the Tailwind utilities mapped in tailwind.config.ts.
- * Colours are RGB channel triplets so Tailwind opacity modifiers work.
+ * Design tokens: the Drawing office look. The page is a set of engineering
+ * drawings: cool drafting paper, graphite and ink linework, and one red pen.
+ * The only place raw values live: components use the Tailwind utilities
+ * mapped in tailwind.config.ts. Colours are RGB channel triplets so Tailwind
+ * opacity modifiers work. Contrast figures are WCAG ratios, measured against
+ * surface (the paper) unless another ground is named.
  */
 :root {
-  /* Colour */
-  --color-surface: 19 20 46; /* #13142E */
-  --color-panel: 28 30 66; /* #1C1E42 */
-  --color-raised: 37 40 90; /* #25285A */
-  --color-line: 54 58 114; /* #363A72 */
-  --color-line-strong: 90 95 168; /* #5A5FA8 */
-  --color-line-hover: 76 81 154; /* #4C519A */
-  --color-ink: 236 235 250; /* #ECEBFA */
-  --color-muted: 164 166 207; /* #A4A6CF */
-  --color-accent: 184 166 255; /* #B8A6FF */
-  --color-accent-strong: 110 91 214; /* #6E5BD6 */
-  --color-on-accent: 20 18 46; /* #14122E */
-  --color-signal: 255 193 94; /* #FFC15E */
-  --color-danger: 255 138 138; /* #FF8A8A */
-  --color-danger-ink: 255 176 176; /* #FFB0B0 */
-  --color-scrim: 8 9 24; /* #080918, used at 66% */
-  /* Form field borders: at least 3:1 on panel (5.1 on surface is the fill) */
-  --color-line-field: 101 105 180; /* #6569B4, 3.2:1 on panel, 3.6:1 on surface */
-  /* Chapter tones: each chapter's full-bleed ground, fading in from the one
-     before (the .chapter-tone class). The hero and the close sit on surface.
-     Ink, muted and dim text keep at least 4.5:1 on every one. */
-  --color-tone-base: 19 20 46; /* #13142E, surface: the hero's and the close's */
-  --color-tone-wayfinder: 25 27 66; /* #191B42, indigo, a step up */
-  --color-tone-physio: 17 29 52; /* #111D34, cooler, towards the teal practice */
-  --color-tone-burpees: 33 22 44; /* #21162C, warm plum, towards the app's screen */
-  --color-tone-about: 23 22 52; /* #171634 */
+  /* Colour: the paper ramp, cool and barely tinted. Surface is the drafting
+     paper (and the browser chrome's tint: index.html's theme-color). */
+  --color-surface: 242 244 244; /* #F2F4F4 */
+  --color-panel: 233 237 237; /* #E9EDED, a step down: menus, the queue's slots */
+  --color-raised: 222 227 227; /* #DEE3E3, two steps down: Postgres's disc */
+  /* A fresh sheet: what floats over the paper (menus, the drawer) */
+  --color-sheet: 255 255 255; /* #FFFFFF */
+  /* Linework: a hairline, a pencil line, a faint pencil line */
+  --color-line: 213 219 219; /* #D5DBDB, hairlines and rules */
+  --color-line-strong: 90 100 104; /* #5A6468, pencil: drawn edges, 5.5:1 */
+  --color-line-hover: 133 142 146; /* #858E92, a fainter pencil: edges stepped back, 3.0:1 */
+  /* Text: three roles in graphite */
+  --color-ink: 26 32 35; /* #1A2023, ink: primary text, 14.9:1 */
+  --color-muted: 74 83 87; /* #4A5357, secondary text, 7.1:1 */
+  /* The red pen: the one accent. The part in focus, the primary action, the
+     focus ring and the mark that matters. Dark enough to be text or ink on
+     the paper (4.95:1) and to carry white text (5.5:1). */
+  --color-accent: 191 58 30; /* #BF3A1E, vermilion */
+  --color-accent-strong: 158 42 20; /* #9E2A14, the red pen pressed harder, 6.8:1 */
+  --color-on-accent: 255 255 255; /* #FFFFFF, text on the red pen and on ink */
+  /* What's happening now: the red pen again (the journey's pulse, a wall that
+     holds, the call being made, the focus ring), never a second hue. */
+  --color-signal: 191 58 30; /* #BF3A1E */
+  /* The checker's highlighter: what a journey or a message has passed
+     through, and a detail picked out. Drawn over linework (multiplied, so
+     the ink shows through) or behind ink text, as a highlighter is; never
+     as a text colour. */
+  --color-marker: 255 222 94; /* #FFDE5E */
+  --color-danger: 179 38 30; /* #B3261E, errors: red pen on the form, 5.9:1 */
+  --color-danger-ink: 164 35 24; /* #A42318, error text, 6.7:1 */
+  --color-scrim: 26 32 35; /* #1A2023, ink, used at 40% behind a drawer */
+  /* Form field borders: at least 3:1 on panel and surface */
+  --color-line-field: 122 131 135; /* #7A8387, 3.5:1 on surface, 3.3:1 on panel */
+  /* Chapter tones: each chapter's full-bleed ground. One paper for the whole
+     set: a chapter starts where a hairline crosses the sheet (.chapter-tone),
+     not on a new tint. Kept as tokens so the chapters' plumbing (the bar's
+     tone, the pinned stages' backing) still works. */
+  --color-tone-base: 242 244 244; /* #F2F4F4, surface */
+  --color-tone-wayfinder: 242 244 244; /* #F2F4F4 */
+  --color-tone-physio: 242 244 244; /* #F2F4F4 */
+  --color-tone-burpees: 242 244 244; /* #F2F4F4 */
+  --color-tone-about: 242 244 244; /* #F2F4F4 */
   /* Inactive (dimmed) step cards (the .tone-dim class): ink and muted text one
-     tone quieter, both still at least 4.5:1 on the card */
-  --color-dim-ink: 164 166 207; /* #A4A6CF, the muted tone */
-  --color-dim-muted: 138 140 189; /* #8A8CBD, 5.0:1 on panel */
+     tone quieter, both still at least 4.5:1 on paper, panel and raised */
+  --color-dim-ink: 74 83 87; /* #4A5357, the muted tone, 6.1:1 on raised */
+  --color-dim-muted: 92 101 106; /* #5C656A, 5.4:1 on surface, 5.1:1 on panel, 4.6:1 on raised */
 
-  /* Product mock: the Wayfinder isometric figure (faces of each part) */
-  --color-figure-top: 54 58 128; /* #363A80 */
-  --color-figure-left: 41 44 102; /* #292C66 */
-  --color-figure-right: 31 33 80; /* #1F2150 */
-  --color-figure-on-left: 143 124 235; /* #8F7CEB */
-  --color-figure-base-left: 24 26 58; /* #181A3A */
-  --color-figure-base-right: 21 23 51; /* #151733 */
-  --color-figure-base-on: 44 39 102; /* #2C2766 */
+  /* Product mock: the Wayfinder isometric figure, an ink line drawing. Faces
+     carry only a whisper of shade, enough to read the box's three sides and
+     to hide what's behind; the edges do the drawing. */
+  --color-figure-top: 255 255 255; /* #FFFFFF, lit tops */
+  --color-figure-left: 237 240 240; /* #EDF0F0 */
+  --color-figure-right: 223 229 229; /* #DFE5E5 */
+  --color-figure-base-top: 250 251 251; /* #FAFBFB, the base plate */
+  --color-figure-base-left: 230 234 234; /* #E6EAEA */
+  --color-figure-base-right: 216 222 222; /* #D8DEDE */
+  /* The part in focus: red-pen edges over the palest red wash */
+  --color-figure-on-top: 252 237 232; /* #FCEDE8 */
+  --color-figure-on-left: 247 221 212; /* #F7DDD4 */
+  --color-figure-on-right: 239 201 188; /* #EFC9BC */
+  --color-figure-base-on: 251 234 228; /* #FBEAE4, the plate, in focus */
 
   /* Product mock: the Wayfinder chat widget (a white brand widget) */
   --color-chat-surface: 255 255 255; /* #FFFFFF */
@@ -57,39 +82,43 @@
   --color-chat-media-to: 207 208 220; /* #CFD0DC */
   --color-chat-typing: 136 136 136; /* #888888 */
 
-  /* Product mock: the physio rings (the private network's wall, the video route) */
-  --color-tenant-teal: 127 214 194; /* #7FD6C2 */
+  /* Product mock: the physio rings (the private network's wall, the video
+     route): the practice's teal as a drawing ink, 4.6:1 */
+  --color-tenant-teal: 46 122 120; /* #2E7A78 */
 
-  /* Type */
+  /* Type: IBM Plex, an engineering face. Sans for everything read, Mono for
+     numbers, labels and anything that counts. */
   --font-display:
-    "Bricolage Grotesque Variable", "Bricolage Grotesque", system-ui, sans-serif;
-  --font-body: "Figtree Variable", "Figtree", system-ui, sans-serif;
-  --font-code: ui-monospace, SFMono-Regular, Menlo, monospace;
+    "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, sans-serif;
+  --font-code: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Spacing and measure */
   --space-gutter: clamp(16px, 4vw, 56px);
-  --space-section: clamp(40px, 7vw, 90px);
-  --space-section-lg: clamp(48px, 7vw, 100px);
+  --space-section: clamp(40px, 7vw, 96px);
+  --space-section-lg: clamp(48px, 7vw, 96px);
   --size-container: 1200px;
   --measure: 33em;
   --measure-narrow: 30em;
-  --size-nav: 68px; /* the sticky top bar (b3 .top: 22px + 24px line + 22px) */
+  --size-nav: 68px; /* the sticky top bar */
 
-  /* Radii */
-  --radius-badge: 8px;
-  --radius-row: 10px;
-  --radius-input: 12px;
-  --radius-control: 14px;
-  --radius-card: 18px;
-  --radius-sheet: 22px;
+  /* Radii: drawn corners are square; a control's is just softened */
+  --radius-badge: 2px;
+  --radius-row: 2px;
+  --radius-input: 2px;
+  --radius-control: 3px;
+  --radius-card: 4px;
+  --radius-sheet: 4px;
   --radius-pill: 999px;
 
-  /* Shadows */
-  --shadow-popover: 0 24px 60px -16px rgb(0 0 0);
-  --shadow-float: 0 20px 50px -20px rgb(0 0 0);
-  --shadow-drawer: -30px 0 80px -30px rgb(0 0 0);
-  --shadow-focus-glow: 0 0 0 3px rgb(var(--color-accent) / 0.22);
-  --shadow-ring-line: inset 0 0 0 1.5px rgb(var(--color-line));
+  /* Shadows: neutral, soft and small, only on what floats over the paper */
+  --shadow-popover:
+    0 1px 2px rgb(26 32 35 / 0.06), 0 12px 32px -8px rgb(26 32 35 / 0.18);
+  --shadow-float:
+    0 1px 2px rgb(26 32 35 / 0.06), 0 10px 28px -6px rgb(26 32 35 / 0.14);
+  --shadow-drawer: -16px 0 48px -16px rgb(26 32 35 / 0.22);
+  --shadow-focus-glow: 0 0 0 3px rgb(var(--color-accent) / 0.2);
+  --shadow-ring-line: inset 0 0 0 1px rgb(var(--color-line));
   --shadow-ring-accent: inset 0 0 0 1.5px rgb(var(--color-accent));
   --shadow-ring-signal: inset 0 0 0 1.5px rgb(var(--color-signal));
 

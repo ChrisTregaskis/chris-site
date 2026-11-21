@@ -62,31 +62,38 @@ const ICON: Partial<Record<NodeId, GlyphId>> = {
   noRoute: "blocked",
 };
 
-/** How each route is drawn when it isn't lit: by what travels it. */
+/**
+ * How each route is drawn when it isn't lit: by what travels it, in the
+ * drawing's line types. Requests in a heavy ink line, video in the
+ * practice's teal, secondary routes in pencil, the schedule's and the
+ * engineer's in dashes, the way out that isn't there in the red pen's dots.
+ */
 const ROUTE_LOOK: Record<RouteKey, string | null> = {
-  "visitor-api": "stroke-accent stroke-[4]",
-  "api-fn": "stroke-accent stroke-[4]",
-  "fn-data": "stroke-accent stroke-[4]",
+  "visitor-api": "stroke-ink stroke-[3.5]",
+  "api-fn": "stroke-ink stroke-[3.5]",
+  "fn-data": "stroke-ink stroke-[3.5]",
   // Part of fn-data: drawn only when lit.
   "fn-policy": null,
-  "visitor-cdn": "stroke-tenant-teal stroke-[4]",
-  "cdn-storage": "stroke-tenant-teal stroke-[4]",
-  "visitor-signIn": "stroke-muted stroke-[2.5]",
-  "fn-video": "stroke-line-strong stroke-[2.5]",
-  "fn-signIn": "stroke-line-strong stroke-[2.5]",
-  "fn-storage": "stroke-line-strong stroke-[2.5]",
-  "schedule-runner": "stroke-muted stroke-[2] [stroke-dasharray:5_5]",
-  "schedule-sweeper": "stroke-muted stroke-[2] [stroke-dasharray:5_5]",
-  "runner-data": "stroke-line-strong stroke-[2.5]",
-  "sweeper-data": "stroke-line-strong stroke-[2.5]",
-  "engineer-host": "stroke-muted stroke-[2.5] [stroke-dasharray:7_6]",
-  "host-data": "stroke-muted stroke-[2.5] [stroke-dasharray:7_6]",
-  "fn-noRoute": "stroke-danger stroke-[2] [stroke-dasharray:2_6]",
+  "visitor-cdn": "stroke-tenant-teal stroke-[3.5]",
+  "cdn-storage": "stroke-tenant-teal stroke-[3.5]",
+  "visitor-signIn": "stroke-muted stroke-[2]",
+  "fn-video": "stroke-line-strong stroke-[2]",
+  "fn-signIn": "stroke-line-strong stroke-[2]",
+  "fn-storage": "stroke-line-strong stroke-[2]",
+  "schedule-runner": "stroke-muted stroke-[1.75] [stroke-dasharray:6_4]",
+  "schedule-sweeper": "stroke-muted stroke-[1.75] [stroke-dasharray:6_4]",
+  "runner-data": "stroke-line-strong stroke-[2]",
+  "sweeper-data": "stroke-line-strong stroke-[2]",
+  "engineer-host": "stroke-muted stroke-[2] [stroke-dasharray:10_3_2_3]",
+  "host-data": "stroke-muted stroke-[2] [stroke-dasharray:10_3_2_3]",
+  "fn-noRoute": "stroke-accent stroke-[2] [stroke-dasharray:2_5]",
 };
 
 const COLOUR =
   "transition-[stroke,fill,color] duration-base motion-reduce:transition-none";
 const TYPE = "font-body text-[17.5px] sheet:text-[14px] xl:text-[12.5px]";
+/** The ring names, as a drawing's annotations: the mono, a size down. */
+const RING_TYPE = "font-code text-[16px] sheet:text-[13px] xl:text-[12px]";
 const TONE = "fill-surface";
 
 /*
@@ -118,24 +125,29 @@ interface NodeLook {
   held: boolean;
 }
 
+/*
+ * A plan drawing in pencil and ink: what earlier steps drew stays in pencil,
+ * the step in view is inked over in black. A journey's route and anything
+ * picked out from a step's details are run over with the checker's
+ * highlighter; the red pen marks only the pulse and a wall that holds.
+ */
 function ringClass({ reveal, hot, held }: NodeLook): string {
-  if (held) return "stroke-danger";
-  if (hot) return "stroke-signal";
-  if (reveal === "new") return "stroke-accent";
-  return "stroke-line-strong";
+  if (held) return "stroke-signal";
+  if (hot || reveal === "new") return "stroke-ink";
+  return "stroke-line-hover";
 }
 
 function iconClass({ reveal, hot, held }: NodeLook): string {
-  if (held) return "text-danger";
-  if (hot) return "text-signal";
-  if (reveal === "new") return "text-ink";
+  if (held) return "text-signal";
+  if (hot || reveal === "new") return "text-ink";
   return "text-muted";
 }
 
 /**
- * The rings, drawn from above: revealed ring by ring as the steps pass, with
- * the step in view lit in lilac, anything picked out in amber, and a
- * journey's route lit in amber behind its pulse (red where a wall holds).
+ * The rings, drawn from above as a plan: revealed ring by ring as the steps
+ * pass, earlier steps in pencil and the step in view inked over, anything
+ * picked out run over with a highlighter, and a journey's route highlighted
+ * behind its red-pen pulse (the red pen too where a wall holds).
  * Decorative to assistive tech beyond its description: every node's part is
  * named in the step cards, which are the keyboard route.
  */
@@ -195,10 +207,16 @@ export function RingsFigure({
           cx={node.at[0]}
           cy={node.at[1]}
           r={r}
-          strokeWidth={state.hot || state.held ? 2.5 : 1.75}
+          strokeWidth={
+            state.held
+              ? 2.75
+              : state.reveal === "new" || state.hot
+                ? 1.75
+                : 1.25
+          }
           className={cn(
             COLOUR,
-            filled ? "fill-ink" : TONE,
+            filled ? "fill-ink" : state.hot ? "fill-marker" : TONE,
             filled && !state.hot && !state.held
               ? "stroke-ink"
               : ringClass(state),
@@ -207,7 +225,10 @@ export function RingsFigure({
         {icon ? (
           <g
             transform={`translate(${node.at[0] - size / 2} ${node.at[1] - size / 2}) scale(${size / 24})`}
-            className={cn(COLOUR, filled ? "text-surface" : iconClass(state))}
+            className={cn(
+              COLOUR,
+              filled && !state.hot ? "text-surface" : iconClass(state),
+            )}
           >
             <g {...GLYPH_STROKE} strokeWidth={2.2}>
               <GlyphPaths id={icon} />
@@ -241,8 +262,12 @@ export function RingsFigure({
           height={11}
           rx={5.5}
           transform={`rotate(${angle} ${x} ${y})`}
-          strokeWidth={2}
-          className={cn(COLOUR, TONE, ringClass(state))}
+          strokeWidth={state.held ? 2.5 : 1.75}
+          className={cn(
+            COLOUR,
+            state.hot ? "fill-marker" : TONE,
+            ringClass(state),
+          )}
         />
       </g>
     );
@@ -325,20 +350,20 @@ export function RingsFigure({
           r={R.net}
           data-draw="net-fill"
           style={unshown}
-          className="fill-tenant-teal/[0.08] stroke-none"
+          className="fill-tenant-teal/[0.06] stroke-none"
         />
         <circle
           cx={0}
           cy={0}
           r={R.net}
-          strokeWidth={1.75}
+          strokeWidth={ringReveal("net") === "new" ? 2.25 : 1.5}
           mask={masked("ring:net")}
           className={cn(
             COLOUR,
             "fill-none",
             ringReveal("net") === "new"
               ? "stroke-tenant-teal"
-              : "stroke-tenant-teal/45",
+              : "stroke-tenant-teal/60",
           )}
         />
         <circle
@@ -347,7 +372,7 @@ export function RingsFigure({
           r={R.orbit}
           strokeWidth={13}
           mask={masked("ring:orbit")}
-          className="fill-none stroke-line/45"
+          className="fill-none stroke-line/70"
         />
       </g>
 
@@ -368,12 +393,12 @@ export function RingsFigure({
           strokeWidth={policy.held ? 3.5 : policyHot ? 2.75 : 2}
           className={cn(
             COLOUR,
-            "fill-none [stroke-dasharray:6_5]",
+            "fill-none [stroke-dasharray:6_4]",
             policy.held
-              ? "stroke-danger"
-              : policyHot
-                ? "stroke-signal"
-                : "stroke-accent",
+              ? "stroke-signal"
+              : policyHot || ringReveal("policy") === "new"
+                ? "stroke-ink"
+                : "stroke-line-strong",
           )}
         />
       </g>
@@ -393,7 +418,8 @@ export function RingsFigure({
             />
           );
         })}
-        {/* Lit routes on top, drawn on behind a journey's pulse */}
+        {/* Lit routes on top, drawn on behind a journey's pulse: a
+            highlighter run over the line, multiplied so the ink shows through */}
         {ROUTE_KEYS.map((key) => {
           const on = lit.has(key) || highlight.routes.has(key);
           return (
@@ -403,7 +429,7 @@ export function RingsFigure({
               data-lit-route={key}
               pathLength={1}
               className={cn(
-                "stroke-signal stroke-[4.5] transition-opacity duration-state motion-reduce:transition-none",
+                "stroke-marker stroke-[11] mix-blend-multiply [stroke-linecap:butt] transition-opacity duration-state motion-reduce:transition-none",
                 on ? "opacity-100" : "opacity-0",
               )}
             />
@@ -420,8 +446,8 @@ export function RingsFigure({
             data-reveal={ringLabelReveal[ring.id]}
             style={unshown}
             className={cn(
-              TYPE,
-              ring.id === "policy" ? "fill-accent" : "fill-muted",
+              RING_TYPE,
+              ring.id === "policy" ? "fill-ink" : "fill-muted",
             )}
           >
             <textPath
@@ -448,22 +474,18 @@ export function RingsFigure({
           cx={0}
           cy={0}
           r={R.data}
-          strokeWidth={data.held || data.hot ? 2.75 : 2}
+          strokeWidth={data.held ? 2.75 : 2}
           className={cn(
             COLOUR,
-            "fill-raised",
-            data.held
-              ? "stroke-danger"
-              : data.hot
-                ? "stroke-signal"
-                : "stroke-ink",
+            data.hot ? "fill-marker" : "fill-raised",
+            data.held ? "stroke-signal" : "stroke-ink",
           )}
         />
         <text
           x={0}
           y={-2}
           textAnchor="middle"
-          className={cn(TYPE, "fill-ink font-semibold")}
+          className={cn(TYPE, "fill-ink font-medium")}
         >
           Postgres
         </text>
@@ -488,14 +510,14 @@ export function RingsFigure({
                 className={cn(
                   COLOUR,
                   mine === "claimed"
-                    ? "fill-signal stroke-signal"
+                    ? "fill-marker stroke-ink"
                     : mine === "done"
-                      ? "fill-accent stroke-accent"
+                      ? "fill-ink stroke-ink"
                       : mine === "queued"
-                        ? "fill-none stroke-signal"
+                        ? "fill-sheet stroke-ink"
                         : tokensHot
-                          ? "fill-signal/30 stroke-signal"
-                          : "fill-line-strong/60 stroke-line-strong",
+                          ? "fill-marker stroke-ink"
+                          : "fill-line-hover stroke-line-strong",
                 )}
               />
             );
@@ -539,7 +561,7 @@ export function RingsFigure({
             textAnchor={label.anchor}
             data-draw={label.node}
             style={unshown}
-            className={cn(TYPE, "pointer-events-none fill-ink font-semibold")}
+            className={cn(TYPE, "pointer-events-none fill-ink font-medium")}
           >
             {label.lines.map((line, i) => (
               <tspan key={line} x={label.x} dy={i === 0 ? 0 : "1.1em"}>
@@ -558,8 +580,8 @@ export function RingsFigure({
         visibility="hidden"
         className="pointer-events-none"
       >
-        <circle r={12} className="fill-signal opacity-25" />
-        <circle r={5.5} className="fill-signal" />
+        <circle r={11} className="fill-none stroke-signal stroke-[1.5]" />
+        <circle r={4.5} className="fill-signal" />
       </g>
     </svg>
   );

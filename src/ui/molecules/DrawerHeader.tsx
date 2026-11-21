@@ -4,18 +4,18 @@ interface DrawerHeaderProps {
   onClose: () => void;
 }
 
-/** The top row of a drawer form: its eyebrow and a round Close button. */
+/** The top row of a drawer form: its eyebrow, in the mono, and a Close button. */
 export function DrawerHeader({ eyebrow, onClose }: DrawerHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-eyebrow font-semibold uppercase text-accent">
+      <span className="font-code text-eyebrow font-medium text-muted">
         {eyebrow}
       </span>
       <button
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="grid size-10 place-items-center rounded-pill border-0 bg-transparent text-ink transition-colors duration-base hover:text-accent motion-reduce:transition-none"
+        className="grid size-10 place-items-center rounded-control border-0 bg-transparent text-ink transition-colors duration-base hover:text-accent motion-reduce:transition-none"
       >
         <svg viewBox="0 0 20 20" className="size-4" aria-hidden="true">
           <path

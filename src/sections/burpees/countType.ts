@@ -1,11 +1,11 @@
 /**
- * The count's type: the chapter numeral's face and violet, set huge and
+ * The count's type: the chapter numeral's mono, in ink, set huge and
  * sized by the screen (a share of its width, capped by its height), never
  * by its column. Plain strings, never joined through `cn`: tailwind-merge
  * would drop the tight line height when a font size follows it.
  */
 export const COUNT_TYPE =
-  "whitespace-nowrap font-display font-bold tabular-nums leading-[0.8] tracking-[-0.06em] text-accent-strong [font-variation-settings:'opsz'_96]";
+  "whitespace-nowrap font-code font-normal tabular-nums leading-[0.8] tracking-[-0.04em] text-ink";
 
 /** The count's size as the screen sets it: what the ruler measures. */
 export const COUNT_SIZE =
@@ -27,9 +27,9 @@ export const STRAIN_STROKE_EM = 0.035;
 /** How far the strained digits reach past their edges, each side, in ems. */
 export const STRAIN_OUTSET_EM = STRAIN_STROKE_EM / 2;
 
-/** A call as the app says it: display type in the signal colour. */
+/** A call as the app says it: display type in the red pen. */
 export const CALL_TYPE =
-  "m-0 font-display text-[clamp(34px,4vw,56px)] font-semibold leading-[1.05] tracking-[-0.02em] text-signal";
+  "m-0 font-display text-[clamp(34px,4vw,56px)] font-medium leading-[1.05] tracking-[-0.02em] text-signal";
 
 /** The line of the story said with each call. */
 export const LINE_TYPE = "m-0 mt-2 max-w-[24em] text-ink wide:text-body-lg";
