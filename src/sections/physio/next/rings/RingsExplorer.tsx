@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type NodeId } from "./geometry";
 import { type GlyphId, Glyph } from "./glyphs";
 import { type JourneyId } from "./journeys";
+import { JourneyTrace } from "./JourneyTrace";
 import { type Highlight, NO_HIGHLIGHT, RingsFigure } from "./RingsFigure";
 import { NODE_STEP, type StepId, STEP_ORDER, stepNumber, STEPS } from "./story";
 import { StepText } from "./StepText";
@@ -14,7 +15,7 @@ import { focusLine } from "@/lib/stepSync";
 import { StepPicker } from "@/ui/organisms/StepPicker";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
-/** Each step's icon: in the picker in place of a number, and in its list. */
+/** Each step's icon: in the picker in place of a number. */
 const ICON: Record<StepId, GlyphId> = {
   edge: "door",
   network: "blocked",
@@ -32,7 +33,7 @@ const OPTIONS = STEP_ORDER.map((id) => ({
 
 const stepAt = (n: number) => STEPS[STEP_ORDER[Math.max(1, n) - 1]];
 
-/** A step's text fading in with its ring, and out as it passes either way. */
+/** A step's words fading in as they arrive with their ring, out as they leave. */
 const FADE =
   "transition-[opacity,transform,visibility] duration-state ease-enter motion-reduce:transition-none";
 
@@ -49,23 +50,25 @@ function highlightOf(step: StepId, detailId: string | null): Highlight {
 
 /**
  * Chapter 2, next draft: the platform as rings round its data, told with
- * the Wayfinder chapter's picker. The drawing pins; scrolling (an invisible
- * runway under it), the picker, or a press on a ring all select a step, and
- * each step reveals its ring, from the outside in, then the two side ways
- * in (scheduled work and the admin). Side by side, the step's words sit
- * beside the drawing and cross-fade with it, either way; stacked, there's
- * no room to pin them too, so each step's words scroll beneath the drawing
- * and fade in as their ring is revealed, out as it passes. Try it sends the
- * step's journey through what's been revealed: a pulse, lit routes and a
- * trace. Changing step, the chapter leaving the screen or another journey
- * cancels the one running and clears everything it lit. Reduced motion: no
- * fades, no travelling pulse; the words and rings change at once.
+ * the Wayfinder chapter's picker. The drawing pins while each step's words
+ * scroll past it (beside it side by side, beneath it stacked); scrolling,
+ * the picker or a press on a ring all select a step, and each step reveals
+ * its ring, from the outside in, then the two side ways in (scheduled work
+ * and the admin). A step's words fade in as they arrive with their ring and
+ * out as they leave, in either direction, so the words in view always match
+ * the drawing. Try it sends the step's journey through what's been
+ * revealed: a pulse, lit routes and a trace in place of the step's details.
+ * Changing step, the chapter leaving the screen or another journey cancels
+ * the one running and clears everything it lit. Static (reduced motion):
+ * nothing pins or fades, every ring and every step's words are shown, and
+ * the picker chooses which ring's journey Try it sends, its trace under it.
  */
 export function RingsExplorer() {
-  const reducedMotion = useReducedMotion() ?? false;
+  const still = useReducedMotion() ?? false;
   const stacked = useMediaQuery(BELOW_WIDE);
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const cards = useRef<(HTMLElement | null)[]>([]);
   const measure = useCallback(() => {
     const stage = stageRef.current;
     if (!stage || !window.matchMedia(BELOW_WIDE).matches) {
@@ -77,19 +80,21 @@ export function RingsExplorer() {
   }, []);
   const { current, stepRef, cardRef, goTo } = useStepSync({
     measure,
-    reducedMotion,
+    reducedMotion: still,
+    enabled: !still,
   });
-  const journey = useJourney(reducedMotion);
+  const journey = useJourney(still);
   const { cancel, run } = journey;
   const shown = current || 1;
   const step = stepAt(shown);
 
-  // Every ring at once (Wayfinder's take it apart): kept until the step changes.
+  // Every ring at once (Wayfinder's take it apart): kept until the step
+  // changes. Static, every ring is always shown.
   const [override, setOverride] = useState<{
     step: number;
     all: boolean;
   } | null>(null);
-  const all = override?.step === current ? override.all : false;
+  const all = still || (override?.step === current ? override.all : false);
 
   // A detail picked out: pressed (kept until the step changes) or previewed.
   const [pressed, setPressed] = useState<{ step: number; id: string } | null>(
@@ -134,6 +139,16 @@ export function RingsExplorer() {
       return;
     }
     void run(step.journey);
+    // The trace takes the details' place at the foot of the step's words:
+    // if that's below the screen, bring it up (the step stays the same).
+    const card = cards.current[current - 1];
+    if (
+      !still &&
+      card &&
+      card.getBoundingClientRect().bottom > window.innerHeight
+    ) {
+      goTo(current, { align: "end" });
+    }
   };
 
   const press = (id: StepId, detail: string) => {
@@ -149,25 +164,22 @@ export function RingsExplorer() {
     if (n) goTo(n);
   };
 
-  const words = (id: StepId) => (
-    <StepText
-      step={STEPS[id]}
-      pressed={pressed?.step === stepNumber(id) ? pressed.id : null}
-      onPreview={(detail) =>
-        setPreview(detail ? { step: id, id: detail } : null)
-      }
-      onPress={(detail) => press(id, detail)}
-      journey={journey}
-    />
-  );
-
   return (
-    <div ref={rootRef} className="relative" data-testid="rings-explorer">
+    <div
+      ref={rootRef}
+      data-testid="rings-explorer"
+      className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]"
+    >
       <div
         ref={stageRef}
         data-testid="rings-stage"
-        data-bar-flush={stacked ? "" : undefined}
-        className="sticky top-nav z-[2] flex flex-col items-center bg-surface pb-[14px] pt-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:grid wide:h-[calc(100svh-var(--size-nav))] wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:items-center wide:gap-[clamp(24px,5vw,72px)] wide:bg-transparent wide:pb-0 wide:pt-0 wide:after:hidden"
+        data-bar-flush={stacked && !still ? "" : undefined}
+        className={cn(
+          "flex flex-col items-center",
+          still
+            ? "relative py-6 wide:self-start"
+            : "sticky top-nav z-[2] bg-surface pb-[14px] pt-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:z-[1] wide:h-[calc(100svh-var(--size-nav))] wide:justify-center wide:bg-transparent wide:p-0 wide:after:hidden",
+        )}
       >
         <div className="flex w-full flex-col items-center gap-[14px]">
           {/* Stacked, as wide as the screen (never taller than 56% of it, nor wider than 480px), so its type stays 13px or more at 320px. */}
@@ -192,7 +204,7 @@ export function RingsExplorer() {
               shown={shown}
               valueText={step.kicker}
               onSelect={(n) => goTo(n)}
-              reducedMotion={reducedMotion}
+              reducedMotion={still}
               marker={(n) => <Glyph id={ICON[stepAt(n).id]} />}
               name={(n) => stepAt(n).kicker}
               action={{
@@ -201,7 +213,7 @@ export function RingsExplorer() {
                 onClick: tryIt,
               }}
               toggle={
-                stacked
+                stacked || still
                   ? null
                   : {
                       label: all ? "Back to ring by ring" : "Show every ring",
@@ -210,96 +222,76 @@ export function RingsExplorer() {
                     }
               }
             />
+            {still && journey.shown ? (
+              // Static, the words are a long way below: the trace sits here.
+              <JourneyTrace
+                journey={journey}
+                clearLabel="Clear the trace"
+                className="mt-2"
+              />
+            ) : null}
           </div>
         </div>
-
-        {stacked ? null : (
-          // Side by side: every step's words in one place, only the current
-          // one shown, cross-fading as the rings change.
-          <div
-            data-testid="rings-words"
-            className="grid self-start pt-[clamp(24px,10vh,120px)] [&>*]:col-start-1 [&>*]:row-start-1"
-          >
-            {STEP_ORDER.map((id) => {
-              const n = stepNumber(id);
-              const on = current === n;
-              return (
-                <div
-                  key={id}
-                  data-step-text={id}
-                  aria-hidden={!on}
-                  className={cn(
-                    FADE,
-                    "max-w-[440px] self-start text-ink",
-                    on
-                      ? "visible translate-y-0 opacity-100"
-                      : cn(
-                          "pointer-events-none invisible opacity-0",
-                          n < current ? "-translate-y-2" : "translate-y-2",
-                        ),
-                  )}
-                >
-                  {words(id)}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         <p className="sr-only" aria-live="polite">
           {current ? `${step.kicker}: ${step.heading}` : ""}
         </p>
       </div>
 
-      {/* The runway: what scrolling crosses to change step. Side by side it
-          runs, unseen, under the pinned stage; stacked, it carries each step's
-          words, shown only while their ring is the one revealed. */}
+      {/* Every step's words, scrolling past the drawing: each shown only
+          while its ring is the one revealed (static: all of them). */}
       <div
         className={cn(
-          "relative",
-          stacked ? "pb-[30vh] pt-[4vh]" : "mt-[calc(var(--size-nav)-100svh)]",
+          "relative z-[1] wide:z-[2]",
+          still ? "pb-6" : "pb-[30vh] pt-[4vh] wide:py-[30vh]",
         )}
       >
         {STEP_ORDER.map((id) => {
           const n = stepNumber(id);
-          const on = current === n;
-          if (!stacked) {
-            return (
-              <div
-                key={id}
-                ref={stepRef(n)}
-                data-step={id}
-                aria-hidden="true"
-                className="pointer-events-none h-[72vh]"
-              >
-                <div ref={cardRef(n)} className="h-full" />
-              </div>
-            );
-          }
+          const on = still || current === n;
           return (
             <div
               key={id}
               ref={stepRef(n)}
               data-step={id}
-              className="flex min-h-[64vh] items-end"
+              className={cn(
+                "flex",
+                still
+                  ? "py-2"
+                  : "min-h-[64vh] items-end wide:min-h-[62vh] wide:items-center",
+              )}
             >
               <div
-                ref={cardRef(n)}
+                ref={(element) => {
+                  cardRef(n)(element);
+                  cards.current[n - 1] = element;
+                }}
                 data-step-text={id}
                 aria-hidden={!on}
                 className={cn(
                   FADE,
-                  "w-full max-w-[34em] py-[22px] text-ink",
-                  on ? "visible opacity-100" : "invisible opacity-0",
+                  "w-full max-w-[34em] py-[22px] text-ink wide:w-auto wide:max-w-[430px]",
+                  on
+                    ? "visible translate-y-0 opacity-100"
+                    : cn(
+                        "pointer-events-none invisible opacity-0",
+                        n < current ? "-translate-y-3" : "translate-y-3",
+                      ),
                 )}
               >
-                {words(id)}
+                <StepText
+                  step={STEPS[id]}
+                  pressed={pressed?.step === n ? pressed.id : null}
+                  onPreview={(detail) =>
+                    setPreview(detail ? { step: id, id: detail } : null)
+                  }
+                  onPress={(detail) => press(id, detail)}
+                  journey={journey}
+                  traceHere={!still}
+                />
               </div>
             </div>
           );
         })}
-        {/* Side by side, room for the last step before the stage lets go. */}
-        {stacked ? null : <div aria-hidden="true" className="h-[46vh]" />}
       </div>
     </div>
   );

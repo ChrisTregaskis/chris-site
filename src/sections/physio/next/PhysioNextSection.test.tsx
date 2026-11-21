@@ -5,13 +5,10 @@ import { PHYSIO_HEADING } from "../physioHeading";
 import { PhysioNextSection } from "./PhysioNextSection";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
-/**
- * Reduced motion, side by side: no fades and no travelling pulse, so a
- * journey runs to its end at once and leaves its routes lit.
- */
-function still() {
+/** Side by side; with or without reduced motion. */
+function media(reduced: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: query.includes("reduced-motion"),
+    matches: reduced && query.includes("reduced-motion"),
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
@@ -20,8 +17,8 @@ function still() {
   }));
 }
 
-async function renderChapter() {
-  still();
+async function renderChapter(reduced: boolean) {
+  media(reduced);
   renderWithProviders(<PhysioNextSection />);
   await screen.findByTestId("rings-figure");
   return screen.getByRole("region", { name: PHYSIO_HEADING.title });
@@ -29,13 +26,9 @@ async function renderChapter() {
 
 const figure = () => screen.getByTestId("rings-figure");
 const litRoutes = () =>
-  [...figure().querySelectorAll("[data-lit-route]")].filter((path) =>
-    path.classList.contains("opacity-100"),
-  );
-const words = (step: string) =>
-  document.querySelector(
-    `[data-testid=rings-words] [data-step-text="${step}"]`,
-  );
+  [...figure().querySelectorAll("[data-lit-route]")]
+    .filter((path) => path.classList.contains("opacity-100"))
+    .map((path) => path.getAttribute("data-lit-route"));
 
 async function pick(name: string) {
   const user = userEvent.setup();
@@ -43,9 +36,12 @@ async function pick(name: string) {
   await user.click(screen.getByRole("option", { name }));
 }
 
+const tryIt = () =>
+  userEvent.setup().click(screen.getByRole("button", { name: "Try it" }));
+
 describe("the physio chapter, next draft", () => {
   it("keeps the live opener word for word", async () => {
-    const region = await renderChapter();
+    const region = await renderChapter(true);
     expect(region).toHaveTextContent(PHYSIO_HEADING.lede);
     for (const chip of PHYSIO_HEADING.chips) {
       expect(region).toHaveTextContent(chip);
@@ -53,9 +49,9 @@ describe("the physio chapter, next draft", () => {
     expect(within(region).queryByTestId("sessions-stack")).toBeNull();
   });
 
-  it("lists the rings in Wayfinder's picker, with Try it and a show-everything link", async () => {
+  it("lists the rings in Wayfinder's picker, with Try it", async () => {
     const user = userEvent.setup();
-    await renderChapter();
+    await renderChapter(true);
     await user.click(screen.getByRole("button", { name: /^Physio ring/ }));
     expect(
       screen.getAllByRole("option").map((option) => option.textContent),
@@ -68,80 +64,61 @@ describe("the physio chapter, next draft", () => {
       "The admin",
     ]);
     expect(screen.getByRole("button", { name: "Try it" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Show every ring" }),
-    ).toBeInTheDocument();
   });
+});
 
-  it("reveals a ring with its words, and only its words", async () => {
-    await renderChapter();
-    // Before any step: the rings' ghosts, and no words yet.
-    expect(figure().querySelector('[data-node="data"]')).toHaveAttribute(
-      "data-reveal",
-      "hidden",
-    );
-    await pick("Postgres");
-    expect(figure().querySelector('[data-node="data"]')).toHaveAttribute(
-      "data-reveal",
-      "new",
-    );
-    expect(figure().querySelector('[data-node="admin"]')).toHaveAttribute(
-      "data-reveal",
-      "hidden",
-    );
-    expect(words("centre")).toHaveAttribute("aria-hidden", "false");
-    expect(words("edge")).toHaveAttribute("aria-hidden", "true");
+describe("the rings, static (reduced motion)", () => {
+  it("pins nothing and shows every ring and every step's words", async () => {
+    await renderChapter(true);
+    expect(screen.getByTestId("rings-stage")).not.toHaveClass("sticky");
+    expect(figure().querySelectorAll('[data-reveal="hidden"]')).toHaveLength(0);
     expect(
-      screen.getByRole("heading", {
-        level: 3,
-        name: "An app that owns nothing",
-      }),
-    ).toBeInTheDocument();
+      document.querySelectorAll('[data-step-text][aria-hidden="true"]'),
+    ).toHaveLength(0);
     expect(
-      screen.queryByRole("heading", {
-        level: 3,
-        name: "Slow work waits its turn",
-      }),
+      screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent),
+    ).toEqual([
+      "Everything comes in at the edge",
+      "A network with no way out",
+      "Only the keys each one needs",
+      "An app that owns nothing",
+      "Slow work waits its turn",
+      "Admins look, never touch",
+    ]);
+    expect(
+      screen.queryByRole("button", { name: "Show every ring" }),
     ).toBeNull();
   });
 
-  it("runs the ring's own journey with Try it: another organisation's read is turned away", async () => {
-    const user = userEvent.setup();
-    await renderChapter();
+  it("runs the chosen ring's journey with Try it, its trace under the picker", async () => {
+    await renderChapter(true);
     await pick("Postgres");
-    await user.click(screen.getByRole("button", { name: "Try it" }));
-    expect(screen.getByLabelText("Trace")).toHaveTextContent(
+    await tryIt();
+    const stage = screen.getByTestId("rings-stage");
+    expect(within(stage).getByLabelText("Trace")).toHaveTextContent(
       "policy Birch's rows aren't Alder's: none come back",
     );
-    expect(screen.getByText("No sessions")).toBeInTheDocument();
+    expect(within(stage).getByText("No sessions")).toBeInTheDocument();
     expect(figure().querySelector('[data-ring="policy"]')).toHaveAttribute(
       "data-held",
     );
   });
 
-  it("clears every lit route and node when the step changes, leaving nothing behind", async () => {
-    const user = userEvent.setup();
-    await renderChapter();
+  it("clears what a finished journey lit when another ring is chosen", async () => {
+    await renderChapter(true);
     await pick("The admin");
-    await user.click(screen.getByRole("button", { name: "Try it" }));
-    expect(
-      litRoutes().map((path) => path.getAttribute("data-lit-route")),
-    ).toEqual(["admin-host", "host-data"]);
-    expect(figure().querySelectorAll("[data-hot]").length).toBeGreaterThan(0);
-
-    // Back up to the edge: the admin's spoke must not stay lit.
+    await tryIt();
+    expect(litRoutes()).toEqual(["admin-host", "host-data"]);
     await pick("The edge");
     expect(litRoutes()).toEqual([]);
     expect(figure().querySelectorAll("[data-hot]")).toHaveLength(0);
-    expect(figure().querySelectorAll("[data-held]")).toHaveLength(0);
     expect(screen.queryByLabelText("Trace")).toBeNull();
   });
 
   it("queues a job and lets the runner finish it", async () => {
-    const user = userEvent.setup();
-    await renderChapter();
+    await renderChapter(true);
     await pick("The queue");
-    await user.click(screen.getByRole("button", { name: "Try it" }));
+    await tryIt();
     expect(screen.getByLabelText("Trace")).toHaveTextContent(
       "claims the job, locked so no other runner takes it",
     );
@@ -150,16 +127,11 @@ describe("the physio chapter, next draft", () => {
       "done",
     );
     expect(screen.getByText("Programme ready")).toBeInTheDocument();
-    // The details come back, and the journey goes, when asked.
-    await user.click(screen.getByRole("button", { name: "Show the details" }));
-    expect(screen.queryByLabelText("Trace")).toBeNull();
-    expect(litRoutes()).toEqual([]);
   });
 
   it("picks a detail's part out of the drawing", async () => {
     const user = userEvent.setup();
-    await renderChapter();
-    await pick("The functions");
+    await renderChapter(true);
     const signer = screen.getByRole("button", {
       name: "The video signer: the key that signs video links",
     });
@@ -168,23 +140,5 @@ describe("the physio chapter, next draft", () => {
     await user.click(signer);
     expect(signer).toHaveAttribute("aria-pressed", "true");
     expect(node()).toHaveAttribute("data-hot");
-  });
-
-  it("shows every ring at once on request, until the step changes", async () => {
-    const user = userEvent.setup();
-    await renderChapter();
-    await pick("The edge");
-    expect(
-      figure().querySelectorAll('[data-reveal="hidden"]').length,
-    ).toBeGreaterThan(0);
-    await user.click(screen.getByRole("button", { name: "Show every ring" }));
-    expect(figure().querySelectorAll('[data-reveal="hidden"]')).toHaveLength(0);
-    expect(
-      screen.getByRole("button", { name: "Back to ring by ring" }),
-    ).toBeInTheDocument();
-    await pick("The functions");
-    expect(
-      figure().querySelectorAll('[data-reveal="hidden"]').length,
-    ).toBeGreaterThan(0);
   });
 });

@@ -68,6 +68,8 @@ describe("the rings' story", () => {
     expect(revealAt(3, 3, false)).toBe("new");
     expect(revealAt(3, 4, false)).toBe("shown");
     expect(revealAt(3, 0, true)).toBe("shown");
+    expect(revealAt(3, 3, true)).toBe("new");
+    expect(revealAt(3, 4, true)).toBe("shown");
   });
 
   it("keeps its copy free of connector dashes", () => {

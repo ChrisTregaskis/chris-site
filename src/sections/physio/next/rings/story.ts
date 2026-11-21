@@ -308,7 +308,8 @@ export type Reveal = "hidden" | "new" | "shown";
 
 /**
  * How a piece shows at a step: not yet (hidden), just revealed by it (new,
- * lit), or revealed earlier (shown). `all` shows every ring at once.
+ * lit), or revealed earlier (shown). `all` shows every ring at once, the
+ * chosen step's still lit.
  */
 export function revealAt(
   revealedBy: number | undefined,
@@ -316,7 +317,7 @@ export function revealAt(
   all: boolean,
 ): Reveal {
   if (revealedBy === undefined) return "shown";
-  if (all) return "shown";
+  if (all) return current === revealedBy ? "new" : "shown";
   if (current < revealedBy) return "hidden";
   return current === revealedBy ? "new" : "shown";
 }

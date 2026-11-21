@@ -1,9 +1,9 @@
 import { DetailList } from "./DetailList";
 import { Glyph } from "./glyphs";
+import { JourneyTrace } from "./JourneyTrace";
 import { journeyById } from "./journeys";
 import { type Step } from "./story";
 import { type JourneyState } from "./useJourney";
-import { cn } from "@/lib/cn";
 
 interface StepTextProps {
   step: Step;
@@ -12,10 +12,9 @@ interface StepTextProps {
   onPreview: (id: string | null) => void;
   onPress: (id: string) => void;
   journey: JourneyState;
+  /** Whether a journey's trace shows here, in place of the details. */
+  traceHere: boolean;
 }
-
-/** The trace's speaker column: wide enough for the longest name. */
-const WHO = 9;
 
 /**
  * One step's words: its name, heading and text, then its details (each
@@ -29,8 +28,9 @@ export function StepText({
   onPreview,
   onPress,
   journey,
+  traceHere,
 }: StepTextProps) {
-  const own = journey.shown === step.journey;
+  const own = traceHere && journey.shown === step.journey;
   return (
     <>
       <span className="mb-[6px] block text-[14px] font-medium text-muted">
@@ -41,44 +41,11 @@ export function StepText({
       </h3>
       <p className="m-0 text-[17px] text-muted">{step.text}</p>
       {own ? (
-        <>
-          <pre
-            aria-label="Trace"
-            className="mb-0 mt-4 whitespace-pre-wrap font-code text-mono-sm text-muted [overflow-wrap:anywhere]"
-          >
-            {journey.trace.map((line, index) => (
-              <span key={index}>
-                {index > 0 ? "\n" : ""}
-                <b className="font-semibold text-ink">{line.who}</b>
-                {" ".repeat(Math.max(1, WHO - line.who.length))}
-                {line.text}
-              </span>
-            ))}
-          </pre>
-          {journey.result ? (
-            <p className="m-0 mt-3 flex items-center gap-2 text-[15px] font-semibold">
-              <Glyph
-                id={journey.result.held ? "blocked" : "check"}
-                className={cn(
-                  "size-[18px] shrink-0",
-                  journey.result.held ? "text-danger-ink" : "text-accent",
-                )}
-              />
-              <span
-                className={journey.result.held ? "text-danger-ink" : "text-ink"}
-              >
-                {journey.result.text}
-              </span>
-            </p>
-          ) : null}
-          <button
-            type="button"
-            onClick={journey.cancel}
-            className="mt-3 cursor-pointer border-0 bg-transparent p-0 text-[14px] font-semibold text-ink underline decoration-accent decoration-[1.5px] underline-offset-[6px]"
-          >
-            Show the details
-          </button>
-        </>
+        <JourneyTrace
+          journey={journey}
+          clearLabel="Show the details"
+          className="mt-4"
+        />
       ) : (
         <>
           <DetailList
