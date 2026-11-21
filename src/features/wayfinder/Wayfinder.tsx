@@ -26,9 +26,8 @@ import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
 import { topClearance } from "@/lib/topClearance";
-import { Button } from "@/ui/atoms/Button";
-import { NumberedDropdown, pad2 } from "@/ui/organisms/NumberedDropdown";
-import { Odometer } from "@/ui/organisms/Odometer";
+import { pad2 } from "@/ui/organisms/NumberedDropdown";
+import { StepPicker } from "@/ui/organisms/StepPicker";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
 const CHAT_BUBBLE = (
@@ -183,50 +182,31 @@ export function Wayfinder() {
               explode.current = controls;
             }}
           />
-          <div className="flex w-full items-stretch justify-center gap-[10px]">
-            <NumberedDropdown
-              label="Wayfinder part"
-              options={PICKER_OPTIONS}
-              value={current}
-              valueText={optionText(shown)}
-              onSelect={select}
-            >
-              <Odometer
-                value={shown}
-                reducedMotion={reducedMotion}
-                className="h-8 min-w-0 flex-1 wide:h-[34px]"
-                renderItem={(n) => (
-                  <>
-                    <span className="inline-grid h-8 flex-none place-items-center font-display text-[20px] font-semibold tabular-nums tracking-[-0.02em] text-accent wide:h-[34px]">
-                      {pad2(option(n).numeral)}
-                    </span>
-                    <span className="overflow-hidden text-ellipsis">
-                      {option(n).label}
-                    </span>
-                  </>
-                )}
-              />
-            </NumberedDropdown>
-            <Button
-              pressed={current === DEMO_STEP}
-              onClick={() => select(DEMO_STEP)}
-              className="flex-none rounded-control px-4 py-0 wide:px-5"
-            >
-              Try it
-            </Button>
-          </div>
-          {stacked ? null : (
-            <div className="flex justify-center">
-              <Button
-                variant="ghost"
-                onClick={toggleApart}
-                className="gap-2 text-[14px] [&>svg]:size-4 [&>svg]:text-accent"
-              >
-                {APART_GLYPH}
-                {apart ? "Put it back together" : "Take it apart"}
-              </Button>
-            </div>
-          )}
+          <StepPicker
+            label="Wayfinder part"
+            options={PICKER_OPTIONS}
+            value={current}
+            shown={shown}
+            valueText={optionText(shown)}
+            onSelect={select}
+            reducedMotion={reducedMotion}
+            marker={(n) => pad2(option(n).numeral)}
+            name={(n) => option(n).label}
+            action={{
+              label: "Try it",
+              pressed: current === DEMO_STEP,
+              onClick: () => select(DEMO_STEP),
+            }}
+            toggle={
+              stacked
+                ? null
+                : {
+                    label: apart ? "Put it back together" : "Take it apart",
+                    glyph: APART_GLYPH,
+                    onClick: toggleApart,
+                  }
+            }
+          />
         </div>
         <p className="sr-only" aria-live="polite">
           {announcement}

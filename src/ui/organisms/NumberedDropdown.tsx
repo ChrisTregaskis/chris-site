@@ -7,6 +7,8 @@ export interface NumberedOption {
   value: number;
   /** The number shown, when it isn't the value (a list that starts at 00). */
   numeral?: number;
+  /** Shown in place of the number (an icon, where a story's steps go unnumbered). */
+  marker?: ReactNode;
   label: string;
   /** Draw a rule above this option (b3: before "Try it"). */
   separated?: boolean;
@@ -131,11 +133,11 @@ export function NumberedDropdown({
               <span
                 aria-hidden="true"
                 className={cn(
-                  "inline-block min-w-[2.2em] flex-none font-display text-[15px] font-bold tabular-nums",
+                  "inline-block min-w-[2.2em] flex-none font-display text-[15px] font-bold tabular-nums [&>svg]:size-[18px] [&>svg]:translate-y-[3px]",
                   selected ? "text-accent" : "text-muted",
                 )}
               >
-                {pad2(option.numeral ?? option.value)}
+                {option.marker ?? pad2(option.numeral ?? option.value)}
               </span>
               {option.label}
             </li>

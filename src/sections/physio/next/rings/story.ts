@@ -1,9 +1,11 @@
 import { type NodeId, type RouteKey } from "./geometry";
+import { type JourneyId } from "./journeys";
 
 /*
  * The rings' scroll story (draft copy, pending Chris's language pass): the
  * drawing is revealed ring by ring from the outside in, then the two side
- * ways in (scheduled work and the admin), then the journeys. Design ideas
+ * ways in (scheduled work and the admin). Each step has a journey to send
+ * through what it has revealed. Design ideas
  * only: never versions, stage names, network rules or ranges, regions, role,
  * table, secret or variable names, how credentials reach the code, counts or
  * known gaps.
@@ -16,7 +18,6 @@ export const STEP_ORDER = [
   "centre",
   "queue",
   "admin",
-  "try",
 ] as const;
 
 export type StepId = (typeof STEP_ORDER)[number];
@@ -35,6 +36,8 @@ export interface Detail {
 
 export interface Step {
   id: StepId;
+  /** What Try it sends through the drawing at this step. */
+  journey: JourneyId;
   kicker: string;
   heading: string;
   text: string;
@@ -50,6 +53,7 @@ export interface Step {
 export const STEPS: Record<StepId, Step> = {
   edge: {
     id: "edge",
+    journey: "signIn",
     kicker: "The edge",
     heading: "Everything comes in at the edge",
     text: "A visitor reaches the platform only through the API, the CDN and sign-in, a managed service of its own. Video storage sits behind the CDN, out of anyone's direct reach.",
@@ -87,6 +91,7 @@ export const STEPS: Record<StepId, Step> = {
   },
   network: {
     id: "network",
+    journey: "out",
     kicker: "The private network",
     heading: "A network with no way out",
     text: "The functions run in a private network with no NAT, so nothing in it can reach the internet. They reach sign-in and video storage through private endpoints, never the open web.",
@@ -118,6 +123,7 @@ export const STEPS: Record<StepId, Step> = {
   },
   functions: {
     id: "functions",
+    journey: "video",
     kicker: "The functions",
     heading: "Only the keys each one needs",
     text: "Each function holds just the secrets its job needs, and tests fail if one is handed more. Requests are handed in by the API: nothing outside can connect to a function.",
@@ -152,6 +158,7 @@ export const STEPS: Record<StepId, Step> = {
   },
   centre: {
     id: "centre",
+    journey: "cross",
     kicker: "Postgres",
     heading: "An app that owns nothing",
     text: "Every organisation's data shares one Postgres database. Each request sets its organisation on its own transaction, and row-level security hides every other organisation's rows. The app connects as a role that owns no tables, so it can't step round the policy.",
@@ -182,12 +189,14 @@ export const STEPS: Record<StepId, Step> = {
     ],
     reveals: {
       nodes: ["policy", "data"],
-      routes: ["fn-data"],
+      // fn-policy is the first leg of fn-data, drawn only when a journey lights it.
+      routes: ["fn-data", "fn-policy"],
       rings: ["policy"],
     },
   },
   queue: {
     id: "queue",
+    journey: "job",
     kicker: "The queue",
     heading: "Slow work waits its turn",
     text: "Scoring an assessment and building a programme take longer than a click should. The request saves its answers and queues a job in the same transaction, then returns at once. The queue is a table in the same database, so every job can be read in SQL and carries its organisation with it.",
@@ -242,6 +251,7 @@ export const STEPS: Record<StepId, Step> = {
   },
   admin: {
     id: "admin",
+    journey: "admin",
     kicker: "The admin",
     heading: "Admins look, never touch",
     text: "An admin reaches the database through a private host with no public address, opened only under their own IAM sign-in, as a login that can read and never write. Changing the schema doesn't come this way at all: migrations run as one-job functions, started under IAM.",
@@ -270,22 +280,12 @@ export const STEPS: Record<StepId, Step> = {
       rings: [],
     },
   },
-  try: {
-    id: "try",
-    kicker: "Try it",
-    heading: "Now send something through it",
-    text: "Pick a journey and watch it take the real route through the rings. The organisations and their data are invented.",
-    details: [],
-    reveals: { nodes: [], routes: [], rings: [] },
-  },
 };
 
 /** Steps count from 1 (0 is "none yet"), in scroll order. */
 export function stepNumber(id: StepId): number {
   return STEP_ORDER.indexOf(id) + 1;
 }
-
-export const TRY_STEP = stepNumber("try");
 
 /** The step that reveals each node, route and ring. */
 function firstStep<T extends string>(
@@ -308,8 +308,7 @@ export type Reveal = "hidden" | "new" | "shown";
 
 /**
  * How a piece shows at a step: not yet (hidden), just revealed by it (new,
- * lit), or revealed earlier (shown). `all` shows everything (reduced motion
- * and the journeys).
+ * lit), or revealed earlier (shown). `all` shows every ring at once.
  */
 export function revealAt(
   revealedBy: number | undefined,
@@ -317,7 +316,7 @@ export function revealAt(
   all: boolean,
 ): Reveal {
   if (revealedBy === undefined) return "shown";
-  if (all || current >= TRY_STEP) return "shown";
+  if (all) return "shown";
   if (current < revealedBy) return "hidden";
   return current === revealedBy ? "new" : "shown";
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NODES, type NodeId } from "./geometry";
+import { journeyById } from "./journeys";
 import {
   NODE_STEP,
   revealAt,
@@ -7,11 +8,10 @@ import {
   STEP_ORDER,
   stepNumber,
   STEPS,
-  TRY_STEP,
 } from "./story";
 
 describe("the rings' story", () => {
-  it("reveals from the outside in, then the side ways in, then the journeys", () => {
+  it("reveals from the outside in, then the two side ways in", () => {
     expect(STEP_ORDER).toEqual([
       "edge",
       "network",
@@ -19,9 +19,7 @@ describe("the rings' story", () => {
       "centre",
       "queue",
       "admin",
-      "try",
     ]);
-    expect(TRY_STEP).toBe(STEP_ORDER.length);
   });
 
   it("reveals every node with some step", () => {
@@ -44,12 +42,31 @@ describe("the rings' story", () => {
     }
   });
 
+  it("gives every step a journey that only lights what's been revealed by then", () => {
+    for (const id of STEP_ORDER) {
+      const n = stepNumber(id);
+      for (const step of journeyById(STEPS[id].journey).steps) {
+        if (step.type === "travel") {
+          expect(
+            ROUTE_STEP.get(step.route),
+            `${id}: ${step.route}`,
+          ).toBeLessThanOrEqual(n);
+        }
+        if (step.type === "flash" || step.type === "block") {
+          expect(
+            NODE_STEP.get(step.node),
+            `${id}: ${step.node}`,
+          ).toBeLessThanOrEqual(n);
+        }
+      }
+    }
+  });
+
   it("hides what's to come, lights what's new and keeps what's been shown", () => {
     expect(revealAt(3, 0, false)).toBe("hidden");
     expect(revealAt(3, 2, false)).toBe("hidden");
     expect(revealAt(3, 3, false)).toBe("new");
     expect(revealAt(3, 4, false)).toBe("shown");
-    expect(revealAt(3, TRY_STEP, false)).toBe("shown");
     expect(revealAt(3, 0, true)).toBe("shown");
   });
 

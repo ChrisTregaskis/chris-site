@@ -23,7 +23,8 @@ export type GlyphId =
   | "blocked"
   | "role"
   | "play"
-  | "check";
+  | "check"
+  | "rings";
 
 const PATHS: Record<GlyphId, ReactNode> = {
   person: (
@@ -108,6 +109,13 @@ const PATHS: Record<GlyphId, ReactNode> = {
   ),
   play: <path d="m8 5.5 11 6.5-11 6.5Z" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  rings: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1.4" />
+    </>
+  ),
 };
 
 export const GLYPH_STROKE = {

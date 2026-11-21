@@ -3,11 +3,12 @@ import { ROUTE_KEYS } from "./geometry";
 import { hopsOf, journeyById, JOURNEYS, traceOf } from "./journeys";
 
 describe("the journeys", () => {
-  it("offers five, each opening its trace and ending on a result", () => {
+  it("offers one per step, each opening its trace and ending on a result", () => {
     expect(JOURNEYS.map((j) => j.id)).toEqual([
-      "own",
-      "cross",
+      "signIn",
+      "out",
       "video",
+      "cross",
       "job",
       "admin",
     ]);
@@ -44,6 +45,13 @@ describe("the journeys", () => {
       text: "No sessions",
       held: true,
     });
+  });
+
+  it("finds no way out of the network", () => {
+    const out = journeyById("out");
+    expect(hopsOf(out)).toEqual(["fn-noRoute", "fn-noRoute back"]);
+    expect(out.steps).toContainEqual({ type: "block", node: "noRoute" });
+    expect(out.steps.at(-1)).toMatchObject({ type: "result", held: true });
   });
 
   it("lets an admin read, and refuses the write", () => {

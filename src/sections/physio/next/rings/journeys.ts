@@ -7,7 +7,7 @@ import { type NodeId, type RouteKey } from "./geometry";
  * invented; the trace says what happens, never how it's configured.
  */
 
-export type JourneyId = "own" | "cross" | "video" | "job" | "admin";
+export type JourneyId = "signIn" | "out" | "video" | "cross" | "job" | "admin";
 
 export interface TraceLine {
   who: string;
@@ -66,8 +66,8 @@ const outbound: JourneyStep[] = [back("api-fn"), back("visitor-api")];
 
 export const JOURNEYS: readonly Journey[] = [
   {
-    id: "own",
-    label: "Open my plan",
+    id: "signIn",
+    label: "Sign in",
     steps: [
       log("visitor", "signs in as a member of Alder"),
       flash("visitor"),
@@ -75,33 +75,24 @@ export const JOURNEYS: readonly Journey[] = [
       flash("signIn"),
       log("sign-in", "signed in; the token names Alder"),
       back("visitor-signIn"),
-      ...inbound("organisation Alder"),
-      log("function", "transaction set to Alder"),
-      go("fn-data"),
-      flash("policy"),
-      flash("data"),
-      log("postgres", "the policy shows Alder's rows only"),
-      back("fn-data"),
-      ...outbound,
-      result("Alder's plan: 3 sessions this week"),
+      go("visitor-api"),
+      flash("api"),
+      log("api", "token checked at the door: organisation Alder"),
+      back("visitor-api"),
+      result("Signed in as Alder"),
     ],
   },
   {
-    id: "cross",
-    label: "Read another organisation",
+    id: "out",
+    label: "Reach the internet",
     steps: [
-      log("visitor", "signed in as Alder, asks for Birch's sessions"),
-      flash("visitor"),
-      ...inbound("organisation Alder"),
-      log("function", "transaction set to Alder; the query names Birch"),
-      go("fn-policy"),
-      block("policy"),
-      log("policy", "Birch's rows aren't Alder's: none come back"),
+      log("function", "tries to call a site on the internet"),
+      go("fn-noRoute"),
+      block("noRoute"),
+      log("network", "no route out: nothing leaves"),
       pause(900),
-      log("role", "owns no tables, so it can't step round the policy"),
-      back("fn-policy"),
-      ...outbound,
-      result("No sessions", true),
+      back("fn-noRoute"),
+      result("Nowhere to go", true),
     ],
   },
   {
@@ -126,6 +117,24 @@ export const JOURNEYS: readonly Journey[] = [
       back("cdn-storage"),
       back("visitor-cdn"),
       result("Playing: Balance, phase 1"),
+    ],
+  },
+  {
+    id: "cross",
+    label: "Read another organisation",
+    steps: [
+      log("visitor", "signed in as Alder, asks for Birch's sessions"),
+      flash("visitor"),
+      ...inbound("organisation Alder"),
+      log("function", "transaction set to Alder; the query names Birch"),
+      go("fn-policy"),
+      block("policy"),
+      log("policy", "Birch's rows aren't Alder's: none come back"),
+      pause(900),
+      log("role", "owns no tables, so it can't step round the policy"),
+      back("fn-policy"),
+      ...outbound,
+      result("No sessions", true),
     ],
   },
   {
