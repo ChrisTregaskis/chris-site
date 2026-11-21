@@ -17,7 +17,7 @@ const BUBBLE =
   "max-w-[85%] shrink-0 rounded-[14px] px-[11px] py-2 leading-[1.4]";
 const BOT = cn(BUBBLE, "rounded-bl-[4px] bg-chat-bubble");
 const CARD =
-  "max-w-[92%] shrink-0 overflow-hidden rounded-input border border-chat-card-line";
+  "max-w-[92%] shrink-0 overflow-hidden rounded-[12px] border border-chat-card-line";
 /** The vehicle card leads with its picture across the full width, as a car maker's listing does. */
 const LISTING = cn(CARD, "w-full max-w-sm");
 const CTA =
@@ -117,8 +117,8 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
 
   return (
     <div data-no-select="">
-      {/* The page's amber focus ring is too faint on the white widget (1.6:1), so it draws in the widget's ink here. */}
-      <div className="mt-[14px] flex h-[360px] flex-col overflow-hidden rounded-[16px] bg-chat-surface text-chat-ink shadow-float wide:h-[clamp(320px,calc(100svh-280px),480px)] [&_:focus-visible]:outline-chat-strong">
+      {/* Inside the brand widget, focus draws in the widget's own ink rather than the page's red pen. */}
+      <div className="mt-4 flex h-[360px] flex-col overflow-hidden rounded-[16px] border border-solid border-ink/15 bg-chat-surface text-chat-ink shadow-float wide:h-[clamp(320px,calc(100svh-280px),480px)] [&_:focus-visible]:outline-chat-strong">
         <div className="flex items-center gap-[10px] border-b border-chat-line px-3 py-[10px]">
           <span
             aria-hidden="true"
@@ -198,7 +198,7 @@ export function ChatMock({ messages, typing, trace, onSend }: ChatMockProps) {
           : trace.map((line, index) => (
               <span key={index}>
                 {index > 0 ? "\n" : ""}
-                <b className="font-semibold text-ink">{line.who}</b>
+                <b className="font-medium text-ink">{line.who}</b>
                 {" ".repeat(Math.max(1, 9 - line.who.length))}
                 {line.text}
               </span>

@@ -14,6 +14,12 @@ importers:
       '@fontsource-variable/figtree':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource-variable/ibm-plex-sans':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/ibm-plex-mono':
+        specifier: 5.3.0
+        version: 5.3.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -417,6 +423,12 @@ packages:
 
   '@fontsource-variable/figtree@5.3.0':
     resolution: {integrity: sha512-VRVodD7OiG7apQwE8/2fMjaqpY/a0qRJqL5HtYj8CKIVps+9amaFcdfKmDIf7iqYQx6iPLlArVXAfKeIZmVcNQ==}
+
+  '@fontsource-variable/ibm-plex-sans@5.3.0':
+    resolution: {integrity: sha512-agG8tXFEo0hD9+J7npa4vbbWult52eMLVaQ6WQRlhs/iCAojrMAoejru85W9HTVXHfyUj96KM7gp/KGAS87XaQ==}
+
+  '@fontsource/ibm-plex-mono@5.3.0':
+    resolution: {integrity: sha512-eTgnZjZEGk1QtD3ZstF+Vclo2HLAni8YMy34/DxllwZvyz1lR/1RF/xTiAquOBO7MvqBx8D2Ig2WCPMVfdZu7Q==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -3233,6 +3245,10 @@ snapshots:
   '@fontsource-variable/bricolage-grotesque@5.3.0': {}
 
   '@fontsource-variable/figtree@5.3.0': {}
+
+  '@fontsource-variable/ibm-plex-sans@5.3.0': {}
+
+  '@fontsource/ibm-plex-mono@5.3.0': {}
 
   '@humanwhocodes/config-array@0.13.0':
     dependencies:

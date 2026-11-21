@@ -19,7 +19,7 @@ export function TextLink({
       {...rest}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className={cn(
-        "text-ink underline decoration-line underline-offset-[3px] transition-colors duration-base hover:decoration-accent motion-reduce:transition-none focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal",
+        "text-ink underline decoration-line-hover underline-offset-[3px] transition-colors duration-base hover:decoration-accent motion-reduce:transition-none focus-visible:rounded-badge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-signal",
         className,
       )}
     >

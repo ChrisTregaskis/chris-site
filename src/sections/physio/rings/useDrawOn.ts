@@ -17,7 +17,7 @@ const MAX_FRAME_MS = 64;
  * together, not in turn, so a fast scroll across several draws (or undraws)
  * them all at once in one step's time, and never builds a backlog. A step
  * that's turned round mid-way carries on from where it is. Nothing here
- * touches colour, so a journey's lit route or a detail's amber is never
+ * touches colour, so a journey's lit route or a detail's highlight is never
  * fought over. Static (reduced motion): everything drawn at once.
  */
 export function useDrawOn(

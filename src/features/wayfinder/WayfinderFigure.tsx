@@ -51,48 +51,56 @@ const OFF: Record<Face, string> = {
   right: "fill-figure-right",
 };
 const BASE_OFF: Record<Face, string> = {
-  top: "fill-panel",
+  top: "fill-figure-base-top",
   left: "fill-figure-base-left",
   right: "fill-figure-base-right",
 };
+/** Another part in focus: a piece steps back towards the paper, flatter and fainter. */
 const DIM: Record<Face, string> = {
-  top: "fill-figure-left",
-  left: "fill-figure-right",
-  right: "fill-figure-base-left",
+  top: "fill-figure-top",
+  left: "fill-surface",
+  right: "fill-figure-left",
 };
+/** The part in focus: the palest red wash under red-pen edges. */
 const ON: Record<Face, string> = {
-  top: "fill-accent",
+  top: "fill-figure-on-top",
   left: "fill-figure-on-left",
-  right: "fill-accent-strong",
+  right: "fill-figure-on-right",
 };
 
 /**
- * A piece drawn without edges sets its shaded side one tone deeper, so the
- * fold between its two sides still reads with no line along it.
+ * A piece drawn without edges (a prototype piece, taken apart) is drawn in
+ * tone alone, a step deeper all round, so it still reads against the paper
+ * and the fold between its two sides shows with no line along it.
  */
-const BARE_RIGHT = {
-  off: "fill-figure-base-left",
-  dim: "fill-figure-base-right",
-} as const;
+const BARE: Record<Face, string> = {
+  top: "fill-figure-left",
+  left: "fill-figure-right",
+  right: "fill-figure-base-right",
+};
+const BARE_DIM: Record<Face, string> = {
+  top: "fill-figure-top",
+  left: "fill-figure-left",
+  right: "fill-figure-right",
+};
 
 function faceFill(face: Face, state: FaceState, bare = false): string {
   if (face === "top") {
     if (state.live) return "fill-ink";
     if (state.base && state.on) return "fill-figure-base-on";
-    if (state.hot) return "fill-signal";
+    // A message passing through: the checker's highlighter over its top.
+    if (state.hot) return "fill-marker";
   }
   if (state.on && !state.quiet) return ON[face];
   if (state.base) return BASE_OFF[face];
   const quieter = !state.hot && (state.dim === true || state.quiet === true);
-  if (bare && face === "right") {
-    return quieter ? BARE_RIGHT.dim : BARE_RIGHT.off;
-  }
+  if (bare) return quieter ? BARE_DIM[face] : BARE[face];
   return quieter ? DIM[face] : OFF[face];
 }
 
 function strokeFor(state: FaceState): string {
   if (state.live) return "stroke-ink";
-  if (state.hot) return "stroke-signal";
+  if (state.hot) return "stroke-ink";
   if (state.on && state.quiet) return "stroke-accent/60";
   if (state.on) return "stroke-accent";
   if (state.dim && !state.base) return "stroke-line-hover";
@@ -126,25 +134,23 @@ function Faces({
   );
 }
 
-const LABEL = "font-body text-[14px] font-medium fill-muted";
+const LABEL = "font-body text-[13px] font-medium fill-muted";
 
 function PartBadge({ badge, on }: { badge: Badge; on: boolean }) {
   return (
     <>
-      <line
-        {...badge.lead}
-        className="stroke-line-strong stroke-1 [stroke-dasharray:2_3]"
-      />
+      {/* A drawing's item balloon: a thin leader up to a circled number. */}
+      <line {...badge.lead} className="stroke-line-strong stroke-[0.9]" />
       <g>
         <circle
           cx={badge.cx}
           cy={badge.cy}
           r={15}
           className={cn(
-            "stroke-[1.3] transition-[fill,stroke] duration-state motion-reduce:transition-none max-wide:[r:24px]",
+            "fill-figure-top transition-[stroke,stroke-width] duration-state motion-reduce:transition-none max-wide:[r:24px]",
             on
-              ? "fill-accent stroke-accent"
-              : "fill-surface stroke-line-strong",
+              ? "stroke-accent stroke-[1.8]"
+              : "stroke-line-strong stroke-[1.1]",
           )}
         />
         <text
@@ -153,8 +159,8 @@ function PartBadge({ badge, on }: { badge: Badge; on: boolean }) {
           textAnchor="middle"
           dominantBaseline="central"
           className={cn(
-            "font-body text-[17px] font-semibold max-wide:text-[26px]",
-            on ? "fill-on-accent" : "fill-ink",
+            "font-code text-[16px] font-medium max-wide:text-[26px]",
+            on ? "fill-accent" : "fill-ink",
           )}
         >
           {badge.n}
@@ -247,10 +253,7 @@ function Details({
                 x={detail.x}
                 y={detail.y}
                 textAnchor="middle"
-                className={cn(
-                  LABEL,
-                  on && (detail.above ? "fill-accent" : "fill-on-accent"),
-                )}
+                className={cn(LABEL, on && "fill-accent")}
               >
                 {detail.text}
               </text>
@@ -340,7 +343,7 @@ function PieceTag({
         strokeWidth={4 * u}
         style={{ fontSize: TAG_PX.font * u }}
         className={cn(
-          "font-body font-semibold tabular-nums [paint-order:stroke] stroke-tone-wayfinder [stroke-linejoin:round] transition-[fill] duration-base motion-reduce:transition-none",
+          "font-code font-medium tabular-nums [paint-order:stroke] stroke-tone-wayfinder [stroke-linejoin:round] transition-[fill] duration-base motion-reduce:transition-none",
           strong ? "fill-accent" : "fill-muted",
         )}
       >
@@ -519,7 +522,7 @@ export function WayfinderFigure({
                 ref={index === 0 ? register(`foot:${sub.id}`) : undefined}
                 points={points}
                 style={{ opacity: 0 }}
-                className="fill-accent/[0.06] stroke-accent/50 stroke-1 [stroke-dasharray:3_3]"
+                className="fill-none stroke-line-strong/70 stroke-1 [stroke-dasharray:3_3]"
               />
             )),
           )}
@@ -557,7 +560,9 @@ export function WayfinderFigure({
                 data-route={key}
                 pathLength={1}
                 className={cn(
-                  "stroke-signal stroke-[2.6] transition-opacity duration-state motion-reduce:transition-none",
+                  // The checker's highlighter run along the pipe, multiplied
+                  // so its drawn edges show through.
+                  "stroke-marker stroke-[9] mix-blend-multiply transition-opacity duration-state motion-reduce:transition-none",
                   lit.has(key) ? "opacity-100" : "opacity-0",
                 )}
               />
@@ -577,9 +582,12 @@ export function WayfinderFigure({
                 ref={register(key)}
                 aria-hidden="true"
                 style={{ opacity: 0 }}
+                // A centre line: long dash, dot, long dash, as on a drawing.
                 className={cn(
-                  "pointer-events-none stroke-[1.2] [stroke-dasharray:2_4] [stroke-linecap:round]",
-                  focus === sub.part ? "stroke-accent" : "stroke-accent/45",
+                  "pointer-events-none stroke-1 [stroke-dasharray:10_3_2_3]",
+                  focus === sub.part
+                    ? "stroke-accent"
+                    : "stroke-line-strong/60",
                 )}
               />
             );
@@ -617,8 +625,8 @@ export function WayfinderFigure({
             transform="translate(-999,-999)"
             visibility="hidden"
           >
-            <circle r={13} className="fill-signal opacity-25" />
-            <circle r={6} className="fill-signal" />
+            <circle r={12} className="fill-none stroke-signal stroke-[1.5]" />
+            <circle r={5} className="fill-signal" />
           </g>
         </g>
 

@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 
 /**
  * A form field as an open line: no box or fill, just a 3:1 underline
- * (line-field) that turns lilac and thickens on focus. Shared by Input,
+ * (line-field) that turns red pen and thickens on focus. Shared by Input,
  * Textarea and Select.
  */
 export function fieldClasses(invalid: boolean, className?: string): string {

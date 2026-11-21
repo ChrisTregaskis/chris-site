@@ -67,7 +67,7 @@ export function NumberedDropdown({
         aria-labelledby={`${labelId} ${valueId}`}
         onClick={dropdown.onButtonClick}
         onKeyDown={dropdown.onButtonKeyDown}
-        className="flex w-full cursor-pointer items-center gap-[10px] rounded-none border-0 border-b-2 border-line-field bg-transparent py-[5px] pl-0 pr-[10px] text-left font-display text-[18px] font-semibold leading-[normal] text-ink transition-colors duration-base hover:border-accent aria-expanded:border-accent motion-reduce:transition-none wide:gap-3 wide:py-[7px] wide:pr-[14px]"
+        className="flex w-full cursor-pointer items-center gap-[10px] rounded-none border-0 border-b-2 border-line-field bg-transparent py-[5px] pl-0 pr-[10px] text-left font-display text-[18px] font-medium leading-[normal] text-ink transition-colors duration-base hover:border-ink aria-expanded:border-ink motion-reduce:transition-none wide:gap-3 wide:py-[7px] wide:pr-[14px]"
       >
         <span id={valueId} className="sr-only">
           {valueText}
@@ -103,7 +103,7 @@ export function NumberedDropdown({
         hidden={!dropdown.open}
         onKeyDown={dropdown.onListKeyDown}
         className={cn(
-          "absolute inset-x-0 z-20 m-0 max-h-[min(420px,56vh)] list-none overflow-auto rounded-control bg-panel p-[6px] shadow-popover focus:outline-none wide:max-h-[min(440px,70vh)]",
+          "absolute inset-x-0 z-20 m-0 max-h-[min(420px,56vh)] list-none overflow-auto rounded-card border border-solid border-line bg-sheet p-[6px] shadow-popover focus:outline-none wide:max-h-[min(440px,70vh)]",
           dropdown.placement === "up"
             ? "bottom-[calc(100%+8px)]"
             : "top-[calc(100%+8px)]",
@@ -122,9 +122,9 @@ export function NumberedDropdown({
                 if (index !== dropdown.active) dropdown.setActive(index);
               }}
               className={cn(
-                // The keyboard's place is a signal underline, not a fill.
+                // The keyboard's place is a red-pen underline, not a fill.
                 "flex cursor-pointer items-center gap-3 py-[6px] pl-[6px] pr-[10px] text-[15px] font-medium leading-[1.6] text-ink underline decoration-transparent decoration-[1.5px] underline-offset-[5px] hover:decoration-signal",
-                selected && "font-semibold text-accent",
+                selected && "text-accent",
                 index === dropdown.active && "decoration-signal",
                 option.separated &&
                   "mt-1 rounded-t-none border-t border-line pt-2",
@@ -133,7 +133,7 @@ export function NumberedDropdown({
               <span
                 aria-hidden="true"
                 className={cn(
-                  "inline-block min-w-[2.2em] flex-none font-display text-[15px] font-bold tabular-nums [&>svg]:size-[18px] [&>svg]:translate-y-[3px]",
+                  "inline-block min-w-[2.2em] flex-none font-code text-[14px] font-medium tabular-nums [&>svg]:size-[18px] [&>svg]:translate-y-[3px]",
                   selected ? "text-accent" : "text-muted",
                 )}
               >

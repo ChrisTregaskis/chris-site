@@ -83,7 +83,12 @@ export function InsideList({
                 "group/piece flex cursor-pointer items-baseline gap-3 border-0 bg-transparent p-0 py-[1px] text-left font-body text-[14px] leading-[1.5]",
               )}
             >
-              <span className="min-w-[2.1em] font-semibold tabular-nums text-accent">
+              <span
+                className={cn(
+                  "min-w-[2.6em] font-code text-[13px] font-medium tabular-nums transition-colors duration-base motion-reduce:transition-none",
+                  on ? "text-accent" : "text-muted group-hover/piece:text-ink",
+                )}
+              >
                 {piece.id}
               </span>
               <span

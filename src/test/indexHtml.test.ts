@@ -100,7 +100,7 @@ describe("index.html", () => {
     const surface = read("src/ui/tokens/tokens.css").match(
       /--color-surface: [^;]+; \/\* (#[0-9A-F]{6}) \*\//,
     )?.[1];
-    expect(surface).toBe("#13142E");
+    expect(surface).toBe("#F2F4F4");
     expect(read("index.html")).toContain(
       `<meta name="theme-color" content="${surface}" />`,
     );

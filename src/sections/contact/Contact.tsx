@@ -21,11 +21,11 @@ export function Contact() {
     >
       <h2
         id="contact-title"
-        className="m-0 mb-[18px] max-w-[16ch] font-display text-display-md font-semibold"
+        className="m-0 mb-5 max-w-[16ch] font-display text-display-md font-medium"
       >
         Let&apos;s work together.
       </h2>
-      <p className="m-0 mb-[26px] max-w-measure text-lede text-muted">
+      <p className="m-0 mb-7 max-w-measure text-lede text-muted">
         I help small and medium businesses get more from the software they
         already have: adding AI where it earns its place, improving what&apos;s
         there, or proving an idea with a focused prototype. Tell me what

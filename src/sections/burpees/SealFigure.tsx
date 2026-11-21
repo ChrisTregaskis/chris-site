@@ -29,7 +29,7 @@ export function SealFigure({ baseline, still }: SealFigureProps) {
       style={{ bottom: `${baseline}em` }}
     >
       <span
-        className="absolute inset-x-0 bottom-0 block h-[6%] bg-[radial-gradient(closest-side,rgb(var(--color-scrim)/0.85),rgb(var(--color-scrim)/0))] transition-transform duration-base ease-enter motion-reduce:transition-none"
+        className="absolute inset-x-0 bottom-0 block h-[6%] bg-[radial-gradient(closest-side,rgb(var(--color-scrim)/0.28),rgb(var(--color-scrim)/0))] transition-transform duration-base ease-enter motion-reduce:transition-none"
         style={{
           transform: `translate(${floor.shift}%, 50%) scaleX(${floor.scale})`,
         }}

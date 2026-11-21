@@ -6,12 +6,12 @@ interface FormAlertProps {
   children: ReactNode;
 }
 
-/** The b3 form failure banner: an alert with a warning mark, a bold title and a line of help. */
+/** The form failure note: a red-pen rule down its side, a warning mark, a title and a line of help. No box. */
 export function FormAlert({ title, children }: FormAlertProps) {
   return (
     <div
       role="alert"
-      className="col-span-full flex items-start gap-3 rounded-control border-[1.5px] border-danger/50 bg-danger/10 px-4 py-[14px]"
+      className="col-span-full flex items-start gap-3 border-0 border-l-2 border-solid border-danger py-1 pl-4"
     >
       <span className="mt-px text-danger">
         <Icon size={24}>
@@ -34,7 +34,7 @@ export function FormAlert({ title, children }: FormAlertProps) {
         </Icon>
       </span>
       <div>
-        <b className="block font-semibold">{title}</b>
+        <b className="block font-medium">{title}</b>
         <p className="m-0 mt-[2px] text-[14.5px] text-muted">{children}</p>
       </div>
     </div>

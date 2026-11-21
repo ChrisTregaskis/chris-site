@@ -60,7 +60,7 @@ export function NavMenu({ label, items }: NavMenuProps) {
       <div
         id={listId}
         hidden={!menu.open}
-        className="absolute -left-6 top-[calc(100%+18px)] z-40 w-[330px] rounded-[6px] bg-surface/95 px-6 pb-4 pt-3 shadow-popover backdrop-blur-md"
+        className="absolute -left-6 top-[calc(100%+18px)] z-40 w-[330px] rounded-card border border-solid border-line bg-sheet px-6 pb-4 pt-3 shadow-popover"
       >
         <NavMenuLinks
           items={items}
