@@ -17,35 +17,23 @@ beforeEach(() => {
 });
 
 describe("App under reduced motion", () => {
-  it("shows the physio story's end state: only the signed-in organisation's sessions come back", async () => {
+  it("shows the physio rings finished: every ring drawn, every step's words, nothing pinned", async () => {
     renderWithProviders(<App />);
     const physio = screen.getByRole("region", {
       name: "A multi-tenant platform for physio and wellness",
     });
-    // The drawing loads on its own.
-    await within(physio).findByTestId("sessions-stack");
+    // The drawing loads on its own, at once when still.
+    const figure = await within(physio).findByTestId("rings-figure");
+    expect(figure.querySelectorAll('[data-reveal="hidden"]')).toHaveLength(0);
+    expect(within(physio).getByTestId("rings-stage")).not.toHaveClass("sticky");
     expect(
-      within(physio)
-        .getByText(/set local/)
-        .closest("p"),
-    ).toHaveTextContent("set local organisation = ‘Alder’");
-    expect(physio.querySelector("[aria-live]")).toHaveTextContent(
-      "Only Alder's sessions come back, with no filter in the query.",
-    );
-    const spots = [...physio.querySelectorAll("[data-sheet]")].map(
-      (sheet) =>
-        `${sheet.getAttribute("data-sheet")}: ${sheet.getAttribute("data-spot")}`,
-    );
-    expect(spots).toEqual(["Alder: result", "Birch: held", "Cedar: held"]);
-    // Static: the leak test is open, with no demo playing itself.
+      physio.querySelectorAll('[data-step-text][aria-hidden="true"]'),
+    ).toHaveLength(0);
+    // Nothing plays by itself: no journey until Try it.
+    expect(within(physio).queryByLabelText("Trace")).toBeNull();
     expect(
-      within(physio).getByRole("button", {
-        name: "Try to read Birch’s sessions",
-      }),
+      within(physio).getByRole("button", { name: "Try it" }),
     ).toBeInTheDocument();
-    expect(
-      within(physio).queryByRole("button", { name: /demo/ }),
-    ).not.toBeInTheDocument();
   });
 
   it("shows the build lane finished, with the eval bench as a note beneath it", () => {
