@@ -6,6 +6,8 @@ import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
 import { Contact } from "@/sections/contact/Contact";
 import { Hero } from "@/sections/hero/Hero";
 import { PhysioSection } from "@/sections/physio/PhysioSection";
+import { PhysioNextSection } from "@/sections/physio/next/PhysioNextSection";
+import { PHYSIO_NEXT } from "@/sections/physio/next/physioNext";
 import { WayfinderSection } from "@/sections/wayfinder/WayfinderSection";
 import { useAnchorScroll } from "@/hooks/useAnchorScroll";
 import { useNavTone } from "@/hooks/useNavTone";
@@ -86,7 +88,8 @@ export function App() {
       <main id="main">
         <Hero />
         <WayfinderSection />
-        <PhysioSection />
+        {/* Draft: ?physio=next swaps in the rings explorer, for comparison. */}
+        {PHYSIO_NEXT ? <PhysioNextSection /> : <PhysioSection />}
         <BurpeesSection />
         <AboutSection />
         <Contact />
