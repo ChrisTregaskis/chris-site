@@ -1,6 +1,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useRef } from "react";
 import { useDepthFit } from "./depth/useDepthFit";
+import { ArchLayer } from "./explore/ArchLayer";
+import { ARCH_DRAFT } from "./explore/archDraft";
 import { IsolationFigure } from "./IsolationFigure";
 import { LeakTestControls } from "./LeakTestControls";
 import { LoopToggle } from "./LoopToggle";
@@ -96,6 +98,7 @@ export function PhysioSection() {
         lede={PHYSIO_HEADING.lede}
         chips={PHYSIO_HEADING.chips}
       />
+      {ARCH_DRAFT?.place === "before" ? <ArchLayer draft={ARCH_DRAFT} /> : null}
       <div
         ref={chapterRef}
         className="relative wide:grid wide:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] wide:gap-[clamp(24px,5vw,72px)]"
@@ -207,6 +210,7 @@ export function PhysioSection() {
           })}
         </div>
       </div>
+      {ARCH_DRAFT?.place === "after" ? <ArchLayer draft={ARCH_DRAFT} /> : null}
     </Section>
   );
 }
