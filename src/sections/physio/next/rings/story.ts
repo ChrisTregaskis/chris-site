@@ -254,7 +254,7 @@ export const STEPS: Record<StepId, Step> = {
     journey: "direct",
     kicker: "Direct access",
     heading: "Nobody edits the data by hand",
-    text: "People change data through the app: an admin's edits are API requests, checked like anyone else's. Opening the database directly is another door: a private host with no public address, opened only under your own IAM sign-in, as a login that can read and never write. Schema changes don't come this way either: migrations run as one-job functions, started under IAM.",
+    text: "People change data through the app: an admin's edits are API requests, checked like anyone else's. Opening the database directly is another door: a private host with no public address, opened only under the engineer's own IAM sign-in, as a login that can read and never write. Schema changes don't come this way either: migrations run as one-job functions, started under IAM.",
     details: [
       {
         id: "direct-app",
@@ -264,7 +264,7 @@ export const STEPS: Record<StepId, Step> = {
       },
       {
         id: "direct-iam",
-        text: "Opened only under your own IAM sign-in",
+        text: "Opened only under the engineer's own IAM sign-in",
         nodes: ["gate"],
         routes: ["engineer-host"],
       },
