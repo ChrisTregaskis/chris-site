@@ -10,7 +10,7 @@ describe("the journeys", () => {
       "video",
       "cross",
       "job",
-      "admin",
+      "direct",
     ]);
     for (const journey of JOURNEYS) {
       expect(journey.steps[0]?.type).toBe("log");
@@ -54,10 +54,10 @@ describe("the journeys", () => {
     expect(out.steps.at(-1)).toMatchObject({ type: "result", held: true });
   });
 
-  it("lets an admin read, and refuses the write", () => {
-    const admin = journeyById("admin");
-    expect(admin.steps).toContainEqual({ type: "block", node: "data" });
-    expect(traceOf(admin).map((line) => line.text)).toContain(
+  it("lets an engineer read the database directly, and refuses the write", () => {
+    const direct = journeyById("direct");
+    expect(direct.steps).toContainEqual({ type: "block", node: "data" });
+    expect(traceOf(direct).map((line) => line.text)).toContain(
       "refused: this login can't write",
     );
   });

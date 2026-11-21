@@ -4,7 +4,7 @@ import { type JourneyId } from "./journeys";
 /*
  * The rings' scroll story (draft copy, pending Chris's language pass): the
  * drawing is revealed ring by ring from the outside in, then the two side
- * ways in (scheduled work and the admin). Each step has a journey to send
+ * ways in (scheduled work and direct access). Each step has a journey to send
  * through what it has revealed. Design ideas
  * only: never versions, stage names, network rules or ranges, regions, role,
  * table, secret or variable names, how credentials reach the code, counts or
@@ -17,7 +17,7 @@ export const STEP_ORDER = [
   "functions",
   "centre",
   "queue",
-  "admin",
+  "direct",
 ] as const;
 
 export type StepId = (typeof STEP_ORDER)[number];
@@ -249,34 +249,40 @@ export const STEPS: Record<StepId, Step> = {
       rings: ["tokens"],
     },
   },
-  admin: {
-    id: "admin",
-    journey: "admin",
-    kicker: "The admin",
-    heading: "Admins look, never touch",
-    text: "An admin reaches the database through a private host with no public address, opened only under their own IAM sign-in, as a login that can read and never write. Changing the schema doesn't come this way at all: migrations run as one-job functions, started under IAM.",
+  direct: {
+    id: "direct",
+    journey: "direct",
+    kicker: "Direct access",
+    heading: "Nobody edits the data by hand",
+    text: "People change data through the app: an admin's edits are API requests, checked like anyone else's. Opening the database directly is another door: a private host with no public address, opened only under your own IAM sign-in, as a login that can read and never write. Schema changes don't come this way either: migrations run as one-job functions, started under IAM.",
     details: [
       {
-        id: "admin-iam",
-        text: "Opened only under the admin's own IAM sign-in",
-        nodes: ["gate"],
-        routes: ["admin-host"],
+        id: "direct-app",
+        text: "Admins edit through the app, like everyone else",
+        nodes: ["api", "fnRequest"],
+        routes: ["visitor-api", "api-fn"],
       },
       {
-        id: "admin-host",
+        id: "direct-iam",
+        text: "Opened only under your own IAM sign-in",
+        nodes: ["gate"],
+        routes: ["engineer-host"],
+      },
+      {
+        id: "direct-host",
         text: "A private host with no public address",
         nodes: ["host"],
       },
       {
-        id: "admin-read",
+        id: "direct-read",
         text: "A read-only login: any write is refused",
         nodes: ["data"],
         routes: ["host-data"],
       },
     ],
     reveals: {
-      nodes: ["admin", "gate", "host"],
-      routes: ["admin-host", "host-data"],
+      nodes: ["engineer", "gate", "host"],
+      routes: ["engineer-host", "host-data"],
       rings: [],
     },
   },

@@ -149,11 +149,11 @@ const SPECS: Record<StepId, readonly Spec[]> = {
     { stroke: "sweeper-data", after: "sweeper" },
     { fade: "tokens", once: "runner-data" },
   ],
-  admin: [
-    { fade: "admin", at: "start" },
-    { stroke: "admin-host", after: "admin" },
-    { fade: "gate", on: "admin-host" },
-    { fade: "host", on: "admin-host" },
+  direct: [
+    { fade: "engineer", at: "start" },
+    { stroke: "engineer-host", after: "engineer" },
+    { fade: "gate", on: "engineer-host" },
+    { fade: "host", on: "engineer-host" },
     { stroke: "host-data", after: "host" },
   ],
 };
@@ -249,7 +249,7 @@ export const DRAW_PLANS: Record<StepId, DrawPlan> = {
   functions: planFor("functions"),
   centre: planFor("centre"),
   queue: planFor("queue"),
-  admin: planFor("admin"),
+  direct: planFor("direct"),
 };
 
 /** How much of a line is drawn at a step's progress, 0 to 1. */

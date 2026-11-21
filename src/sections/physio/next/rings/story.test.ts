@@ -18,7 +18,7 @@ describe("the rings' story", () => {
       "functions",
       "centre",
       "queue",
-      "admin",
+      "direct",
     ]);
   });
 

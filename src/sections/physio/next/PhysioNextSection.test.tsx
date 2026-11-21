@@ -40,12 +40,27 @@ const tryIt = () =>
   userEvent.setup().click(screen.getByRole("button", { name: "Try it" }));
 
 describe("the physio chapter, next draft", () => {
-  it("keeps the live opener word for word", async () => {
+  it("keeps the live title and lede word for word, with its own chips", async () => {
     const region = await renderChapter(true);
     expect(region).toHaveTextContent(PHYSIO_HEADING.lede);
-    for (const chip of PHYSIO_HEADING.chips) {
-      expect(region).toHaveTextContent(chip);
-    }
+    const chips = region.querySelectorAll("header ul > li");
+    expect([...chips].map((chip) => chip.textContent)).toEqual([
+      "React",
+      "Postgres RLS",
+      "Private network",
+      "Job queue",
+      "SST",
+      "Turborepo",
+    ]);
+    // The live chapter's chips are left as they were.
+    expect(PHYSIO_HEADING.chips).toEqual([
+      "React",
+      "Zod",
+      "Drizzle",
+      "Postgres RLS",
+      "SST",
+      "Turborepo",
+    ]);
     expect(within(region).queryByTestId("sessions-stack")).toBeNull();
   });
 
@@ -61,7 +76,7 @@ describe("the physio chapter, next draft", () => {
       "The functions",
       "Postgres",
       "The queue",
-      "The admin",
+      "Direct access",
     ]);
     expect(screen.getByRole("button", { name: "Try it" })).toBeInTheDocument();
   });
@@ -83,7 +98,7 @@ describe("the rings, static (reduced motion)", () => {
       "Only the keys each one needs",
       "An app that owns nothing",
       "Slow work waits its turn",
-      "Admins look, never touch",
+      "Nobody edits the data by hand",
     ]);
     expect(
       screen.queryByRole("button", { name: "Show every ring" }),
@@ -96,7 +111,7 @@ describe("the rings, static (reduced motion)", () => {
     await tryIt();
     const stage = screen.getByTestId("rings-stage");
     expect(within(stage).getByLabelText("Trace")).toHaveTextContent(
-      "policy Birch's rows aren't Alder's: none come back",
+      "policy Globex's rows aren't Acme's: none come back",
     );
     expect(within(stage).getByText("No sessions")).toBeInTheDocument();
     expect(figure().querySelector('[data-ring="policy"]')).toHaveAttribute(
@@ -106,9 +121,9 @@ describe("the rings, static (reduced motion)", () => {
 
   it("clears what a finished journey lit when another ring is chosen", async () => {
     await renderChapter(true);
-    await pick("The admin");
+    await pick("Direct access");
     await tryIt();
-    expect(litRoutes()).toEqual(["admin-host", "host-data"]);
+    expect(litRoutes()).toEqual(["engineer-host", "host-data"]);
     await pick("The edge");
     expect(litRoutes()).toEqual([]);
     expect(figure().querySelectorAll("[data-hot]")).toHaveLength(0);

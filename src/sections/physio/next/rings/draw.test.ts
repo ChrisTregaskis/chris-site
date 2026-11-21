@@ -47,12 +47,14 @@ function goneAt(plan: DrawPlan): Map<string, number> {
 describe("drawing the rings", () => {
   it("finds where a node sits along its line", () => {
     expect(fractionAlong(ROUTES["visitor-api"], NODES.api.at)).toBeCloseTo(1);
-    expect(fractionAlong(ROUTES["admin-host"], NODES.admin.at)).toBeCloseTo(0);
-    // The gate is part way down the admin's spoke, before the host.
-    const gate = fractionAlong(ROUTES["admin-host"], NODES.gate.at);
+    expect(
+      fractionAlong(ROUTES["engineer-host"], NODES.engineer.at),
+    ).toBeCloseTo(0);
+    // The gate is part way down the engineer's spoke, before the host.
+    const gate = fractionAlong(ROUTES["engineer-host"], NODES.gate.at);
     expect(gate).toBeGreaterThan(0.2);
     expect(gate).toBeLessThan(
-      fractionAlong(ROUTES["admin-host"], NODES.host.at),
+      fractionAlong(ROUTES["engineer-host"], NODES.host.at),
     );
     // Round the network's wall from twelve o'clock: storage, the way out, sign-in.
     const wall = ringPoints("ring:net");
@@ -113,8 +115,8 @@ describe("drawing the rings", () => {
     expect(order.at(-1)).toBe("storage");
   });
 
-  it("draws the admin's way in from the admin inward: the gate, then the host", () => {
-    expect(appearing(DRAW_PLANS.admin)).toEqual(["admin", "gate", "host"]);
+  it("draws direct access from the engineer inward: the gate, then the host", () => {
+    expect(appearing(DRAW_PLANS.direct)).toEqual(["engineer", "gate", "host"]);
   });
 
   it("starts each line only once what it leaves from is there", () => {

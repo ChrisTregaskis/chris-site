@@ -80,7 +80,7 @@ describe("a journey's runner", () => {
     });
     expect(result.current.running).toBe("signIn");
     expect(result.current.trace.map((line) => line.text)).toEqual([
-      "signs in as a member of Alder",
+      "signs in as a member of Acme",
     ]);
     expect([...result.current.lit]).toEqual(["visitor-signIn"]);
     expect(result.current.token).toBeNull();
@@ -89,7 +89,7 @@ describe("a journey's runner", () => {
   it("leaves no timer behind when it unmounts mid-journey", () => {
     const { result, unmount } = renderHook(() => useJourney(false));
     act(() => {
-      void result.current.run("admin");
+      void result.current.run("direct");
     });
     expect(vi.getTimerCount()).toBeGreaterThan(0);
     unmount();

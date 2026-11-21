@@ -57,7 +57,7 @@ interface RingsFigureProps {
 
 const ICON: Partial<Record<NodeId, GlyphId>> = {
   visitor: "person",
-  admin: "eye",
+  engineer: "eye",
   schedule: "clock",
   api: "door",
   signIn: "badge",
@@ -90,7 +90,7 @@ const ROUTE_LOOK: Record<RouteKey, string | null> = {
   "schedule-sweeper": "stroke-muted stroke-[2] [stroke-dasharray:5_5]",
   "runner-data": "stroke-line-strong stroke-[2.5]",
   "sweeper-data": "stroke-line-strong stroke-[2.5]",
-  "admin-host": "stroke-muted stroke-[2.5] [stroke-dasharray:7_6]",
+  "engineer-host": "stroke-muted stroke-[2.5] [stroke-dasharray:7_6]",
   "host-data": "stroke-muted stroke-[2.5] [stroke-dasharray:7_6]",
   "fn-noRoute": "stroke-danger stroke-[2] [stroke-dasharray:2_6]",
 };
@@ -264,7 +264,7 @@ export function RingsFigure({
       ref={svgRef}
       viewBox={VIEW_BOX}
       role="img"
-      aria-label="The platform from above, as rings round the data: the visitor and the admin outside; the API, the CDN, sign-in and video storage at the edge; the functions on an orbit inside a private network with no way out; and Postgres at the centre, inside its row-level security policy, holding the job queue."
+      aria-label="The platform from above, as rings round the data: the visitor and an engineer outside; the API, the CDN, sign-in and video storage at the edge; the functions on an orbit inside a private network with no way out; and Postgres at the centre, inside its row-level security policy, holding the job queue."
       data-testid="rings-figure"
       className="block h-auto w-full overflow-visible"
     >
@@ -514,13 +514,13 @@ export function RingsFigure({
         </g>
       </g>
 
-      {/* Walls: private endpoints, the admin's gate, the way out that isn't there */}
+      {/* Walls: private endpoints, the engineer's gate, the way out that isn't there */}
       {endpoint("endpointSignIn")}
       {endpoint("endpointStorage")}
       {disc("gate")}
       {disc("noRoute")}
 
-      {/* Functions on the orbit, and the admin's private host */}
+      {/* Functions on the orbit, and the engineer's private host */}
       {(
         [
           "fnRequest",
@@ -536,7 +536,9 @@ export function RingsFigure({
       {(["api", "signIn", "cdn", "storage"] as const).map((id) => disc(id))}
 
       {/* Outside: the people, and the schedule */}
-      {(["visitor", "admin", "schedule"] as const).map((id) => disc(id, true))}
+      {(["visitor", "engineer", "schedule"] as const).map((id) =>
+        disc(id, true),
+      )}
 
       {/* Labels beside the outer nodes */}
       <g aria-hidden="true">

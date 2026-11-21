@@ -32,7 +32,7 @@ function play(ms: number) {
   }
 }
 
-/** Just enough of the drawing: the edge's first line and icon, the admin's icon. */
+/** Just enough of the drawing: the edge's first line and icon, the engineer's icon. */
 function Drawing({
   current,
   still = false,
@@ -47,7 +47,7 @@ function Drawing({
       <path data-testid="line" data-draw="visitor-api" pathLength={1} />
       <g data-testid="visitor" data-draw="visitor" />
       <g data-testid="api" data-draw="api" />
-      <g data-testid="admin" data-draw="admin" />
+      <g data-testid="engineer" data-draw="engineer" />
     </svg>
   );
 }
@@ -92,14 +92,14 @@ describe("drawing the rings on and off", () => {
     rerender(<Drawing current={6} />);
     play(DRAW_MS + 50);
     expect(opacity("visitor")).toBe("1");
-    expect(opacity("admin")).toBe("1");
+    expect(opacity("engineer")).toBe("1");
     expect(frames).toHaveLength(0);
   });
 
   it("draws everything at once when still", () => {
     render(<Drawing current={0} still />);
     expect(opacity("api")).toBe("1");
-    expect(opacity("admin")).toBe("1");
+    expect(opacity("engineer")).toBe("1");
     expect(offset()).toBe("0");
     expect(frames).toHaveLength(0);
   });

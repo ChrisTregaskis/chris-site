@@ -53,7 +53,7 @@ export const ANGLE = {
   runner: -158,
   sweeper: -178,
   schedule: -168,
-  admin: 138,
+  engineer: 138,
 } as const;
 
 export type NodeId =
@@ -68,7 +68,7 @@ export type NodeId =
   | "schedule"
   | "runner"
   | "sweeper"
-  | "admin"
+  | "engineer"
   | "gate"
   | "host"
   | "endpointSignIn"
@@ -104,9 +104,9 @@ export const NODES: Record<NodeId, RingNode> = {
   schedule: node("schedule", "actor", R.actor, ANGLE.schedule),
   runner: node("runner", "orbit", R.orbit, ANGLE.runner),
   sweeper: node("sweeper", "orbit", R.orbit, ANGLE.sweeper),
-  admin: node("admin", "actor", R.actor, ANGLE.admin),
-  gate: node("gate", "wall", R.net, ANGLE.admin),
-  host: node("host", "orbit", R.orbit, ANGLE.admin),
+  engineer: node("engineer", "actor", R.actor, ANGLE.engineer),
+  gate: node("gate", "wall", R.net, ANGLE.engineer),
+  host: node("host", "orbit", R.orbit, ANGLE.engineer),
   endpointSignIn: node("endpointSignIn", "wall", R.net, ANGLE.signIn),
   endpointStorage: node("endpointStorage", "wall", R.net, ANGLE.storage),
   noRoute: node("noRoute", "wall", R.net, ANGLE.noRoute),
@@ -167,7 +167,7 @@ export const ROUTE_KEYS = [
   "runner-data",
   "schedule-sweeper",
   "sweeper-data",
-  "admin-host",
+  "engineer-host",
   "host-data",
   "fn-noRoute",
 ] as const;
@@ -208,8 +208,8 @@ export const ROUTES: Record<RouteKey, XY[]> = {
   "runner-data": spokePoints(ANGLE.runner, R.orbit, R.data),
   "schedule-sweeper": [at("schedule"), at("sweeper")],
   "sweeper-data": spokePoints(ANGLE.sweeper, R.orbit, R.data),
-  "admin-host": spokePoints(ANGLE.admin, R.actor, R.orbit),
-  "host-data": spokePoints(ANGLE.admin, R.orbit, R.data),
+  "engineer-host": spokePoints(ANGLE.engineer, R.actor, R.orbit),
+  "host-data": spokePoints(ANGLE.engineer, R.orbit, R.data),
   "fn-noRoute": spokePoints(ANGLE.noRoute, R.orbit, R.net),
 };
 
@@ -289,11 +289,11 @@ export const LABELS: readonly NodeLabel[] = [
     anchor: "start",
   },
   {
-    node: "admin",
-    lines: ["Admin"],
-    x: at("admin")[0] - 18,
-    y: at("admin")[1] + 6,
-    anchor: "end",
+    node: "engineer",
+    lines: ["Engineer"],
+    x: at("engineer")[0],
+    y: at("engineer")[1] + 13 + LABEL_UNITS,
+    anchor: "middle",
   },
 ];
 

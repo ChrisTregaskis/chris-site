@@ -64,7 +64,7 @@ describe("the rings, scrolling", () => {
 
     await pick("Postgres");
     expect(reveal("data")).toBe("new");
-    expect(reveal("admin")).toBe("hidden");
+    expect(reveal("engineer")).toBe("hidden");
     expect(words("centre")).toHaveAttribute("aria-hidden", "false");
     expect(words("centre")).toHaveClass("opacity-100");
     // Passed: faded, leaving upwards. To come: faded, waiting below.
@@ -80,12 +80,12 @@ describe("the rings, scrolling", () => {
 
   it("clears a journey mid-route the moment the step changes, leaving nothing lit", async () => {
     await renderChapter();
-    await pick("The admin");
+    await pick("Direct access");
     await tryIt();
-    expect(litRoutes()).toEqual(["admin-host"]);
+    expect(litRoutes()).toEqual(["engineer-host"]);
     expect(figure().querySelectorAll("[data-hot]").length).toBeGreaterThan(0);
 
-    // Back up to the edge: the admin's spoke must not stay lit.
+    // Back up to the edge: the engineer's spoke must not stay lit.
     await pick("The edge");
     expect(litRoutes()).toEqual([]);
     expect(figure().querySelectorAll("[data-hot]")).toHaveLength(0);

@@ -3,11 +3,11 @@ import { type NodeId, type RouteKey } from "./geometry";
 /*
  * The journeys a visitor can send through the rings, each with the route it
  * takes and the trace it writes. Pure, so the choreography can be tested
- * without the animation. The organisations (Alder, Birch) and the data are
+ * without the animation. The organisations (Acme, Globex) and the data are
  * invented; the trace says what happens, never how it's configured.
  */
 
-export type JourneyId = "signIn" | "out" | "video" | "cross" | "job" | "admin";
+export type JourneyId = "signIn" | "out" | "video" | "cross" | "job" | "direct";
 
 export interface TraceLine {
   who: string;
@@ -69,17 +69,17 @@ export const JOURNEYS: readonly Journey[] = [
     id: "signIn",
     label: "Sign in",
     steps: [
-      log("visitor", "signs in as a member of Alder"),
+      log("visitor", "signs in as a member of Acme"),
       flash("visitor"),
       go("visitor-signIn"),
       flash("signIn"),
-      log("sign-in", "signed in; the token names Alder"),
+      log("sign-in", "signed in; the token names Acme"),
       back("visitor-signIn"),
       go("visitor-api"),
       flash("api"),
-      log("api", "token checked at the door: organisation Alder"),
+      log("api", "token checked at the door: organisation Acme"),
       back("visitor-api"),
-      result("Signed in as Alder"),
+      result("Signed in as Acme"),
     ],
   },
   {
@@ -101,7 +101,7 @@ export const JOURNEYS: readonly Journey[] = [
     steps: [
       log("visitor", "asks to play an exercise video"),
       flash("visitor"),
-      ...inbound("organisation Alder"),
+      ...inbound("organisation Acme"),
       go("fn-video"),
       flash("fnVideo"),
       log("video", "checks access, signs a short-lived link"),
@@ -123,13 +123,13 @@ export const JOURNEYS: readonly Journey[] = [
     id: "cross",
     label: "Read another organisation",
     steps: [
-      log("visitor", "signed in as Alder, asks for Birch's sessions"),
+      log("visitor", "signed in as Acme, asks for Globex's sessions"),
       flash("visitor"),
-      ...inbound("organisation Alder"),
-      log("function", "transaction set to Alder; the query names Birch"),
+      ...inbound("organisation Acme"),
+      log("function", "transaction set to Acme; the query names Globex"),
       go("fn-policy"),
       block("policy"),
-      log("policy", "Birch's rows aren't Alder's: none come back"),
+      log("policy", "Globex's rows aren't Acme's: none come back"),
       pause(900),
       log("role", "owns no tables, so it can't step round the policy"),
       back("fn-policy"),
@@ -143,7 +143,7 @@ export const JOURNEYS: readonly Journey[] = [
     steps: [
       log("visitor", "submits an assessment"),
       flash("visitor"),
-      ...inbound("organisation Alder"),
+      ...inbound("organisation Acme"),
       go("fn-data"),
       flash("data"),
       token("queued"),
@@ -161,7 +161,7 @@ export const JOURNEYS: readonly Journey[] = [
       flash("data"),
       log("runner", "claims the job, locked so no other runner takes it"),
       flash("policy"),
-      log("runner", "works inside Alder, under the same policy as a click"),
+      log("runner", "works inside Acme, under the same policy as a click"),
       token("done"),
       log("runner", "programme built; the job keeps only ids"),
       back("runner-data"),
@@ -176,12 +176,12 @@ export const JOURNEYS: readonly Journey[] = [
     ],
   },
   {
-    id: "admin",
-    label: "Read as an admin",
+    id: "direct",
+    label: "Open the database directly",
     steps: [
-      log("admin", "opens the way in under their own IAM sign-in"),
-      flash("admin"),
-      go("admin-host"),
+      log("engineer", "opens the way in under their own IAM sign-in"),
+      flash("engineer"),
+      go("engineer-host"),
       flash("gate"),
       flash("host"),
       log("host", "private, no public address"),
@@ -189,13 +189,13 @@ export const JOURNEYS: readonly Journey[] = [
       flash("data"),
       log("postgres", "read-only login: the rows come back"),
       back("host-data"),
-      log("admin", "tries an update"),
+      log("engineer", "tries an update"),
       go("host-data"),
       block("data"),
       log("postgres", "refused: this login can't write"),
       pause(900),
       back("host-data"),
-      back("admin-host"),
+      back("engineer-host"),
       result("Read: yes. Write: refused.", true),
     ],
   },

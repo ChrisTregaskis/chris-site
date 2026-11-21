@@ -22,7 +22,7 @@ const ICON: Record<StepId, GlyphId> = {
   functions: "key",
   centre: "role",
   queue: "clock",
-  admin: "eye",
+  direct: "eye",
 };
 
 const OPTIONS = STEP_ORDER.map((id) => ({
@@ -54,7 +54,7 @@ function highlightOf(step: StepId, detailId: string | null): Highlight {
  * scroll past it (beside it side by side, beneath it stacked); scrolling,
  * the picker or a press on a ring all select a step, and each step reveals
  * its ring, from the outside in, then the two side ways in (scheduled work
- * and the admin). A step's words fade in as they arrive with their ring and
+ * and direct access). A step's words fade in as they arrive with their ring and
  * out as they leave, in either direction, so the words in view always match
  * the drawing. Try it sends the step's journey through what's been
  * revealed: a pulse, lit routes and a trace in place of the step's details.
