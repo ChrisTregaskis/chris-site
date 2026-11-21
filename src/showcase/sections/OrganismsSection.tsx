@@ -8,6 +8,21 @@ import { NumberedDropdown, pad2 } from "@/ui/organisms/NumberedDropdown";
 import { NavMenu } from "@/ui/organisms/NavMenu";
 import { Odometer } from "@/ui/organisms/Odometer";
 import { PhoneMenu } from "@/ui/organisms/PhoneMenu";
+import { StepPicker } from "@/ui/organisms/StepPicker";
+
+/** An icon in place of a number, as an unnumbered story's picker shows. */
+const DOT = (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle
+      cx="12"
+      cy="12"
+      r="6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+  </svg>
+);
 
 const OPTIONS = [
   { value: 1, label: "A first part" },
@@ -23,6 +38,8 @@ export function OrganismsSection() {
   const [value, setValue] = useState(0);
   const [open, setOpen] = useState(false);
   const shown = value || 1;
+  const [step, setStep] = useState(0);
+  const [whole, setWhole] = useState(true);
 
   return (
     <ShowcaseSection title="Organisms">
@@ -32,8 +49,9 @@ export function OrganismsSection() {
         (the top bar's Work disclosure: ArrowDown opens it, Escape closes it), a
         PhoneMenu (the bar's menu below the wide breakpoint: full screen, the
         Work entries, the plain links, then the calls to action as links; Close,
-        Escape or choosing anything closes it) and a RevealList. Placeholder
-        copy.
+        Escape or choosing anything closes it), a StepPicker (a scroll story's
+        picker as the Wayfinder chapter draws it, here with icons in place of
+        numbers) and a RevealList. Placeholder copy.
       </p>
       <div className="flex max-w-[460px] items-stretch gap-[10px]">
         <NumberedDropdown
@@ -63,6 +81,32 @@ export function OrganismsSection() {
         >
           Open drawer
         </Button>
+      </div>
+      <div className="mt-6 flex max-w-[460px] flex-col gap-[14px]">
+        <StepPicker
+          label="Showcase step"
+          options={OPTIONS.slice(0, 5).map((option) => ({
+            ...option,
+            marker: DOT,
+          }))}
+          value={step}
+          shown={step || 1}
+          valueText={OPTIONS[(step || 1) - 1].label}
+          onSelect={setStep}
+          reducedMotion={reduced}
+          marker={() => DOT}
+          name={(n) => OPTIONS[n - 1].label}
+          action={{
+            label: "Try it",
+            pressed: step === 5,
+            onClick: () => setStep(5),
+          }}
+          toggle={{
+            label: whole ? "Take it apart" : "Put it back together",
+            glyph: DOT,
+            onClick: () => setWhole(!whole),
+          }}
+        />
       </div>
       <Drawer
         open={open}
