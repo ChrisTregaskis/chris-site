@@ -1,16 +1,14 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { STACK_H } from "./depth/depthGeometry";
+import { PHYSIO_HEADING } from "./physioHeading";
 import { PhysioSection } from "./PhysioSection";
-import { SIZES } from "./QueryLines";
 import { renderWithProviders } from "@/test/renderWithProviders";
-import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
-/** Reduced motion (the static end state), plus whichever layout queries match. */
-function media(...matching: string[]) {
+/** Side by side; with or without reduced motion. */
+function media(reduced: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: query.includes("reduced-motion") || matching.includes(query),
+    matches: reduced && query.includes("reduced-motion"),
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
@@ -19,220 +17,139 @@ function media(...matching: string[]) {
   }));
 }
 
-/**
- * The room the 3D stack is measured against: the pinned stage's width (its
- * column side by side, the content width stacked) and the viewport's height.
- */
-function room(width: number, height: number) {
-  vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(width);
-  vi.spyOn(Element.prototype, "clientHeight", "get").mockReturnValue(height);
+async function renderChapter(reduced: boolean) {
+  media(reduced);
+  renderWithProviders(<PhysioSection />);
+  await screen.findByTestId("rings-figure");
+  return screen.getByRole("region", { name: PHYSIO_HEADING.title });
 }
 
-const drawing = () =>
-  screen.getByTestId("sessions-stack").getAttribute("data-drawing");
+const figure = () => screen.getByTestId("rings-figure");
+const litRoutes = () =>
+  [...figure().querySelectorAll("[data-lit-route]")]
+    .filter((path) => path.classList.contains("opacity-100"))
+    .map((path) => path.getAttribute("data-lit-route"));
 
-const spot = (org: string) =>
-  document.querySelector(`[data-sheet="${org}"]`)?.getAttribute("data-spot");
-
-const spoken = () => document.querySelector("#physio [aria-live]");
-
-/** Renders the chapter and waits for its drawing, which loads on its own. */
-async function renderDrawn() {
-  const rendered = renderWithProviders(<PhysioSection />);
-  await screen.findByTestId("sessions-stack");
-  return rendered;
+async function pick(name: string) {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: /^Physio ring/ }));
+  await user.click(screen.getByRole("option", { name }));
 }
+
+const tryIt = () =>
+  userEvent.setup().click(screen.getByRole("button", { name: "Try it" }));
 
 describe("the physio chapter", () => {
-  it("opens on the approved heading, numbered 2", () => {
-    media();
-    renderWithProviders(<PhysioSection />);
-    const region = screen.getByRole("region", {
-      name: "A multi-tenant platform for physio and wellness",
-    });
-    expect(region).toHaveTextContent("A start-up we're building together");
+  it("opens on the approved title and lede, with the rings' chips", async () => {
+    const region = await renderChapter(true);
+    expect(region).toHaveTextContent(PHYSIO_HEADING.lede);
+    expect(
+      [...region.querySelectorAll("header ul > li")].map(
+        (chip) => chip.textContent,
+      ),
+    ).toEqual([
+      "React",
+      "Postgres RLS",
+      "Private network",
+      "Job queue",
+      "SST",
+      "Turborepo",
+    ]);
     expect(region).not.toHaveTextContent(
-      /tRPC|Riverside|bookings|personal project|Claude Code/i,
+      /tRPC|Riverside|bookings|personal project|Claude Code|Alder|Birch|Cedar/i,
     );
   });
 
-  it("asks for another organisation's sessions by name and gets an empty result, then resets", async () => {
-    media();
+  it("lists the rings in Wayfinder's picker, with Try it", async () => {
     const user = userEvent.setup();
-    await renderDrawn();
-    const filter = screen.getByTestId("query-filter");
-    const empty = screen.getByTestId("empty-result");
-    expect(screen.getByTestId("query-outcome")).toHaveTextContent(
-      "Only Alder's sessions come back, with no filter in the query.",
-    );
-    expect(filter).toHaveAttribute("aria-hidden", "true");
-    expect(spot("Alder")).toBe("result");
-
-    await user.click(
-      screen.getByRole("button", { name: "Try to read Birch’s sessions" }),
-    );
-    expect(filter).toHaveAttribute("aria-hidden", "false");
-    expect(filter).toHaveTextContent("where organisation_id = ‘Birch’");
-    expect(spoken()).toHaveTextContent(
-      "No sessions come back. The policy holds back Birch's, even when you ask by name.",
-    );
-    expect(empty).toHaveAttribute("data-shown", "true");
-    expect(empty).toHaveTextContent("No sessions");
-    expect(spot("Alder")).toBe("held");
-
-    await user.click(
-      screen.getByRole("button", { name: "Ask for every session again" }),
-    );
-    expect(empty).toHaveAttribute("data-shown", "false");
-    expect(spot("Alder")).toBe("result");
-  });
-
-  it("brings the organisation picked forward as the result", async () => {
-    media();
-    const user = userEvent.setup();
-    await renderDrawn();
-    await user.click(screen.getByRole("button", { name: "Cedar" }));
-    expect(screen.getByRole("button", { name: "Cedar" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(spot("Cedar")).toBe("result");
-    expect(spoken()).toHaveTextContent(
-      "Only Cedar's sessions come back, with no filter in the query.",
-    );
-  });
-
-  it("draws the table in 3D at full size where there's room for it", async () => {
-    // A 1440 x 900 desktop: the figure's column beside the steps.
-    media();
-    room(600, 900);
-    await renderDrawn();
-    await waitFor(() => expect(drawing()).toBe("depth"));
-    expect(screen.getByTestId("sessions-stack").style.height).toBe(
-      `${STACK_H}px`,
-    );
-    expect(screen.getByTestId("query")).toHaveClass(SIZES.large.block);
-  });
-
-  it("shrinks the 3D stack for a smaller laptop, its query a size down", async () => {
-    // A 1366 x 768 laptop, about 657px of page under the browser's bars.
-    media();
-    room(653, 657);
-    await renderDrawn();
-    await waitFor(() => expect(drawing()).toBe("depth"));
-    const height = parseFloat(
-      screen.getByTestId("sessions-stack").style.height,
-    );
-    expect(height).toBeLessThan(STACK_H);
-    expect(height).toBeGreaterThan(STACK_H * 0.82);
-    expect(screen.getByTestId("query")).toHaveClass(SIZES.medium.block);
-  });
-
-  it("stacks the 3D stack above the steps on a tablet held upright, with the leak test in the last card", async () => {
-    media(BELOW_WIDE);
-    room(706, 1024);
-    await renderDrawn();
-    await waitFor(() => expect(drawing()).toBe("depth"));
-    const figure = screen.getByRole("figure");
-    expect(within(figure).queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByTestId("leak-test-card")).toBeInTheDocument();
-  });
-
-  it("draws phones and short or narrow screens their own way", async () => {
-    media(BELOW_WIDE);
-    room(358, 844);
-    const { unmount } = await renderDrawn();
-    await waitFor(() => expect(drawing()).toBe("glass"));
-    unmount();
-    // Side by side, but too short for the 3D stack even shrunk.
-    media();
-    room(600, 600);
-    await renderDrawn();
-    await waitFor(() => expect(drawing()).toBe("glass"));
-  });
-
-  it("keeps the stack out of the way of clicks", async () => {
-    media();
-    room(600, 900);
-    await renderDrawn();
-    expect(screen.getByTestId("sessions-stack")).toHaveClass(
-      "pointer-events-none",
-    );
-  });
-
-  it("on phones, puts the leak test's picker and buttons in the last step's card", async () => {
-    media(BELOW_WIDE);
-    const user = userEvent.setup();
-    await renderDrawn();
-    const card = screen.getByTestId("leak-test-card");
-    const figure = screen.getByRole("figure");
-    expect(within(figure).queryByRole("button")).not.toBeInTheDocument();
-    await user.click(
-      within(card).getByRole("button", {
-        name: "Try to read Birch’s sessions",
-      }),
-    );
-    expect(screen.getByTestId("empty-result")).toHaveAttribute(
-      "data-shown",
-      "true",
-    );
-  });
-
-  it("shows every step's text at once under reduced motion, unnumbered", () => {
-    media();
-    renderWithProviders(<PhysioSection />);
-    const texts = screen.getAllByTestId("step-text");
-    expect(texts).toHaveLength(3);
-    for (const text of texts) {
-      expect(text).not.toHaveStyle({ opacity: "0" });
-      expect(text.parentElement?.children).toHaveLength(1);
-    }
-  });
-
-  it("offers an example loop under the last step's text, off until it's turned on, which any button stops", async () => {
-    // Reduced motion: the loop is still allowed; its moves are instant.
-    media();
-    vi.stubGlobal(
-      "IntersectionObserver",
-      class {
-        callback: IntersectionObserverCallback;
-        constructor(callback: IntersectionObserverCallback) {
-          this.callback = callback;
-        }
-        observe(target: Element) {
-          this.callback(
-            [{ isIntersecting: true, target } as IntersectionObserverEntry],
-            this as unknown as IntersectionObserver,
-          );
-        }
-        unobserve() {}
-        disconnect() {}
-        takeRecords() {
-          return [];
-        }
-      },
-    );
-    const user = userEvent.setup();
-    await renderDrawn();
+    await renderChapter(true);
+    await user.click(screen.getByRole("button", { name: /^Physio ring/ }));
     expect(
-      screen.queryByRole("button", { name: /demo/i }),
-    ).not.toBeInTheDocument();
-    const toggle = screen.getByRole("button", { name: "Loop the example" });
-    expect(toggle).toHaveAttribute("aria-pressed", "false");
-    const lastStep = screen.getAllByTestId("step-text")[2];
-    expect(within(lastStep).getByTestId("loop-toggle")).toContainElement(
-      toggle,
+      screen.getAllByRole("option").map((option) => option.textContent),
+    ).toEqual([
+      "The edge",
+      "The private network",
+      "The functions",
+      "Postgres",
+      "The queue",
+      "Direct access",
+    ]);
+    expect(screen.getByRole("button", { name: "Try it" })).toBeInTheDocument();
+  });
+});
+
+describe("the rings, static (reduced motion)", () => {
+  it("pins nothing and shows every ring and every step's words", async () => {
+    await renderChapter(true);
+    expect(screen.getByTestId("rings-stage")).not.toHaveClass("sticky");
+    expect(figure().querySelectorAll('[data-reveal="hidden"]')).toHaveLength(0);
+    expect(
+      document.querySelectorAll('[data-step-text][aria-hidden="true"]'),
+    ).toHaveLength(0);
+    expect(
+      screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent),
+    ).toEqual([
+      "Everything comes in at the edge",
+      "A network with no way out",
+      "Only the keys each one needs",
+      "An app that owns nothing",
+      "Slow work waits its turn",
+      "Nobody edits the data by hand",
+    ]);
+    expect(
+      screen.queryByRole("button", { name: "Show every ring" }),
+    ).toBeNull();
+  });
+
+  it("runs the chosen ring's journey with Try it, its trace under the picker", async () => {
+    await renderChapter(true);
+    await pick("Postgres");
+    await tryIt();
+    const stage = screen.getByTestId("rings-stage");
+    expect(within(stage).getByLabelText("Trace")).toHaveTextContent(
+      "policy Globex's rows aren't Acme's: none come back",
     );
+    expect(within(stage).getByText("No sessions")).toBeInTheDocument();
+    expect(figure().querySelector('[data-ring="policy"]')).toHaveAttribute(
+      "data-held",
+    );
+  });
 
-    await user.click(toggle);
-    expect(
-      screen.getByRole("button", { name: "Stop the loop" }),
-    ).toHaveAttribute("aria-pressed", "true");
+  it("clears what a finished journey lit when another ring is chosen", async () => {
+    await renderChapter(true);
+    await pick("Direct access");
+    await tryIt();
+    expect(litRoutes()).toEqual(["engineer-host", "host-data"]);
+    await pick("The edge");
+    expect(litRoutes()).toEqual([]);
+    expect(figure().querySelectorAll("[data-hot]")).toHaveLength(0);
+    expect(screen.queryByLabelText("Trace")).toBeNull();
+  });
 
-    await user.click(screen.getByRole("button", { name: "Cedar" }));
-    expect(
-      screen.getByRole("button", { name: "Loop the example" }),
-    ).toHaveAttribute("aria-pressed", "false");
-    expect(spot("Cedar")).toBe("result");
+  it("queues a job and lets the runner finish it", async () => {
+    await renderChapter(true);
+    await pick("The queue");
+    await tryIt();
+    expect(screen.getByLabelText("Trace")).toHaveTextContent(
+      "claims the job, locked so no other runner takes it",
+    );
+    expect(figure().querySelector("[data-token]")).toHaveAttribute(
+      "data-token",
+      "done",
+    );
+    expect(screen.getByText("Programme ready")).toBeInTheDocument();
+  });
+
+  it("picks a detail's part out of the drawing", async () => {
+    const user = userEvent.setup();
+    await renderChapter(true);
+    const signer = screen.getByRole("button", {
+      name: "The video signer: the key that signs video links",
+    });
+    const node = () => figure().querySelector('[data-node="fnVideo"]');
+    expect(node()).not.toHaveAttribute("data-hot");
+    await user.click(signer);
+    expect(signer).toHaveAttribute("aria-pressed", "true");
+    expect(node()).toHaveAttribute("data-hot");
   });
 });
