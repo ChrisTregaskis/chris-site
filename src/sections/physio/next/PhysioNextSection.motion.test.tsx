@@ -116,26 +116,4 @@ describe("the rings, scrolling", () => {
     ).toBeInTheDocument();
     expect(litRoutes()).toEqual([]);
   });
-
-  it("shows every ring at once on request, until the step changes", async () => {
-    const user = userEvent.setup();
-    await renderChapter();
-    await pick("The edge");
-    expect(
-      figure().querySelectorAll('[data-reveal="hidden"]').length,
-    ).toBeGreaterThan(0);
-    await user.click(screen.getByRole("button", { name: "Show every ring" }));
-    expect(figure().querySelectorAll('[data-reveal="hidden"]')).toHaveLength(0);
-    await user.click(
-      screen.getByRole("button", { name: "Back to ring by ring" }),
-    );
-    expect(
-      figure().querySelectorAll('[data-reveal="hidden"]').length,
-    ).toBeGreaterThan(0);
-    await user.click(screen.getByRole("button", { name: "Show every ring" }));
-    await pick("The functions");
-    expect(
-      figure().querySelectorAll('[data-reveal="hidden"]').length,
-    ).toBeGreaterThan(0);
-  });
 });

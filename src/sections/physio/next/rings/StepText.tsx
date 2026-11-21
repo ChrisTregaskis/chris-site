@@ -1,7 +1,5 @@
 import { DetailList } from "./DetailList";
-import { Glyph } from "./glyphs";
 import { JourneyTrace } from "./JourneyTrace";
-import { journeyById } from "./journeys";
 import { type Step } from "./story";
 import { type JourneyState } from "./useJourney";
 
@@ -18,9 +16,9 @@ interface StepTextProps {
 
 /**
  * One step's words: its name, heading and text, then its details (each
- * picks its part out of the drawing) and what Try it sends through it; once
- * Try it has, the trace and result take the details' place (so the words
- * keep about one height), until the reader asks for the details back.
+ * picks its part out of the drawing); once Try it has sent the step's
+ * journey, the trace and result take the details' place (so the words keep
+ * about one height), until the reader asks for the details back.
  */
 export function StepText({
   step,
@@ -47,19 +45,13 @@ export function StepText({
           className="mt-4"
         />
       ) : (
-        <>
-          <DetailList
-            label={`Inside ${step.kicker.toLowerCase()}`}
-            details={step.details}
-            pressed={pressed}
-            onPreview={onPreview}
-            onPress={onPress}
-          />
-          <p className="m-0 mt-4 flex items-center gap-2 text-[14px] font-medium text-muted">
-            <Glyph id="play" className="size-4 shrink-0 text-accent" />
-            Try it: {journeyById(step.journey).label}
-          </p>
-        </>
+        <DetailList
+          label={`Inside ${step.kicker.toLowerCase()}`}
+          details={step.details}
+          pressed={pressed}
+          onPreview={onPreview}
+          onPress={onPress}
+        />
       )}
     </>
   );

@@ -1,6 +1,8 @@
-import { type Ref, useId } from "react";
+import { type Ref, useId, useRef } from "react";
+import { type RingStroke, type StrokeKey } from "./draw";
 import {
   arcPath,
+  HALF,
   LABELS,
   NODES,
   type NodeId,
@@ -20,8 +22,8 @@ import {
   revealAt,
   RING_STEP,
   type RingId,
-  ROUTE_STEP,
 } from "./story";
+import { useDrawOn } from "./useDrawOn";
 import { cn } from "@/lib/cn";
 
 export interface Highlight {
@@ -39,7 +41,7 @@ export const NO_HIGHLIGHT: Highlight = {
 interface RingsFigureProps {
   /** The step in view (1-based; 0 before the first). */
   current: number;
-  /** Everything shown at once: reduced motion, or the journeys. */
+  /** Everything drawn at once (static, under reduced motion). */
   all: boolean;
   /** Picked out from a step's details. */
   highlight: Highlight;
@@ -93,17 +95,33 @@ const ROUTE_LOOK: Record<RouteKey, string | null> = {
   "fn-noRoute": "stroke-danger stroke-[2] [stroke-dasharray:2_6]",
 };
 
-const FADE =
-  "transition-opacity duration-state ease-enter motion-reduce:transition-none";
 const COLOUR =
   "transition-[stroke,fill,color] duration-base motion-reduce:transition-none";
 const TYPE = "font-body text-[17.5px] sheet:text-[14px] xl:text-[12.5px]";
 const TONE = "fill-surface";
 
-/** Hidden pieces are see-through and can't be pressed. */
-function shown(reveal: Reveal): string {
-  return reveal === "hidden" ? "pointer-events-none opacity-0" : "opacity-100";
-}
+/*
+ * Drawn on as the steps pass (`useDrawOn`): until then, a line's mask is
+ * undrawn and anything that fades is see-through and can't be pressed.
+ * These are only where they start; the driver writes over them. Static,
+ * everything is drawn from the first paint.
+ */
+const UNDRAWN = { strokeDasharray: "1 1", strokeDashoffset: 1 } as const;
+const UNSHOWN = { opacity: 0, pointerEvents: "none" } as const;
+
+/** A drawn line's mask: a wide stroke that draws on along the line's path. */
+const maskId = (ids: string, key: StrokeKey) =>
+  `${ids}-draw-${key.replace(":", "-")}`;
+
+/** A ring as a path from twelve o'clock, clockwise, so it draws on round. */
+const ringPath = (r: number) =>
+  `M0 ${-r} A${r} ${r} 0 1 1 0 ${r} A${r} ${r} 0 1 1 0 ${-r}`;
+
+const RING_STROKES: { key: RingStroke; r: number; width: number }[] = [
+  { key: "ring:net", r: R.net, width: 8 },
+  { key: "ring:orbit", r: R.orbit, width: 20 },
+  { key: "ring:policy", r: R.policy, width: 10 },
+];
 
 interface NodeLook {
   reveal: Reveal;
@@ -144,6 +162,10 @@ export function RingsFigure({
   onNode,
 }: RingsFigureProps) {
   const ids = useId().replace(/:/g, "");
+  const svgRef = useRef<SVGSVGElement>(null);
+  useDrawOn(svgRef, current, all);
+  const unshown = all ? undefined : UNSHOWN;
+  const masked = (key: StrokeKey) => `url(#${maskId(ids, key)})`;
   const nodeReveal = (id: NodeId) => revealAt(NODE_STEP.get(id), current, all);
   const ringReveal = (id: RingId) => revealAt(RING_STEP.get(id), current, all);
   const look = (id: NodeId): NodeLook => ({
@@ -175,8 +197,10 @@ export function RingsFigure({
         data-node={id}
         data-reveal={state.reveal}
         data-hot={state.hot ? "" : undefined}
+        data-draw={id}
+        style={unshown}
         onClick={press(id)}
-        className={cn("cursor-pointer", FADE, shown(state.reveal))}
+        className="cursor-pointer"
       >
         <circle
           cx={node.at[0]}
@@ -216,8 +240,10 @@ export function RingsFigure({
         key={id}
         data-node={id}
         data-reveal={state.reveal}
+        data-draw={id}
+        style={unshown}
         onClick={press(id)}
-        className={cn("cursor-pointer", FADE, shown(state.reveal))}
+        className="cursor-pointer"
       >
         <rect
           x={x - 10}
@@ -235,6 +261,7 @@ export function RingsFigure({
 
   return (
     <svg
+      ref={svgRef}
       viewBox={VIEW_BOX}
       role="img"
       aria-label="The platform from above, as rings round the data: the visitor and the admin outside; the API, the CDN, sign-in and video storage at the edge; the functions on an orbit inside a private network with no way out; and Postgres at the centre, inside its row-level security policy, holding the job queue."
@@ -242,6 +269,46 @@ export function RingsFigure({
       className="block h-auto w-full overflow-visible"
     >
       <defs>
+        {/* What draws each line on: masks whose strokes draw along it */}
+        {ROUTE_KEYS.filter((key) => ROUTE_LOOK[key]).map((key) => (
+          <mask
+            key={key}
+            id={maskId(ids, key)}
+            maskUnits="userSpaceOnUse"
+            x={-HALF}
+            y={-HALF}
+            width={HALF * 2}
+            height={HALF * 2}
+          >
+            <path
+              d={routePath(key)}
+              pathLength={1}
+              data-draw={key}
+              style={all ? undefined : UNDRAWN}
+              className="fill-none stroke-white stroke-[16] [stroke-linecap:butt] [stroke-linejoin:round]"
+            />
+          </mask>
+        ))}
+        {RING_STROKES.map((ring) => (
+          <mask
+            key={ring.key}
+            id={maskId(ids, ring.key)}
+            maskUnits="userSpaceOnUse"
+            x={-HALF}
+            y={-HALF}
+            width={HALF * 2}
+            height={HALF * 2}
+          >
+            <path
+              d={ringPath(ring.r)}
+              pathLength={1}
+              data-draw={ring.key}
+              style={all ? undefined : UNDRAWN}
+              strokeWidth={ring.width}
+              className="fill-none stroke-white [stroke-linecap:butt]"
+            />
+          </mask>
+        ))}
         {RING_LABELS.map((ring) => (
           <path
             key={ring.id}
@@ -262,15 +329,24 @@ export function RingsFigure({
       </g>
 
       {/* The private network: a tinted wall with the orbit inside it */}
-      <g data-ring="net" className={cn(FADE, shown(ringReveal("net")))}>
+      <g data-ring="net" data-reveal={ringReveal("net")}>
+        <circle
+          cx={0}
+          cy={0}
+          r={R.net}
+          data-draw="net-fill"
+          style={unshown}
+          className="fill-tenant-teal/[0.08] stroke-none"
+        />
         <circle
           cx={0}
           cy={0}
           r={R.net}
           strokeWidth={1.75}
+          mask={masked("ring:net")}
           className={cn(
             COLOUR,
-            "fill-tenant-teal/[0.08]",
+            "fill-none",
             ringReveal("net") === "new"
               ? "stroke-tenant-teal"
               : "stroke-tenant-teal/45",
@@ -281,6 +357,7 @@ export function RingsFigure({
           cy={0}
           r={R.orbit}
           strokeWidth={13}
+          mask={masked("ring:orbit")}
           className="fill-none stroke-line/45"
         />
       </g>
@@ -289,13 +366,16 @@ export function RingsFigure({
       <g
         data-ring="policy"
         data-held={policy.held ? "" : undefined}
+        data-draw="policy"
+        style={unshown}
         onClick={press("policy")}
-        className={cn("cursor-pointer", FADE, shown(ringReveal("policy")))}
+        className="cursor-pointer"
       >
         <circle
           cx={0}
           cy={0}
           r={R.policy}
+          mask={masked("ring:policy")}
           strokeWidth={policy.held ? 3.5 : policyHot ? 2.75 : 2}
           className={cn(
             COLOUR,
@@ -314,13 +394,13 @@ export function RingsFigure({
         {ROUTE_KEYS.map((key) => {
           const style = ROUTE_LOOK[key];
           if (!style) return null;
-          const reveal = revealAt(ROUTE_STEP.get(key), current, all);
           return (
             <path
               key={key}
               d={routePath(key)}
               data-route={key}
-              className={cn(FADE, style, shown(reveal))}
+              mask={masked(key)}
+              className={style}
             />
           );
         })}
@@ -347,11 +427,12 @@ export function RingsFigure({
         {RING_LABELS.map((ring) => (
           <text
             key={ring.id}
+            data-draw={`label:${ring.id}`}
+            data-reveal={ringLabelReveal[ring.id]}
+            style={unshown}
             className={cn(
               TYPE,
-              FADE,
               ring.id === "policy" ? "fill-accent" : "fill-muted",
-              shown(ringLabelReveal[ring.id]),
             )}
           >
             <textPath
@@ -369,8 +450,10 @@ export function RingsFigure({
       <g
         data-node="data"
         data-reveal={data.reveal}
+        data-draw="data"
+        style={unshown}
         onClick={press("data")}
-        className={cn("cursor-pointer", FADE, shown(data.reveal))}
+        className="cursor-pointer"
       >
         <circle
           cx={0}
@@ -398,7 +481,9 @@ export function RingsFigure({
         <g
           data-ring="tokens"
           data-token={token ?? undefined}
-          className={cn(FADE, shown(ringReveal("tokens")))}
+          data-reveal={ringReveal("tokens")}
+          data-draw="tokens"
+          style={unshown}
         >
           {[-26, -7, 12].map((x, i) => {
             const mine = i === 2 ? token : null;
@@ -461,12 +546,9 @@ export function RingsFigure({
             x={label.x}
             y={label.y}
             textAnchor={label.anchor}
-            className={cn(
-              TYPE,
-              FADE,
-              "pointer-events-none fill-ink font-semibold",
-              shown(nodeReveal(label.node)),
-            )}
+            data-draw={label.node}
+            style={unshown}
+            className={cn(TYPE, "pointer-events-none fill-ink font-semibold")}
           >
             {label.lines.map((line, i) => (
               <tspan key={line} x={label.x} dy={i === 0 ? 0 : "1.1em"}>

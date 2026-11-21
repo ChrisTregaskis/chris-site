@@ -88,14 +88,6 @@ export function RingsExplorer() {
   const shown = current || 1;
   const step = stepAt(shown);
 
-  // Every ring at once (Wayfinder's take it apart): kept until the step
-  // changes. Static, every ring is always shown.
-  const [override, setOverride] = useState<{
-    step: number;
-    all: boolean;
-  } | null>(null);
-  const all = still || (override?.step === current ? override.all : false);
-
   // A detail picked out: pressed (kept until the step changes) or previewed.
   const [pressed, setPressed] = useState<{ step: number; id: string } | null>(
     null,
@@ -186,7 +178,7 @@ export function RingsExplorer() {
           <div className="w-[min(100vw,56svh,480px)] max-w-none shrink-0 wide:w-[min(100%,66vh,580px)]">
             <RingsFigure
               current={current}
-              all={all}
+              all={still}
               highlight={highlight}
               hot={journey.hot}
               held={journey.held}
@@ -212,15 +204,6 @@ export function RingsExplorer() {
                 pressed: journey.running !== null,
                 onClick: tryIt,
               }}
-              toggle={
-                stacked || still
-                  ? null
-                  : {
-                      label: all ? "Back to ring by ring" : "Show every ring",
-                      glyph: <Glyph id="rings" />,
-                      onClick: () => setOverride({ step: current, all: !all }),
-                    }
-              }
             />
             {still && journey.shown ? (
               // Static, the words are a long way below: the trace sits here.
