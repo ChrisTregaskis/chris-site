@@ -4,6 +4,7 @@ import { FormSection } from "./sections/FormSection";
 import { LayoutSection } from "./sections/LayoutSection";
 import { MotionSection } from "./sections/MotionSection";
 import { OrganismsSection } from "./sections/OrganismsSection";
+import { RingsSection } from "./sections/RingsSection";
 import { TokensSection } from "./sections/TokensSection";
 
 /**
@@ -32,6 +33,7 @@ export function Showcase() {
         <FormSection />
         <OrganismsSection />
         <FigureSection />
+        <RingsSection />
       </div>
     </div>
   );
