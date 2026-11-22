@@ -1,0 +1,44 @@
+/*
+ * The page's surface experiments (see settings.ts and LOOK.md). Plain CSS,
+ * outside Tailwind's layers, and only ever switched on by an attribute on
+ * the root, so with both experiments off the page is exactly as it was.
+ */
+
+/*
+ * Chapter tones: each chapter on its own shade of the drafting paper (the
+ * --color-paper-* tokens), the hero and the close on the paper itself. The
+ * plate fades in from the chapter before, as the tone machinery always
+ * could; useNavTone keeps the top bar in step.
+ */
+:root[data-tones] {
+  --color-tone-wayfinder: var(--color-paper-wayfinder);
+  --color-tone-physio: var(--color-paper-physio);
+  --color-tone-burpees: var(--color-paper-burpees);
+  --color-tone-about: var(--color-paper-about);
+}
+:root[data-tones] .chapter-tone {
+  --color-line-hover: var(--color-paper-line-hover);
+}
+:root[data-tones] .chapter-tone::before {
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--tone-from)) 0,
+    rgb(var(--tone-to)) var(--tone-feather, 360px),
+    rgb(var(--tone-to)) 100%
+  );
+}
+
+/*
+ * The mesh lies on the paper: over the chapters' plates, under everything
+ * else. Each plate sits at z-index -1 inside its chapter, which isolates
+ * it; with the mesh on, the chapters stop isolating, so their plates join
+ * the page's own stacking context and the mesh's layer (also -1, later in
+ * the page) paints over them, still beneath every line of content.
+ */
+:root[data-mesh] .chapter-tone {
+  isolation: auto;
+}
+.surface-mesh {
+  z-index: -1;
+  contain: strict;
+}
