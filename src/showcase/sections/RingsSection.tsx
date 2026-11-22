@@ -46,8 +46,9 @@ export function RingsSection() {
         The physio platform from above, as rings round its data. Each step draws
         its part on as if by hand, lines first and each icon as its line reaches
         it, and undraws it the other way. Try it sends the step&apos;s journey
-        through what it has drawn: a pulse, routes lit in amber, a wall that
-        holds in red, and a trace. A step&apos;s details pick their parts out.
+        through what it has drawn: a red-pen pulse, routes highlighted behind
+        it, a wall that holds marked in red, and a trace. A step&apos;s details
+        pick their parts out.
       </p>
       <div className="grid items-start gap-10 wide:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="max-w-[520px]">

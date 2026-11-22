@@ -1,6 +1,6 @@
 /**
  * The page's surface: experiments on the paper behind the content, each
- * switched on its own (see LOOK.md, Background experiments).
+ * switched on its own (see Surface, under Design system in CLAUDE.md).
  *
  * - `tones`: each chapter on its own shade of the drafting paper, faded in
  *   from the one before (the `--color-paper-*` tokens).

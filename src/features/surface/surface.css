@@ -1,5 +1,5 @@
 /*
- * The page's surface experiments (see settings.ts and LOOK.md). Plain CSS,
+ * The page's surface experiments (see settings.ts, and Surface in CLAUDE.md). Plain CSS,
  * outside Tailwind's layers, and only ever switched on by an attribute on
  * the root, so with both experiments off the page is exactly as it was.
  */

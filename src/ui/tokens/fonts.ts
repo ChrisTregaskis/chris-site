@@ -4,7 +4,7 @@
  * display cut and small sizes on its text cut; Instrument Sans (weight axis)
  * is the interface and body face. IBM Plex Mono, at two weights, belongs to
  * the drawings: diagram labels, part balloons, piece tags, traces, the
- * chapter rail and the Burpees count. Imported by main.tsx (the live page)
+ * chapter rail (the Burpees count is Newsreader). Imported by main.tsx (the live page)
  * and the showcase; the build preloads the two Latin files the first screen
  * needs (fontPreload.ts).
  */

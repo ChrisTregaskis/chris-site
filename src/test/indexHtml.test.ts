@@ -65,7 +65,7 @@ describe("index.html", () => {
     it("points the image at an absolute https URL that public/ serves", () => {
       const meta = metaTags();
       const image = new URL(meta.get("og:image") ?? "", "file:///relative/");
-      expect(image.href).toBe(`${SITE}og-image.png`);
+      expect(image.href).toBe(`${SITE}og-drawing-office.png`);
       expect(image.protocol).toBe("https:");
       expect(meta.get("twitter:image")).toBe(image.href);
       const file = resolve(__dirname, "../../public", image.pathname.slice(1));
@@ -73,7 +73,9 @@ describe("index.html", () => {
     });
 
     it("ships a 1200 by 630 PNG", () => {
-      const png = readFileSync(resolve(__dirname, "../../public/og-image.png"));
+      const png = readFileSync(
+        resolve(__dirname, "../../public/og-drawing-office.png"),
+      );
       expect(png.subarray(1, 4).toString("ascii")).toBe("PNG");
       expect(png.readUInt32BE(16)).toBe(1200);
       expect(png.readUInt32BE(20)).toBe(630);

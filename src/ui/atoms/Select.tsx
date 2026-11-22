@@ -33,7 +33,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           className={fieldClasses(
             invalid,
             cn(
-              "cursor-pointer appearance-none pr-8 [color-scheme:dark]",
+              "field-select cursor-pointer appearance-none pr-8 [color-scheme:light]",
               className,
             ),
           )}
