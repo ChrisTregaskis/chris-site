@@ -170,8 +170,9 @@ export const FIGURE: Record<Exclude<PartId, "ai">, FigurePart> = {
   },
   tools: {
     id: "tools",
-    boxes: [85, 125, 165].map((y) => box(520, y, 0, 44, 30, 24)),
-    badge: badge(8, 542, 140, 24),
+    // In from the plate's front-right edge (it stops at 560), as explode.ts's TOOLS_X.
+    boxes: [85, 125, 165].map((y) => box(500, y, 0, 44, 30, 24)),
+    badge: badge(8, 522, 140, 24),
   },
 };
 
@@ -260,21 +261,23 @@ export const ROUTES = {
     [425, 190],
     [425, 170],
   ],
+  // MCP to its tools: out of MCP's side (460), a jog half way, into each
+  // tool's back face (500).
   "mcp-t0": [
     [460, 125],
-    [490, 125],
-    [490, 100],
-    [520, 100],
+    [480, 125],
+    [480, 100],
+    [500, 100],
   ],
   "mcp-t1": [
     [460, 140],
-    [520, 140],
+    [500, 140],
   ],
   "mcp-t2": [
     [460, 155],
-    [490, 155],
-    [490, 180],
-    [520, 180],
+    [480, 155],
+    [480, 180],
+    [500, 180],
   ],
 } as const satisfies Record<string, readonly (readonly [number, number])[]>;
 

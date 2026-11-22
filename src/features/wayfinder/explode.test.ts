@@ -6,6 +6,7 @@ import {
   INSIDE,
   itemKey,
   layoutAt,
+  PLATE_BOX,
   PLATE_PIECE,
   pipeRetract,
   ROUTE_PARTS,
@@ -63,6 +64,53 @@ function* samples(): Generator<[string, ExplodeAmounts]> {
     }
   }
 }
+
+/** How far a plan footprint stands in from the plate's nearest edge (negative: over it). */
+const marginOnPlate = (x: number, y: number, w: number, d: number) =>
+  Math.min(
+    x - PLATE_BOX.x,
+    PLATE_BOX.x + PLATE_BOX.w - (x + w),
+    y - PLATE_BOX.y,
+    PLATE_BOX.y + PLATE_BOX.d - (y + d),
+  );
+
+describe("the Wayfinder figure on its plate", () => {
+  it("stands every piece fully on the plate, at least 10 units in from its edges", () => {
+    for (const sub of SUBS) {
+      for (const b of sub.boxes) {
+        expect(
+          marginOnPlate(b.x, b.y, b.w, b.d),
+          sub.id,
+        ).toBeGreaterThanOrEqual(10);
+      }
+    }
+  });
+
+  it("keeps every seat (the dashed outline left on the plate) on it too", () => {
+    for (const sub of SUBS) {
+      if (sub.on) continue; // seated on another piece, not the plate
+      expect(
+        marginOnPlate(sub.seat[0], sub.seat[1], 0, 0),
+        sub.id,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("taken apart, with any part (or none) in focus, hovers every piece over the plate", () => {
+    for (const part of [null, ...PART_ORDER]) {
+      const layout = layoutAt(settled(part, false));
+      for (const sub of SUBS) {
+        const [dx, dy] = layout.offset.get(sub.id) ?? [0, 0, 0];
+        for (const b of sub.boxes) {
+          expect(
+            marginOnPlate(b.x + dx, b.y + dy, b.w, b.d),
+            `${sub.id} with ${part} in focus`,
+          ).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  });
+});
 
 describe("the exploded Wayfinder figure", () => {
   it("never moves one piece (or seating axis) through another, so a back-to-front order always exists", () => {
