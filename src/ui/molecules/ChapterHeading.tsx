@@ -24,21 +24,21 @@ export function ChapterHeading({
   chips,
 }: ChapterHeadingProps) {
   return (
-    <header className="max-w-[660px] pb-3">
+    <header className="max-w-[820px] pb-3">
       {numeral ? <ChapterNumeral>{numeral}</ChapterNumeral> : null}
       <h2
         id={id}
-        className="m-0 text-balance font-display text-display-lg font-medium"
+        className="m-0 text-balance font-display text-display-lg font-normal"
       >
         {title}
       </h2>
       {lede ? (
-        <p className="m-0 mt-[22px] max-w-[31em] text-muted wide:text-body-lg">
+        <p className="m-0 mt-6 max-w-[31em] text-muted wide:text-body-lg">
           {lede}
         </p>
       ) : null}
       {chips?.length ? (
-        <div className="mt-[18px]">
+        <div className="mt-4">
           <ChipList items={chips} />
         </div>
       ) : null}

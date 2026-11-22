@@ -33,7 +33,7 @@ export function TopNav({ name, links, action, menu, homeHref }: TopNavProps) {
           {name}
         </a>
       ) : (
-        <strong className="font-display text-[18px] font-semibold tracking-[-0.01em]">
+        <strong className="font-body text-[17px] font-semibold tracking-[-0.005em]">
           {name}
         </strong>
       )}

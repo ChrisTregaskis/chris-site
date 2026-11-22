@@ -31,10 +31,10 @@ export function StepText({
   const own = traceHere && journey.shown === step.journey;
   return (
     <>
-      <span className="mb-2 block font-code text-[13px] text-muted">
+      <span className="mb-2 block text-[14px] font-medium text-muted">
         {step.kicker}
       </span>
-      <h3 className="m-0 mb-3 font-display text-[28px] font-medium leading-[1.15] tracking-[-0.02em]">
+      <h3 className="m-0 mb-3 font-display text-[30px] font-normal leading-[1.1] tracking-[-0.01em]">
         {step.heading}
       </h3>
       <p className="m-0 text-[17px] text-muted">{step.text}</p>

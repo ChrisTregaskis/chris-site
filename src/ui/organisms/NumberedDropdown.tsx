@@ -67,7 +67,7 @@ export function NumberedDropdown({
         aria-labelledby={`${labelId} ${valueId}`}
         onClick={dropdown.onButtonClick}
         onKeyDown={dropdown.onButtonKeyDown}
-        className="flex w-full cursor-pointer items-center gap-[10px] rounded-none border-0 border-b-2 border-line-field bg-transparent py-[5px] pl-0 pr-[10px] text-left font-display text-[18px] font-medium leading-[normal] text-ink transition-colors duration-base hover:border-ink aria-expanded:border-ink motion-reduce:transition-none wide:gap-3 wide:py-[7px] wide:pr-[14px]"
+        className="flex w-full cursor-pointer items-center gap-[10px] rounded-none border-0 border-b-2 border-line-field bg-transparent py-[5px] pl-0 pr-[10px] text-left font-body text-[17px] font-medium leading-[normal] text-ink transition-colors duration-base hover:border-ink aria-expanded:border-ink motion-reduce:transition-none wide:gap-3 wide:py-[7px] wide:pr-[14px]"
       >
         <span id={valueId} className="sr-only">
           {valueText}
@@ -133,7 +133,7 @@ export function NumberedDropdown({
               <span
                 aria-hidden="true"
                 className={cn(
-                  "inline-block min-w-[2.2em] flex-none font-code text-[14px] font-medium tabular-nums [&>svg]:size-[18px] [&>svg]:translate-y-[3px]",
+                  "inline-block min-w-[2.2em] flex-none font-display text-[17px] font-normal tabular-nums [font-feature-settings:'lnum'] [&>svg]:size-[18px] [&>svg]:translate-y-[3px]",
                   selected ? "text-accent" : "text-muted",
                 )}
               >

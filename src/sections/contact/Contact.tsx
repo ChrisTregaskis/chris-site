@@ -21,7 +21,7 @@ export function Contact() {
     >
       <h2
         id="contact-title"
-        className="m-0 mb-5 max-w-[16ch] font-display text-display-md font-medium"
+        className="m-0 mb-5 max-w-[16ch] font-display text-display-md font-normal"
       >
         Let&apos;s work together.
       </h2>

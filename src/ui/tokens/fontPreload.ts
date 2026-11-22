@@ -1,13 +1,13 @@
 /**
- * The first screen's two Latin font files (Plex Sans for the words, Plex Mono
- * for the line above the headline), preloaded so the hero doesn't flash a
- * fallback face. Vite emits them as
+ * The first screen's two Latin font files (Newsreader for the headline,
+ * Instrument Sans for everything else on it), preloaded so the hero doesn't
+ * flash a fallback face. Vite emits them as
  * `assets/<stem>-<hash>.woff2`; the build plugin in vite.config.ts turns the
  * bundle's file names into `<link rel="preload">` tags with this helper.
  */
 export const PRELOAD_FONT_STEMS = [
-  "ibm-plex-sans-latin-wght-normal",
-  "ibm-plex-mono-latin-400-normal",
+  "newsreader-latin-opsz-normal",
+  "instrument-sans-latin-wght-normal",
 ] as const;
 
 export interface PreloadTag {

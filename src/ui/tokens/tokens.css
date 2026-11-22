@@ -86,11 +86,14 @@
      route): the practice's teal as a drawing ink, 4.6:1 */
   --color-tenant-teal: 46 122 120; /* #2E7A78 */
 
-  /* Type: IBM Plex, an engineering face. Sans for everything read, Mono for
-     numbers, labels and anything that counts. */
+  /* Type: a display serif for the headlines and the ordering numbers
+     (Newsreader, with its optical sizes), a sans for everything read or
+     pressed (Instrument Sans), and an engineering mono that belongs only to
+     the drawings and the dimension lines (IBM Plex Mono). */
   --font-display:
-    "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, sans-serif;
-  --font-body: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, sans-serif;
+    "Newsreader Variable", "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-body:
+    "Instrument Sans Variable", "Instrument Sans", system-ui, sans-serif;
   --font-code: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Spacing and measure */

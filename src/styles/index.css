@@ -22,6 +22,8 @@
     @apply bg-surface font-body text-body text-ink;
     /* Chapter tones bleed to the window's edges; that must never scroll sideways. */
     overflow-x: clip;
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
   }
 
   :focus-visible {

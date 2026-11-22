@@ -4,13 +4,11 @@ interface DrawerHeaderProps {
   onClose: () => void;
 }
 
-/** The top row of a drawer form: its eyebrow, in the mono, and a Close button. */
+/** The top row of a drawer form: its eyebrow and a Close button. */
 export function DrawerHeader({ eyebrow, onClose }: DrawerHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <span className="font-code text-eyebrow font-medium text-muted">
-        {eyebrow}
-      </span>
+      <span className="text-eyebrow font-medium text-muted">{eyebrow}</span>
       <button
         type="button"
         aria-label="Close"

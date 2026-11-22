@@ -68,36 +68,38 @@ export default {
         code: "var(--font-code)",
       },
       fontSize: {
-        // A chapter's number: a drawing's sheet number, set large and light
-        // in the mono above its title.
+        // A chapter's number: the display serif, set large and light above
+        // its title, like a feature's chapter number.
         numeral: [
-          "clamp(64px, 8vw, 112px)",
-          { lineHeight: "0.85", letterSpacing: "-0.04em" },
+          "clamp(80px, 10vw, 144px)",
+          { lineHeight: "0.8", letterSpacing: "-0.02em" },
         ],
+        // The hero's headline, a magazine opener across the full measure:
+        // eases down with the viewport's height so the first screen fits.
         "display-xl": [
-          "clamp(min(38px, 6svh), min(6vw, 9svh), 80px)",
-          { lineHeight: "1.06", letterSpacing: "-0.025em" },
+          "clamp(min(44px, 6svh), min(7.2vw, 10.6svh), 100px)",
+          { lineHeight: "1", letterSpacing: "-0.022em" },
         ],
         "display-lg": [
-          "clamp(30px, 4.2vw, 54px)",
-          { lineHeight: "1.04", letterSpacing: "-0.02em" },
+          "clamp(34px, 4.6vw, 62px)",
+          { lineHeight: "1.02", letterSpacing: "-0.018em" },
         ],
         "display-md": [
-          "clamp(30px, 3.6vw, 44px)",
-          { lineHeight: "1.05", letterSpacing: "-0.02em" },
+          "clamp(34px, 4vw, 52px)",
+          { lineHeight: "1.04", letterSpacing: "-0.016em" },
         ],
-        "title-lg": ["26px", { lineHeight: "1.2", letterSpacing: "0" }],
-        title: ["23px", { lineHeight: "1.2", letterSpacing: "-0.01em" }],
+        "title-lg": ["30px", { lineHeight: "1.1", letterSpacing: "-0.01em" }],
+        title: ["24px", { lineHeight: "1.2", letterSpacing: "-0.005em" }],
         lede: [
-          "clamp(17px, 1.6vw, 19px)",
-          { lineHeight: "1.6", letterSpacing: "0" },
+          "clamp(18px, 1.7vw, 21px)",
+          { lineHeight: "1.55", letterSpacing: "0" },
         ],
         "body-lg": ["18px", { lineHeight: "1.6", letterSpacing: "0" }],
         body: ["17px", { lineHeight: "1.6", letterSpacing: "0" }],
         "body-sm": ["15px", { lineHeight: "1.5", letterSpacing: "0" }],
         label: ["14px", { lineHeight: "1.4", letterSpacing: "0" }],
-        caption: ["13px", { lineHeight: "1.4", letterSpacing: "0" }],
-        eyebrow: ["13px", { lineHeight: "1.4", letterSpacing: "0" }],
+        caption: ["13px", { lineHeight: "1.4", letterSpacing: "0.01em" }],
+        eyebrow: ["13px", { lineHeight: "1.4", letterSpacing: "0.01em" }],
         "mono-sm": ["12px", { lineHeight: "1.6", letterSpacing: "0" }],
       },
       spacing: {

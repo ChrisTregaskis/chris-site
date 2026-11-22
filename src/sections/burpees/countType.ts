@@ -27,9 +27,9 @@ export const STRAIN_STROKE_EM = 0.035;
 /** How far the strained digits reach past their edges, each side, in ems. */
 export const STRAIN_OUTSET_EM = STRAIN_STROKE_EM / 2;
 
-/** A call as the app says it: display type in the red pen. */
+/** A call as the app says it: the display serif in the red pen. */
 export const CALL_TYPE =
-  "m-0 font-display text-[clamp(34px,4vw,56px)] font-medium leading-[1.05] tracking-[-0.02em] text-signal";
+  "m-0 font-display text-[clamp(36px,4.2vw,60px)] font-normal leading-[1.05] tracking-[-0.015em] text-signal";
 
 /** The line of the story said with each call. */
 export const LINE_TYPE = "m-0 mt-2 max-w-[24em] text-ink wide:text-body-lg";
