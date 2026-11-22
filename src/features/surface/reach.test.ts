@@ -7,18 +7,21 @@ describe("where the mesh lies, at its ends", () => {
     const reach = endsReach(layout);
     const hero = layout.heroBottom - layout.heroTop;
 
-    it(`${name}: is full behind the hero's headline, and from part way down About through Contact to the foot`, () => {
+    it(`${name}: is full behind the hero's headline, and from About's top through Contact to the foot`, () => {
       for (let y = 0; y <= layout.heroTop + 0.55 * hero; y += 8) {
         expect(reachAt(y, reach)).toBe(1);
       }
-      const full = Math.min(layout.aboutTop + 0.6 * hero, layout.contactTop);
-      for (let y = full; y <= layout.pageBottom; y += 8) {
+      for (let y = layout.aboutTop; y <= layout.pageBottom; y += 8) {
         expect(reachAt(y, reach)).toBe(1);
       }
     });
 
-    it(`${name}: is absent through the case studies, from just into Wayfinder to the top of About`, () => {
-      for (let y = layout.workTop + 0.2 * hero; y <= layout.aboutTop; y += 8) {
+    it(`${name}: is absent through the case studies, from just into Wayfinder to half a hero before About`, () => {
+      for (
+        let y = layout.workTop + 0.2 * hero;
+        y <= layout.aboutTop - 0.5 * hero;
+        y += 8
+      ) {
         expect(reachAt(y, reach), String(y)).toBe(0);
       }
       // Physio and Burpees carry none at all.
@@ -49,6 +52,12 @@ describe("where the mesh lies, at its ends", () => {
 
     it(`${name}: is little more than a trace where the work's first chapter starts`, () => {
       expect(reachAt(layout.workTop, reach)).toBeLessThan(0.25);
+    });
+
+    it(`${name}: is already building as the Burpees chapter ends, half way up by its last quarter of a hero`, () => {
+      expect(reachAt(layout.aboutTop - 0.5 * hero, reach)).toBe(0);
+      expect(reachAt(layout.aboutTop - 0.25 * hero, reach)).toBeCloseTo(0.5);
+      expect(reachAt(layout.aboutTop, reach)).toBe(1);
     });
   }
 

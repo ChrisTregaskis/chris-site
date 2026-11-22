@@ -30,18 +30,18 @@ export interface Reach {
  * The hero's own height (about a screen) is the unit: the mesh starts to
  * fade three fifths of the way down the hero (under the headline, as the
  * rule and the actions come) and is gone a sixth of a hero into the work
- * (before the chapter's numeral). It starts back at About's top edge, so
- * the Burpees chapter never carries any, and is full three fifths of a hero
- * further down, or by Contact if About is shorter than that.
+ * (before the chapter's numeral). It starts back half a hero before About,
+ * in the last of the Burpees chapter, so it's already building as Burpees
+ * finishes (where the count and its calls still keep it back round them),
+ * and is full from About's top edge to the foot of the page.
  */
 export function endsReach(sections: PageSections): Reach {
   const unit = Math.max(1, sections.heroBottom - sections.heroTop);
-  const about = Math.max(1, sections.aboutBottom - sections.aboutTop);
   return {
     outFrom: sections.heroTop + 0.6 * unit,
     outTo: sections.workTop + 0.16 * unit,
-    inFrom: sections.aboutTop,
-    inTo: sections.aboutTop + Math.min(0.6 * unit, about),
+    inFrom: sections.aboutTop - 0.5 * unit,
+    inTo: sections.aboutTop,
   };
 }
 

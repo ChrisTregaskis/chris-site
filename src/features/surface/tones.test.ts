@@ -3,9 +3,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { MAX_SHADOW, PENCIL, meshLookFor } from "./meshLook";
 import { endsReach, reachAt } from "./reach";
-import { LAYOUTS, TEXT_BOXES, type SampleLayout } from "./sampleLayouts";
+import {
+  BURPEES_QUIET,
+  LAYOUTS,
+  TEXT_LINES,
+  type SampleLayout,
+} from "./sampleLayouts";
 import { shadeFill } from "./shading";
-import { LINE_LEVELS, darkestUnderText } from "./strength";
+import { LINE_LEVELS, darkestUnderText, maskCoverage } from "./strength";
 
 const tokens = readFileSync(
   new URL("../../ui/tokens/tokens.css", import.meta.url),
@@ -157,14 +162,22 @@ describe("the mesh over the tones", () => {
   const PENCIL_AS_DRAWN = PENCIL + 1.5 / 255;
 
   for (const [name, layout] of Object.entries(LAYOUTS)) {
-    it(`${name}: keeps every text role at AA wherever a pencil line crosses the darkest facet, all down the page`, () => {
+    it(`${name}: at Subtle, unprotected, keeps every text role at AA wherever a pencil line crosses the darkest facet: all down the page but where it meets the Burpees paper`, () => {
       const reach = endsReach(layout);
       const strength = meshLookFor(
         name === "desktop" || name === "wide" ? 1440 : 390,
         0,
       ).strength;
+      // From the last of the Burpees chapter, where the mesh now fades in,
+      // to the end of About's plate fading in from the Burpees paper, the
+      // mesh lies on the deepest paper: there the guarantee is at the text's
+      // real positions (below), with the count and its calls keeping the
+      // mesh back round them.
+      const unit = layout.heroBottom - layout.heroTop;
+      const deep = [layout.aboutTop - 0.5 * unit, layout.aboutTop + 360];
       let tightest = Infinity;
       for (let y = 0; y <= layout.pageBottom; y += 4) {
+        if (y >= deep[0] && y < deep[1]) continue;
         // The reach scales the facets and the lines alike (a gradient in both).
         const r = reachAt(y, reach) * strength;
         const under = over(
@@ -208,27 +221,82 @@ describe("text over the mesh, at every level, where the text really is", () => {
   for (const name of ["desktop", "phone"] as const) {
     const layout = LAYOUTS[name];
     const reach = endsReach(layout);
-    const strength = meshLookFor(name === "desktop" ? 1440 : 390, 0).strength;
+    const width = name === "desktop" ? 1440 : 390;
+    const look = meshLookFor(width, 0);
+    const quiet = BURPEES_QUIET[name].map(([left, top, right, bottom]) => ({
+      left,
+      top,
+      right,
+      bottom,
+    }));
+    /**
+     * What's left of the mesh over a line in the Burpees set: the quiet
+     * round the count and its calls is a soft mask (a text mask's pad and
+     * blur) rubbing out lines and facets alike, so at the line's worst
+     * corner, all but what the mask covers.
+     */
+    const quietAt = (box: {
+      left: number;
+      top: number;
+      right: number;
+      bottom: number;
+    }) =>
+      Math.max(
+        ...[
+          [box.left, box.top],
+          [box.right, box.top],
+          [box.left, box.bottom],
+          [box.right, box.bottom],
+        ].map(
+          ([x, y]) =>
+            1 - Math.max(0, ...quiet.map((q) => maskCoverage(x, y, q))),
+        ),
+      );
 
     for (const [level, value] of Object.entries(LINE_LEVELS)) {
-      it(`${name}, ${level}, text protected: every line of text keeps every text role at AA`, () => {
+      it(`${name}, ${level}, text protected: every line of text where the mesh lies keeps AA for its own role`, () => {
         let tightest = Infinity;
-        for (const [left, top, right, bottom] of TEXT_BOXES[name]) {
+        for (const [left, top, right, bottom, role, large] of TEXT_LINES[
+          name
+        ]) {
           const box = { left, top, right, bottom };
           // The worst point of the line: where the reach is strongest.
           const r =
-            Math.max(reachAt(top, reach), reachAt(bottom, reach)) * strength;
+            Math.max(reachAt(top, reach), reachAt(bottom, reach)) *
+            look.strength;
           if (r === 0) continue;
-          const alpha =
-            r * (darkestUnderText(value * 1, true, box) + QUANTISATION);
+          // In the Burpees set (pinned, so its text moves against the page
+          // and the text mask, measured on layout, can't follow it) count no
+          // protection, only the quiet round the count and its calls (measured
+          // every frame, so it follows them).
+          const inSet = top >= layout.burpeesTop && bottom <= layout.aboutTop;
+          const alpha = inSet
+            ? r *
+              quietAt(box) *
+              (darkestUnderText(value, false, box) + QUANTISATION)
+            : r * (darkestUnderText(value, true, box) + QUANTISATION);
           for (const y of [top, bottom]) {
             const under = darken(paperAt(y, layout), alpha);
-            for (const role of roles) {
-              const ratio = contrastWith(role, under);
-              tightest = Math.min(tightest, ratio);
-              expect(ratio, `${role} at ${left},${top}`).toBeGreaterThanOrEqual(
-                4.5,
-              );
+            const ratio = contrastWith(role, under);
+            tightest = Math.min(tightest, ratio);
+            expect(ratio, `${role} at ${left},${top}`).toBeGreaterThanOrEqual(
+              large ? 3 : 4.5,
+            );
+            const insideQuiet = quiet.some(
+              (q) =>
+                left >= q.left &&
+                right <= q.right &&
+                top >= q.top &&
+                bottom <= q.bottom,
+            );
+            if (inSet && insideQuiet) {
+              // The calls' text holds AA for every role, red pen included.
+              for (const any of roles) {
+                expect(
+                  contrastWith(any, under),
+                  `${any} in the set at ${left},${top}`,
+                ).toBeGreaterThanOrEqual(4.5);
+              }
             }
           }
         }
@@ -236,8 +304,32 @@ describe("text over the mesh, at every level, where the text really is", () => {
       });
     }
 
+    it(`${name}: the mesh now reaches the end of the Burpees set, and steps back round its count and calls`, () => {
+      const set = TEXT_LINES[name].filter(
+        ([, top, , bottom]) =>
+          bottom <= layout.aboutTop && top >= layout.burpeesTop,
+      );
+      expect(set.length).toBeGreaterThan(3);
+      expect(set.some(([, , , bottom]) => reachAt(bottom, reach) > 0)).toBe(
+        true,
+      );
+      // Every line inside the count's or a call's box is all but bare.
+      for (const [left, top, right, bottom] of set) {
+        const inside = quiet.some(
+          (q) =>
+            left >= q.left &&
+            right <= q.right &&
+            top >= q.top &&
+            bottom <= q.bottom,
+        );
+        if (inside) {
+          expect(quietAt({ left, top, right, bottom })).toBeLessThan(0.05);
+        }
+      }
+    });
+
     it(`${name}: Strong with text unprotected would take the red pen under AA (why it's protected)`, () => {
-      const [left, top, right, bottom] = TEXT_BOXES[name][0];
+      const [left, top, right, bottom] = TEXT_LINES[name][0];
       const alpha = darkestUnderText(LINE_LEVELS.strong, false, {
         left,
         top,
