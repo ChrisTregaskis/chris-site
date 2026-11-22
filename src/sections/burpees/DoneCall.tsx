@@ -15,6 +15,8 @@ interface DoneCallProps {
 export function DoneCall({ done }: DoneCallProps) {
   return (
     <div
+      // The paper's pencil mesh steps back round it.
+      data-mesh-quiet=""
       className={cn(
         "col-start-1 row-start-3 mt-[clamp(16px,3svh,40px)] transition-[opacity,transform,visibility] duration-slow ease-enter motion-reduce:transition-none",
         done

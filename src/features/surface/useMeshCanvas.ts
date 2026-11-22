@@ -13,14 +13,18 @@ import { drawTextMask, textLineBoxes } from "./textMask";
 
 /**
  * The drawings the mesh steps back from, found fresh each frame (the
- * physio drawing and the Burpees set load late): the Wayfinder figure, the
- * physio rings' room (its exact size, drawn or not) and the Burpees count.
- * At its ends the mesh never reaches them; over the whole page it does.
+ * physio drawing and the Burpees set load late, and pinned, they move
+ * against the page): the Wayfinder figure, the physio rings' room (its
+ * exact size, drawn or not), the Burpees count, and anything marked
+ * `data-mesh-quiet` (the Burpees calls). At its ends the mesh reaches only
+ * the last of the Burpees chapter, where the count and its calls keep it
+ * back; over the whole page it reaches them all.
  */
 export const QUIET_SELECTORS = [
   '#work [data-bar-flush] svg[role="img"]',
   '[data-testid="rings-room"]',
   '[data-testid="burpees-count"]',
+  "[data-mesh-quiet]",
 ] as const;
 
 /** The sections that set where the mesh lies at its ends (see reach.ts). */
@@ -100,6 +104,10 @@ export function useMeshCanvas(
     let textVersion = 0;
     const mask = document.createElement("canvas");
     let maskKey = "";
+    // The quiet round the drawings in this band, pixel by pixel (they move:
+    // redrawn whenever they do).
+    const quietMask = document.createElement("canvas");
+    let quietKey = "";
 
     const pageBox = (id: string) => {
       const rect = document.getElementById(id)?.getBoundingClientRect();
@@ -218,6 +226,14 @@ export function useMeshCanvas(
         );
         maskKey = key;
       }
+      const bandBox = { left: 0, top: band.top, width, height: band.height };
+      const nextQuiet = `${band.top}|${band.height}|${width}|${boxes
+        .map((b) => [b.left, b.top, b.right, b.bottom].map(Math.round))
+        .join()}`;
+      if (boxes.length > 0 && nextQuiet !== quietKey) {
+        drawTextMask(quietMask, boxes, bandBox, MASK_SCALE);
+        quietKey = nextQuiet;
+      }
       clear();
       context.setTransform(ratio, 0, 0, ratio, 0, -band.top * ratio);
       paintMesh(
@@ -229,18 +245,9 @@ export function useMeshCanvas(
           top: rect.top,
           bottom: rect.bottom,
           reach,
-          protect: guard
-            ? [
-                {
-                  mask,
-                  left: 0,
-                  top: band.top,
-                  width,
-                  height: band.height,
-                  keep,
-                },
-              ]
-            : [],
+          protect: guard ? [{ mask, ...bandBox, keep }] : [],
+          quiet:
+            boxes.length > 0 ? [{ mask: quietMask, ...bandBox, keep: 0 }] : [],
         },
       );
     };
@@ -370,8 +377,8 @@ export function useMeshCanvas(
 
     // A drawing can move or grow with no scroll at all: the Wayfinder figure
     // grows as it comes apart (a transform its own frames write), a lazy
-    // drawing lands, the count's font arrives. Each one found is watched for
-    // that, so the quiet round it follows.
+    // drawing lands, the count's font arrives, a call eases in. Each one
+    // found is watched for that, so the quiet round it follows.
     const watched = new WeakSet<Element>();
     const quietObserver =
       typeof ResizeObserver === "undefined"
@@ -381,14 +388,37 @@ export function useMeshCanvas(
       typeof MutationObserver === "undefined"
         ? null
         : new MutationObserver(() => schedule());
+    // A drawing can also arrive with no scroll at all (the Burpees set's
+    // code lands while the page is still): watch for one being added.
+    const quietSelector = QUIET_SELECTORS.join(", ");
+    const arrivals =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver((records) => {
+            const arrived = records.some((record) =>
+              [...record.addedNodes].some(
+                (node) =>
+                  node instanceof Element &&
+                  (node.matches(quietSelector) ||
+                    node.querySelector(quietSelector) !== null),
+              ),
+            );
+            if (arrived) schedule();
+          });
+
+    const transitioned: Element[] = [];
     function watch(element: Element) {
       if (watched.has(element)) return;
       watched.add(element);
       quietObserver?.observe(element);
       styleObserver?.observe(element, {
         attributes: true,
-        attributeFilter: ["style", "transform"],
+        attributeFilter: ["style", "transform", "class"],
       });
+      // A class can start a transition (the Burpees Done call easing up
+      // into place): measure again once it has finished.
+      element.addEventListener("transitionend", schedule);
+      transitioned.push(element);
     }
 
     // A font arriving reflows the text: measure it again.
@@ -401,6 +431,7 @@ export function useMeshCanvas(
     measure();
     schedule();
     pageObserver?.observe(page);
+    arrivals?.observe(page, { childList: true, subtree: true });
     document.fonts.addEventListener("loadingdone", onFonts);
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", onResize);
@@ -415,6 +446,10 @@ export function useMeshCanvas(
       pageObserver?.disconnect();
       quietObserver?.disconnect();
       styleObserver?.disconnect();
+      arrivals?.disconnect();
+      for (const element of transitioned) {
+        element.removeEventListener("transitionend", schedule);
+      }
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);

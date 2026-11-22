@@ -24,6 +24,13 @@ export interface MeshInk {
    * behind it.
    */
   protect?: readonly MeshMask[];
+  /**
+   * Where the whole mesh steps back, lines and facets alike (round the
+   * drawings, and the Burpees count and its calls): each mask, and what's
+   * kept of the mesh fully inside it. Applied last, pixel by pixel, so it
+   * holds however big the facets are and however the drawings move.
+   */
+  quiet?: readonly MeshMask[];
 }
 
 /** A mask the pencil thins behind (text, or a drawer's fields). */
@@ -104,7 +111,8 @@ export function paintMesh(
   facets: readonly Facet[],
   inkSpec: MeshInk,
 ): void {
-  const { paper, ink, light, edge, top, bottom, reach, protect } = inkSpec;
+  const { paper, ink, light, edge, top, bottom, reach, protect, quiet } =
+    inkSpec;
   const inkLevel = (ink[0] + ink[1] + ink[2]) / 3;
   const stops = reachStops(top, bottom, reach);
   const gradient = (rgb: Rgb) => {
@@ -170,6 +178,14 @@ export function paintMesh(
     context.beginPath();
     trace(points);
     context.fill();
+  }
+
+  // Last, the quiet round the drawings: lines and facets both rubbed out.
+  for (const { mask, left, top: maskTop, width, height, keep } of quiet ?? []) {
+    if (keep >= 1) continue;
+    context.globalCompositeOperation = "destination-out";
+    context.globalAlpha = 1 - keep;
+    context.drawImage(mask, left, maskTop, width, height);
   }
   context.globalCompositeOperation = "source-over";
   context.globalAlpha = 1;

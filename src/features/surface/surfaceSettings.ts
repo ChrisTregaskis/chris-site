@@ -25,7 +25,7 @@ function useSurfaceNote(values: SurfaceSettings): string | null {
 
 /**
  * The surface settings: SURFACE_DEFAULTS in production; under `pnpm dev`,
- * the dev panel's Surface group and `?tones=1&mesh=pointer&lines=1&reach=ends&strength=medium&protect=1&drawer=mesh&drawerStrength=clear`.
+ * the dev panel's Surface group and `?tones=1&mesh=pointer&lines=1&reach=ends&strength=medium&protect=1&drawer=mesh&drawerStrength=faint`.
  */
 export const surfaceSettings = defineDevSettings<SurfaceSettings>(
   SURFACE_DEFAULTS,

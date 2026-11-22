@@ -165,4 +165,35 @@ describe("painting the mesh", () => {
     ).toBe(true);
     expect(context.globalCompositeOperation).toBe("source-over");
   });
+
+  it("rubs out lines and facets alike round the drawings, after everything else", () => {
+    const facets = meshFacets(
+      { left: 0, top: 0, right: 1440, bottom: 900 },
+      look,
+      [],
+      null,
+    );
+    const { context, order } = recorder();
+    const mask = {
+      mask: {} as CanvasImageSource,
+      left: 0,
+      top: 0,
+      width: 1440,
+      height: 900,
+    };
+    paintMesh(context, facets, {
+      ...ink,
+      top: 0,
+      bottom: 900,
+      reach: null,
+      protect: [{ ...mask, keep: 0.25 }],
+      quiet: [{ ...mask, keep: 0 }],
+    });
+    expect(order[order.length - 1]).toBe("mask:destination-out:1");
+    expect(order.filter((step) => step.startsWith("mask"))).toEqual([
+      "mask:destination-out:0.75",
+      "mask:destination-out:1",
+    ]);
+    expect(context.globalCompositeOperation).toBe("source-over");
+  });
 });

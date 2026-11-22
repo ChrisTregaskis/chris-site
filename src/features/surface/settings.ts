@@ -40,7 +40,7 @@ export type SurfaceSettings = {
 /**
  * What the production build uses: chapter tones on; the pencil mesh with
  * the pointer at the two ends of the page, at Medium, stepping back behind
- * text; the drawers on paper with a still mesh, Clear at their foot. The
+ * text; the drawers on paper with a still mesh, Faint at their foot. The
  * dev panel and the URL parameters only exist under `pnpm dev`.
  */
 export const SURFACE_DEFAULTS: SurfaceSettings = {
@@ -51,7 +51,7 @@ export const SURFACE_DEFAULTS: SurfaceSettings = {
   strength: "medium",
   protect: true,
   drawer: "mesh",
-  drawerStrength: "clear",
+  drawerStrength: "faint",
 };
 
 /** The mesh the visitor gets: `pointer` only with a fine, hovering pointer and motion allowed. */

@@ -37,7 +37,9 @@ export function CallList({ called, beside, push, done }: CallListProps) {
         done && "invisible opacity-0",
       )}
     >
+      {/* data-mesh-quiet: the paper's pencil mesh steps back round the calls. */}
       <div
+        data-mesh-quiet=""
         className={cn(
           "grid",
           beside ? "absolute bottom-0 right-0 items-end" : "items-start",

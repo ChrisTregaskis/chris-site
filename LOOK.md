@@ -6,6 +6,97 @@ Method: the unslop passes (spacing, colour, icons, type, layout, details, visual
 
 Run it: `pnpm dev --host --port 5182 --strictPort` in this worktree, then open `http://localhost:5182/`.
 
+## Round 6: Chris's settings, an earlier fade at About, and part 8 on the plate
+
+### Part 8 back on the plate (its own commit, `efd9f12`, for master too)
+
+**The bug.** Wayfinder's part 8 (the three tool blocks) stood at plan x 520, and each block is 44 units deep, so they ran to x 564. The plate (part 9) stops at 560, so the blocks overhung its front-right edge by 4 units:
+
+- assembled, the blocks sat over the edge;
+- taken apart, their dashed seats sat on the edge, and their lift (24 units towards the front) floated them 28 past it.
+
+It's on master and the live site too. The three files involved (`explode.ts`, `iso.ts`, `explode.test.ts`) are identical on this branch and on master, so the commit cherry-picks cleanly.
+
+**The fix** moves the part, not the plate:
+
+- The tools stand at x 500 (`TOOLS_X` in `explode.ts`), 16 units in from the edge. The smallest margin elsewhere is the CDN pad's 10.
+- Their schema lines, seats, seating axes and badge move with them, in both `explode.ts` and `iso.ts`.
+- The MCP-to-tools pipes now end on the tools' back face at 500, with their jog half way at 480 (it was 490, half way to 520). MCP stands at x 390 to 460, so the gap between parts 7 and 8 is now 40 units.
+- Their lift towards the front drops from 24 to 8, so taken apart they hover over the plate.
+
+**Checks.**
+
+- **Existing tests:** all still pass. These cover the sweep (no piece or seating axis passes through another in any transition, wide or phone), the paint order, the tags (no two touch, none on its part, no crossed leaders), the demo's routes and phone mode.
+- **The demo:** in Chrome, its highlighted route (the vehicle question) runs from MCP into the three tools and lights their tops.
+- **Balloon 8:** sits on the first tool.
+- **Phone:** the open part and the assembled board both have part 8 on the plate.
+
+**Why no test caught it.** There wasn't one. The sweep tests check pieces against each other, never against the plate. Three new tests now pin it:
+
+- every piece stands at least 10 units in from the plate's edges;
+- every seat on the plate is on it;
+- taken apart, with any part or none in focus, every piece hovers over the plate.
+
+On the old geometry the first fails at −4 and the third at −28.
+
+### Chris's settings are the shipping defaults
+
+`SURFACE_DEFAULTS`: tones on; mesh Pointer; pencil lines on; reach "Hero and About to Contact"; strength Medium; Protect text on; drawer sheet Pencil mesh; **drawer strength Faint** (it was Clear). As a URL: `?tones=1&mesh=pointer&lines=1&reach=ends&strength=medium&protect=1&drawer=mesh&drawerStrength=faint`. The defaults test, the comments and this file follow.
+
+### The mesh fades in sooner at the bottom
+
+Chris: "On the about section, I think we can have the triangles come in a bit sooner? Bit closer to the end of the 3rd chapter/project?"
+
+**Where it starts.** The fade-in now starts half a hero's height before About, in the last of the Burpees chapter, and is full from About's top edge. Before, it started at About's top and was full three fifths of a hero further down. It's still a spatial fade measured from the sections' real positions:
+
+| Width | Starts       | Half strength | Full from (About's top) |
+| ----- | ------------ | ------------- | ----------------------- |
+| 1440  | 17649 (−416) | 17857 (−208)  | 18065                   |
+| 390   | 17504 (−388) | 17698 (−194)  | 17892                   |
+
+**It stays off the Burpees count and its calls.** The fade now meets the end of the set: the count, "of 100 Navy SEALs", Done and its line, unpinned at their lowest, nearest About. Two things keep it off them, and both follow the set while it's pinned:
+
+- **The calls are quiet zones.** As well as the count's existing quiet zone, the calls (`CallList`) and Done (`DoneCall`) carry a new `data-mesh-quiet` attribute, which any element can use to ask the mesh to step back.
+- **The quiet is pixel by pixel.** Round each quiet box, the mesh (lines and facets alike) is now also rubbed out through a soft mask (12px pad, Gaussian blur σ 6px), as well as the per-facet falloff. Facets are big, so a facet whose centre sat just outside the quiet could still lay its lines over a call. The quiet boxes are measured every frame the mesh draws, so the mask follows the pinned stage.
+- **It notices drawings that move or arrive without a scroll.** The mesh now repaints when a quiet element finishes a transition (Done easing up into place) or arrives in the page (the set's lazy code landing while the page is still). Before this, after a jump to the end of the set the quiet round Done went missing until the next scroll, leaving up to 2.7 sRGB levels of mesh under its line on a phone.
+
+**Contrast, measured in Chrome** at device pixel ratio 2, from the canvas's own pixels, worst line, across the hero, the end of the set, About and Contact:
+
+| Width | Level            | Done (red pen, large) | Set's line (ink) | muted | ink   | Red pen on the worst pixel anywhere          |
+| ----- | ---------------- | --------------------- | ---------------- | ----- | ----- | -------------------------------------------- |
+| 1440  | Medium (default) | 4.57 (= bare paper)   | 13.76            | 6.58  | 13.76 | 4.57                                         |
+| 1440  | Strong           | 4.57                  | 13.76            | 6.58  | 13.64 | 4.53 (under the count "100")                 |
+| 390   | Medium (default) | 4.57                  | 13.76            | 6.58  | 13.46 | 4.47 (under the About heading, which is ink) |
+| 390   | Strong           | 4.57                  | 13.76            | 6.58  | 13.57 | 4.51                                         |
+
+- **The set's text sits on bare paper.** Done, its line, and the calls (only one call shows at a time) read exactly as with the mesh off.
+- **Every text at its own role holds AA.** The tightest real text is ink at 13.46.
+- **One hypothetical dip, at 390.** The red pen would get 4.47 under the "About" heading. There, the About plate is still fading in from the Burpees paper (its 360px feather) while the mesh is now at full strength. No red text sits there: it's the ink heading, at 13.46.
+
+What the tests pin (`tones.test.ts`):
+
+- **Each real line holds AA for its own role.** Every measured line of text, at each level with protection on, at 1440 and 390, now including the set at its end position (fixture `TEXT_LINES`, with each line's role and size). The threshold is 4.5:1, or 3:1 for large text.
+- **The set's text holds AA for every role.** For lines inside the count's or a call's box, every role, red pen included, is checked against the soft quiet mask at the line's worst corner.
+- **The test that the mesh now reaches the set,** and leaves the calls all but bare.
+- **The "anywhere" sweep at Subtle** still covers the whole page except from half a hero before About to the end of About's plate fade. There the mesh lies on the Burpees paper and the guarantee is the real-position test above.
+
+### Cost (round 6)
+
+- **Frame time.** Pointer circling the hero for 6s: 2.39ms of main-thread tasks per frame with the defaults, against 0.77ms with the mesh off. 0 of 360 frames over 20ms.
+- **Whole-page scroll.** No measurable difference from mesh off (764 frames, 0 over 20ms).
+
+### Verified (round 6)
+
+- **Gates.** `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` all exit 0, on the part-8 commit alone (482 tests) and on the final tree.
+- **Dev panel absent from `dist/`.** The same 16 strings as round 5 all return 0 files.
+- **No sideways overflow** at 320 with the defaults, Strong and whole-page reach. The drawer at 320×640 scrolls with its mesh layer the full height.
+- **Drawer at Faint (the default):** red pen on its worst pixel 4.83 (1440) and 4.95 (390); field edges 3.51; error text 6.55.
+- **Screenshots** are in the session scratchpad's `looks/drawing-office-surface/final4/`:
+  - part 8 before and after, assembled and taken apart at 1440;
+  - part 8 open and the assembled board at 390;
+  - the demo's route into part 8;
+  - the Burpees-to-About fade at 1440 and 390 (the set ending, the crossing, About).
+
 ## Round 5: a stronger pencil, with the text protected
 
 Chris, on round 4: "I feel like the lines and triangles etc are maybe a bit too subtle. As it's now on static content that's mostly just text, I think we can get away with making it a bit more obvious whilst still being subtle. On the drawer, can make it a lot more prominent (but still soft lol) particularly on the bottom, as it's 'dead space'." This round builds on the coordinator's `1a2ed98`, which already made the drawers default to the mesh.
@@ -95,7 +186,7 @@ Drawer contrast, measured the same way, with the error state showing. The red pe
 
 The field edges sit on bare paper at every level: 3.51:1, the paper's own figure.
 
-### Production defaults now
+### Production defaults now (round 6 changed the drawer to Faint: see above)
 
 `?tones=1&mesh=pointer&lines=1&reach=ends&strength=medium&protect=1&drawer=mesh&drawerStrength=clear`:
 
