@@ -81,11 +81,11 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
 }
 
 /**
- * How Wayfinder was built: five stages measured off one by one as the
- * section is scrolled through, with the eval bench as a note beneath. The
- * lane is a dimension line (the look's signature, as the chapter rails are):
- * a pencil line with an oblique tick at each stage, which the red pen draws
- * over and ticks off as it goes.
+ * How Wayfinder was built: five stages lit one by one as the section is
+ * scrolled through, with the eval bench as a note beneath (the Editorial
+ * look's lane, in the red pen). Each stage is a hollow circle on a hairline;
+ * as the red line reaches it, it fades to a ringed bullet and gives a brief
+ * grow, and a spark rides the line's head while the lane is pinned.
  */
 export function BuildStory() {
   const still = useReducedMotion() ?? false;
@@ -130,32 +130,32 @@ export function BuildStory() {
             ref={trackRef}
             className="relative pl-[34px] wide:pl-0 wide:pt-[34px]"
           >
-            {/* The pencil line runs through the ticks' centres: each 21px
-                tick box sits at the track's left edge (stacked) or 2px from
-                its top (side by side), so its centre is 10.5px in, or 12.5px
-                down. The red pen's 2px line draws over it. */}
+            {/* The 3px line runs through the dots' centres: each 21px dot
+                sits at the track's left edge (stacked) or 2px from its top
+                (side by side), so its centre is 10.5px in, or 12.5px down. */}
             <span
               aria-hidden="true"
-              className="absolute left-[10px] top-0 h-full w-px bg-line-strong wide:left-0 wide:right-0 wide:top-[12px] wide:h-px wide:w-auto"
+              className="absolute left-[9px] top-0 h-full w-[3px] rounded-[3px] bg-line wide:left-0 wide:right-0 wide:top-[11px] wide:h-[3px] wide:w-auto"
             />
             <span
               aria-hidden="true"
-              className="absolute left-[9.5px] top-0 h-[calc(var(--p,0)*100%)] w-[2px] bg-accent wide:left-0 wide:top-[11.5px] wide:h-[2px] wide:w-[calc(var(--p,0)*100%)]"
+              className="absolute left-[9px] top-0 h-[calc(var(--p,0)*100%)] w-[3px] rounded-[3px] bg-accent wide:left-0 wide:top-[11px] wide:h-[3px] wide:w-[calc(var(--p,0)*100%)]"
             />
-            <ol className="m-0 grid list-none gap-[22px] p-0 wide:grid-cols-5 wide:gap-4">
+            <ol className="m-0 grid list-none gap-6 p-0 wide:grid-cols-5 wide:gap-4">
               {STEPS.map((step, index) => (
                 <li
                   key={step.name}
                   className="relative text-[15px] leading-[1.6] text-muted"
                 >
-                  {/* A dimension tick: an oblique stroke across the line, inked red once the stage is reached. */}
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "absolute -left-[34px] top-[3px] size-[21px] transition-colors duration-base before:absolute before:left-[2px] before:top-1/2 before:h-[1.5px] before:w-[17px] before:-translate-y-1/2 before:-rotate-45 before:bg-current before:content-[''] motion-reduce:transition-none wide:-top-8 wide:left-0",
+                      "absolute -left-[34px] top-[3px] size-[21px] rounded-pill border-[1.5px] border-solid transition-colors duration-base motion-reduce:transition-none wide:-top-8 wide:left-0",
                       index < lit
-                        ? "text-accent before:h-[2px]"
-                        : "text-line-strong",
+                        ? // A ringed bullet: the red pen, a ring of paper, its
+                          // core; it grows a moment as the line reaches it.
+                          "animate-stage-reached border-accent bg-accent shadow-[inset_0_0_0_4px_rgb(var(--color-surface))] motion-reduce:animate-none"
+                        : "border-line-field bg-surface",
                     )}
                   />
                   <b className="mb-1 block font-body text-[17px] font-semibold leading-[normal] text-ink">

@@ -165,6 +165,10 @@ export default {
         "fade-up": {
           from: { transform: "translateY(16px)", opacity: "0" },
         },
+        // A build-lane stage as the line reaches it: a brief grow, once.
+        "stage-reached": {
+          "40%": { transform: "scale(1.3)" },
+        },
         // The chat mock's typing dots (b3 "bl").
         "typing-dot": {
           "50%": { opacity: "0.25" },
@@ -175,6 +179,7 @@ export default {
         "sheet-up": "sheet-up var(--duration-enter) var(--ease-enter)",
         "menu-in": "menu-in var(--duration-enter) var(--ease-enter)",
         "fade-up": "fade-up var(--duration-enter) var(--ease-enter)",
+        "stage-reached": "stage-reached var(--duration-slow) var(--ease-enter)",
         "typing-dot": "typing-dot 1s infinite",
       },
     },

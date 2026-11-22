@@ -22,6 +22,17 @@ function fakeObserver() {
     margin: () => observers.at(-1)?.margin,
     cross: (target: Element) =>
       act(() => observers.at(-1)?.callback([{ isIntersecting: true, target }])),
+    /** The target leaves the band, its top now at `top` (viewport px). */
+    leave: (target: Element, top: number) =>
+      act(() =>
+        observers.at(-1)?.callback([
+          {
+            isIntersecting: false,
+            target,
+            boundingClientRect: { top } as DOMRectReadOnly,
+          },
+        ]),
+      ),
   };
 }
 
@@ -33,16 +44,19 @@ function Story({
   track,
   align,
   focusY = 450,
+  noneAbove,
 }: {
   reducedMotion?: boolean;
   track?: "step" | "card";
   align?: "end";
   focusY?: number;
+  noneAbove?: boolean;
 }) {
   const { current, stepRef, cardRef, goTo } = useStepSync({
     measure: () => ({ focusY, topLimit: 20, track }),
     reducedMotion,
     remeasure: focusY,
+    noneAbove,
   });
   return (
     <>
@@ -131,6 +145,32 @@ describe("useStepSync", () => {
     });
     io.cross(screen.getByTestId("step-2"));
     expect(screen.getByRole("status")).toHaveTextContent("2");
+  });
+
+  it("selects nothing again when scrolled back above the first step, if asked", () => {
+    const io = fakeObserver();
+    render(<Story noneAbove />);
+    io.cross(screen.getByTestId("step-1"));
+    expect(screen.getByRole("status")).toHaveTextContent("1");
+
+    // Scrolled back up: the first step's top drops below the focus line.
+    io.leave(screen.getByTestId("step-1"), 460);
+    expect(screen.getByRole("status")).toHaveTextContent("0");
+
+    // Scrolled on down past it instead: the next step takes over as usual.
+    io.cross(screen.getByTestId("step-1"));
+    io.leave(screen.getByTestId("step-1"), -300);
+    expect(screen.getByRole("status")).toHaveTextContent("1");
+    io.cross(screen.getByTestId("step-2"));
+    expect(screen.getByRole("status")).toHaveTextContent("2");
+  });
+
+  it("keeps the first step selected above the story by default", () => {
+    const io = fakeObserver();
+    render(<Story />);
+    io.cross(screen.getByTestId("step-1"));
+    io.leave(screen.getByTestId("step-1"), 460);
+    expect(screen.getByRole("status")).toHaveTextContent("1");
   });
 
   it("measures the focus band again when told the line has moved", () => {

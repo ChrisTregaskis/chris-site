@@ -23,6 +23,12 @@ const MIN_LEG_MS = 240;
 /** Under reduced motion nothing travels, so a flashed part stays lit longer. */
 const STILL_FLASH_MS = 4000;
 /**
+ * How long a message's highlighted route stays once the reply is in, before
+ * it clears (fading out, as the lit lines' opacity transitions). Under
+ * reduced motion it stays as long as a flashed part does, then goes at once.
+ */
+export const LIT_HOLD_MS = 1600;
+/**
  * Where the pulse waits between messages. The figure's SVG draws outside its
  * box, so "far away" can still be on screen on a wide window: it is also
  * hidden while it waits.
@@ -50,6 +56,8 @@ export function useWayfinderDemo(reducedMotion: boolean) {
   const nextId = useRef(1);
   const platformRef = useRef(platform);
   const flashTimers = useRef(new Set<number>());
+  /** The pending clear of the last message's route, if any. */
+  const clearTimer = useRef(0);
 
   useEffect(() => {
     platformRef.current = platform;
@@ -61,6 +69,7 @@ export function useWayfinderDemo(reducedMotion: boolean) {
     return () => {
       alive.current = false;
       timers.forEach((timer) => window.clearTimeout(timer));
+      window.clearTimeout(clearTimer.current);
     };
   }, []);
 
@@ -165,6 +174,8 @@ export function useWayfinderDemo(reducedMotion: boolean) {
         { id: nextId.current++, from: "me", text },
       ]);
       setTyping(true);
+      // A new message takes the route over: the last one's clear is moot.
+      window.clearTimeout(clearTimer.current);
       litSoFar.current = new Set();
       setLit(new Set());
       if (ready) await ready;
@@ -192,8 +203,16 @@ export function useWayfinderDemo(reducedMotion: boolean) {
         { id: nextId.current++, from: "bot", kind: ask.key },
       ]);
       busy.current = false;
+      // The reply is in: the route it took stays a moment, then clears.
+      clearTimer.current = window.setTimeout(
+        () => {
+          litSoFar.current = new Set();
+          setLit(new Set());
+        },
+        reducedMotion ? STILL_FLASH_MS : LIT_HOLD_MS,
+      );
     },
-    [flash, travel],
+    [flash, travel, reducedMotion],
   );
 
   const swapPlatform = useCallback((next: PlatformIndex) => {

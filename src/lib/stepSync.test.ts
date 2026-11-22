@@ -5,6 +5,7 @@ import {
   READING_DEPTH,
   readingLine,
   scrollDeltaToFocus,
+  selectionAfterLeaving,
   stepAtFocus,
 } from "./stepSync";
 
@@ -27,6 +28,16 @@ describe("step sync maths", () => {
     expect(stepAtFocus(rects, 450)).toBe(2);
     expect(stepAtFocus(rects, 500)).toBe(4);
     expect(stepAtFocus(rects, 1000)).toBe(0);
+  });
+
+  it("selects nothing again once scrolled back above the first step, and only then", () => {
+    // The first step's top has gone below the line: back above the story.
+    expect(selectionAfterLeaving(1, 1, 460, 450)).toBe(0);
+    // It left upwards (scrolling on down): the selection stands.
+    expect(selectionAfterLeaving(1, 1, -300, 450)).toBe(1);
+    // Another step left, or the first step left while another is selected.
+    expect(selectionAfterLeaving(2, 2, 460, 450)).toBe(2);
+    expect(selectionAfterLeaving(2, 1, 460, 450)).toBe(2);
   });
 
   it("scrolls a card's middle onto the focus line", () => {

@@ -24,13 +24,38 @@ What this revision leaves alone:
 - The palette, the red pen, the signature and the chapter headings' structure.
 - The chat mock's lilac vehicle sketch: changing it is a copy question for Chris.
 
+## Round 3: Chris's five changes
+
+1. **"How it was built" is Editorial's lane, in the red pen.** It replaces the dimension-line lane. Each stage is a hollow 21px circle on a 3px hairline. As the red line reaches a stage, the circle fades to a ringed bullet (red edge, a ring of paper, red core). A spark (a red dot in a ring of paper) rides the line's head while the lane is pinned. Two differences from Editorial:
+   - Editorial's spark trail is left out: a red trail on the red line wouldn't show.
+   - Chris described each circle as growing briefly when reached. Editorial's code doesn't animate that (what reads as a grow is its spark passing over the circle), so I made it explicit: a one-off scale to 1.3 and back over 550ms as a stage lights. It's off under reduced motion, where the lane is lit from the start.
+   - **The chapter rail follows it.** It's now a hollow circle over a 2px hairline that the red pen fills, and the circle becomes a ringed bullet once the chapter is read. With the lane gone, the rail's oblique ticks were the only dimension line left, and the two "how far" cues showed side by side at 1280px and wider in different vocabularies. **The dimension-line signature is retired.** The drawings' own conventions (balloons, centre lines, the highlighter) carry the look now.
+2. **Wayfinder balloons are opaque.** Balloons for parts out of focus were faded to 60% opacity, so the line work showed through and the numbers were hard to tell apart. They now stay solid paper with a firmer 1.5px edge (1.9px in red for the part in focus). An out-of-focus balloon steps back by colour only: its number is muted text (7.1:1), not see-through.
+3. **The demo's highlight clears.**
+   - Once the reply lands, the highlighted route stays for 1.6s, then fades out over the lit lines' existing 450ms opacity transition.
+   - Under reduced motion it stays as long as a flashed part does (4s), then goes at once.
+   - A new message cancels the last one's pending clear, so sending twice in a row never wipes the second route mid-run.
+   - Tests cover all three. One existing test asserted the route stayed lit afterwards; it now checks the route is lit as the reply lands.
+4. **Physio step 1, "the edge", now reverses.**
+   - **Cause:** the shared step-selection hook (`useStepSync`) never went back to "no step". Scrolling back above the first step left the edge selected, so it stayed drawn and its words stayed shown.
+   - **Master and live:** master (`~/developer/chris-site` at `1b19dde`) has the same code, so the bug is on master. I reproduced it on the live site, chris-tregaskis.uk, with the same script.
+   - **Fix:** `useStepSync` takes an opt-in `noneAbove` option, which the rings explorer turns on. When the first step leaves the focus band downwards, the selection goes back to none (0). The pure rule is `selectionAfterLeaving` in `lib/stepSync.ts`. The rings' draw goals moved into `draw.ts` as `drawGoals`. Wayfinder's behaviour is unchanged (it doesn't opt in).
+   - **Tests:** the pure rule (`stepSync.test.ts`), the hook (`useStepSync.test.tsx`, with the option and without), and the reverse case in `draw.test.ts` (with nothing selected, every step's goal is undrawn, the edge included, and walked back to zero the edge leaves no line or icon).
+   - **Checked in the browser** at 1440 and 390: scrolled back above the edge, its lines and icons undraw and its words fade, and it draws on again on the way down.
+5. **The Burpees count is in Newsreader light, in the red pen**, like the other numerals, with lining and tabular figures.
+   - **Contrast:** 4.95:1 on the paper, well over the 3:1 large-text minimum.
+   - **No layout shift:** measured across every value as the set counts up, every one-, two- and three-digit value is exactly the same width (197 / 394 / 591px at 1440; 112 / 224 / 336px at 390), and the calls' left edge never moves.
+   - The count is measured at runtime (`CountRuler`), so the figure still stands on the new face's baseline.
+
+Screenshots of each fix at 1440 and 390 are in the comparison folder as `r3-*.png`.
+
 ## Direction
 
 - **Product.** A senior full-stack TypeScript developer's portfolio that shows he builds whole products end to end, through three working case studies a visitor can take apart and run.
 - **Character.** Precise, technical, quietly confident.
 - **World.** A drawing office: cool drafting paper, graphite pencil and black ink line work, the checker's red pen for what matters, and a highlighter for what has been traced through.
 - **Moments.** (1) The Wayfinder figure, redrawn as an ink isometric line drawing where only the part in focus takes the red pen, and a message's route is highlighted as it travels. (2) The physio rings as a plan drawing in pencil and ink: each step inks its ring over the pencil of earlier steps, and a journey is highlighted behind a red-pen pulse. (3) The Burpees count in huge ink mono numerals, with the app's call in red pen.
-- **Signature.** The dimension line. Every "how far" on the page is drawn as one. The chapter rail (from 1280px) and the How it was built lane are thin pencil lines between oblique architectural ticks. The red pen draws over them as you read, with an arrowhead nib at the head of the lane, and ticks each stage off in red. Nothing else on the page uses it.
+- **Signature.** (Retired in round 3; see above.) The dimension line. Every "how far" on the page is drawn as one. The chapter rail (from 1280px) and the How it was built lane are thin pencil lines between oblique architectural ticks. The red pen draws over them as you read, with an arrowhead nib at the head of the lane, and ticks each stage off in red. Nothing else on the page uses it.
 
 Why the dimension line, and not the other candidates:
 

@@ -3,6 +3,7 @@ import {
   type FocusAlign,
   focusBandMargin,
   scrollDeltaToFocus,
+  selectionAfterLeaving,
   stepAtFocus,
   type StepTrack,
 } from "@/lib/stepSync";
@@ -24,6 +25,12 @@ export interface StepSyncOptions {
    * again whenever this changes.
    */
   remeasure?: unknown;
+  /**
+   * Scrolled back above the first step, select nothing (0) again, so the
+   * first step is undone like the rest. Off by default: the selection then
+   * stays on the first step.
+   */
+  noneAbove?: boolean;
 }
 
 export interface StepSync {
@@ -57,6 +64,7 @@ export function useStepSync({
   reducedMotion,
   enabled = true,
   remeasure,
+  noneAbove = false,
 }: StepSyncOptions): StepSync {
   const [current, setCurrent] = useState(0);
   const steps = useRef<(HTMLElement | null)[]>([]);
@@ -97,7 +105,17 @@ export function useStepSync({
           if (locked.current) return;
           let hit: Element | null = null;
           for (const entry of entries) {
-            if (entry.isIntersecting) hit = entry.target;
+            if (entry.isIntersecting) {
+              hit = entry.target;
+            } else if (noneAbove) {
+              const left =
+                tracked.current.findIndex((target) => target === entry.target) +
+                1;
+              const { top } = entry.boundingClientRect;
+              setCurrent((now) =>
+                selectionAfterLeaving(now, left, top, focusY),
+              );
+            }
           }
           if (!hit) return;
           const n = tracked.current.findIndex((target) => target === hit) + 1;
@@ -133,7 +151,7 @@ export function useStepSync({
       window.clearTimeout(settleTimer.current);
       window.clearTimeout(safetyTimer.current);
     };
-  }, [enabled, release, remeasure]);
+  }, [enabled, release, remeasure, noneAbove]);
 
   const goTo = useCallback(
     (n: number, { instant = false, align = "focus" }: GoToOptions = {}) => {
