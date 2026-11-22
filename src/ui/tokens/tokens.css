@@ -141,3 +141,26 @@
   --stagger-base: 150ms;
   --stagger-loose: 300ms;
 }
+
+/*
+ * Chapter tones, the experiment (features/surface, switched on by
+ * data-tones on the root): each chapter on its own shade of the drafting
+ * paper, all in the same cool, barely tinted family, stepping a little
+ * deeper into the work and back out to the paper for About and the close.
+ * Every text role holds 4.5:1 on each (the red pen is the tightest) and
+ * the field underline 3:1; figures measured against each paper.
+ */
+:root {
+  /* Wayfinder: a touch bluer, the cyanotype's cast. Accent 4.76:1, dim-muted 5.19:1, line-field 3.37:1 */
+  --color-paper-wayfinder: 235 240 243; /* #EBF0F3 */
+  /* Physio: a step deeper, leaning to the practice's teal. Accent 4.66:1, dim-muted 5.08:1, line-field 3.30:1 */
+  --color-paper-physio: 232 238 239; /* #E8EEEF */
+  /* Burpees: the deepest, a graphite grey. Accent 4.57:1, dim-muted 4.98:1, line-field 3.23:1 */
+  --color-paper-burpees: 232 235 237; /* #E8EBED */
+  /* About: back towards the paper. Accent 4.85:1, dim-muted 5.29:1, line-field 3.43:1 */
+  --color-paper-about: 238 242 243; /* #EEF2F3 */
+  /* The fainter pencil (line-hover: edges stepped back in the figures, a
+     link's underline) a shade firmer on the tones, so it keeps 3:1 on every
+     paper: 3.15 / 3.09 / 3.02 / 3.21 on Wayfinder / physio / Burpees / About */
+  --color-paper-line-hover: 127 136 140; /* #7F888C */
+}

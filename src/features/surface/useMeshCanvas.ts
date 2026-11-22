@@ -1,0 +1,330 @@
+import { type RefObject, useEffect } from "react";
+import { canvasPixelRatio, canvasWindow } from "./canvasWindow";
+import { type Box } from "./mesh";
+import { type Dent, meshFacets } from "./meshFacets";
+import { meshLookFor } from "./meshLook";
+import { approach, shadeFill } from "./shading";
+
+/**
+ * The drawings the mesh steps back from, found fresh each frame (the
+ * physio drawing and the Burpees set load late): the Wayfinder figure, the
+ * physio rings' room (its exact size, drawn or not) and the Burpees count.
+ */
+export const QUIET_SELECTORS = [
+  '#work [data-bar-flush] svg[role="img"]',
+  '[data-testid="rings-room"]',
+  '[data-testid="burpees-count"]',
+] as const;
+
+/** How fast the dent follows the pointer, presses in and lets go (time constants, ms). */
+const FOLLOW_MS = 90;
+const PRESS_MS = 160;
+const RELEASE_MS = 420;
+
+function channels(raw: string, fallback: [number, number, number]) {
+  const parts = raw.trim().split(/\s+/).map(Number);
+  return parts.length === 3 && parts.every(Number.isFinite)
+    ? (parts as [number, number, number])
+    : fallback;
+}
+
+/**
+ * Draws the paper's mesh into `canvas` (inside `layer`, which spans the
+ * page behind everything). It draws only when something changed: a scroll
+ * (the canvas's band moving on, or a pinned drawing moving against the
+ * page), a resize, the page's height changing, or, with `pointer`, the
+ * mouse moving; the dent's easing runs frames only until it settles.
+ * Nothing draws while the tab is hidden.
+ */
+export function useMeshCanvas(
+  layerRef: RefObject<HTMLDivElement | null>,
+  canvasRef: RefObject<HTMLCanvasElement | null>,
+  pointerMode: boolean,
+  lines: boolean,
+): void {
+  useEffect(() => {
+    const layer = layerRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!layer || !canvas || !context) return undefined;
+    const page = layer.parentElement ?? document.body;
+
+    let look = meshLookFor(1, 0);
+    let width = 0;
+    let viewHeight = 0;
+    let pageHeight = 0;
+    let ratio = 1;
+    let band = { top: 0, height: 0 };
+    let paper = 242;
+    let ink: [number, number, number] = [26, 32, 35];
+    let white: [number, number, number] = [255, 255, 255];
+    let drawn = "";
+    let frame = 0;
+    let last = 0;
+    let hidden = document.hidden;
+    let pointer: { x: number; y: number } | null = null;
+    const dent: Dent = { x: 0, y: 0, amount: 0 };
+    let dentPlaced = false;
+
+    const measure = () => {
+      width = layer.clientWidth;
+      viewHeight = window.innerHeight;
+      pageHeight = Math.floor(page.getBoundingClientRect().height);
+      // Floored, so the layer never makes the page a pixel taller.
+      layer.style.height = `${pageHeight}px`;
+      look = meshLookFor(width, width / 2, lines);
+      const height = canvasWindow(0, viewHeight, pageHeight).height;
+      ratio = canvasPixelRatio(window.devicePixelRatio, width, height);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      const root = getComputedStyle(document.documentElement);
+      // The paper's level, for the fills: between the plain paper and the
+      // deepest chapter paper, so a facet reads alike on all of them.
+      const surface = channels(
+        root.getPropertyValue("--color-surface"),
+        [242, 244, 244],
+      );
+      const deepest = channels(
+        root.getPropertyValue("--color-paper-burpees"),
+        surface,
+      );
+      paper =
+        [0, 1, 2].reduce((sum, i) => sum + surface[i] + deepest[i], 0) / 6;
+      ink = channels(root.getPropertyValue("--color-ink"), ink);
+      white = channels(root.getPropertyValue("--color-sheet"), white);
+      drawn = "";
+    };
+
+    const quietBoxes = (scrollY: number): Box[] => {
+      const reach = look.falloff.margin + look.falloff.width;
+      const boxes: Box[] = [];
+      for (const selector of QUIET_SELECTORS) {
+        for (const element of document.querySelectorAll(selector)) {
+          watch(element);
+          const r = element.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0) continue;
+          const box = {
+            left: r.left,
+            top: r.top + scrollY,
+            right: r.right,
+            bottom: r.bottom + scrollY,
+          };
+          if (
+            box.bottom + reach < band.top ||
+            box.top - reach > band.top + band.height
+          ) {
+            continue;
+          }
+          boxes.push(box);
+        }
+      }
+      return boxes;
+    };
+
+    const trace = (points: readonly number[]) => {
+      context.beginPath();
+      context.moveTo(points[0], points[1]);
+      context.lineTo(points[2], points[3]);
+      context.lineTo(points[4], points[5]);
+      context.closePath();
+    };
+
+    const paint = (boxes: Box[]) => {
+      const rect = {
+        left: 0,
+        top: band.top,
+        right: width,
+        bottom: band.top + band.height,
+      };
+      context.setTransform(ratio, 0, 0, ratio, 0, -band.top * ratio);
+      context.clearRect(0, band.top, width, band.height);
+      const facets = meshFacets(
+        rect,
+        look,
+        boxes,
+        dent.amount > 0 ? dent : null,
+      );
+      const inkLevel = (ink[0] + ink[1] + ink[2]) / 3;
+      for (const { points, levels } of facets) {
+        if (levels === 0) continue;
+        const fill = shadeFill(levels, paper, inkLevel);
+        if (fill.alpha <= 0) continue;
+        const [r, g, b] = fill.towards === "light" ? white : ink;
+        context.fillStyle = `rgba(${r},${g},${b},${fill.alpha.toFixed(4)})`;
+        trace(points);
+        context.fill();
+      }
+      if (look.edge > 0) {
+        context.lineWidth = 1;
+        context.lineJoin = "round";
+        for (const { points, strength } of facets) {
+          const alpha = look.edge * strength;
+          if (alpha < 0.002) continue;
+          context.strokeStyle = `rgba(${ink[0]},${ink[1]},${ink[2]},${alpha.toFixed(4)})`;
+          trace(points);
+          context.stroke();
+        }
+      }
+    };
+
+    const run = (now: number) => {
+      frame = 0;
+      if (hidden) return;
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      const scrollY = window.scrollY;
+
+      const next = canvasWindow(scrollY, viewHeight, pageHeight);
+      if (next.top !== band.top || next.height !== band.height) {
+        band = next;
+        canvas.style.transform = `translate3d(0, ${band.top}px, 0)`;
+      }
+
+      let moving = false;
+      if (pointerMode) {
+        const target = pointer
+          ? { x: pointer.x, y: pointer.y + scrollY }
+          : null;
+        if (target && !dentPlaced) {
+          dent.x = target.x;
+          dent.y = target.y;
+          dentPlaced = true;
+        } else if (target) {
+          dent.x = approach(dent.x, target.x, dt, FOLLOW_MS);
+          dent.y = approach(dent.y, target.y, dt, FOLLOW_MS);
+        }
+        const goal = target ? 1 : 0;
+        dent.amount = approach(
+          dent.amount,
+          goal,
+          dt,
+          target ? PRESS_MS : RELEASE_MS,
+        );
+        if (!target && dent.amount < 0.004) {
+          dent.amount = 0;
+          dentPlaced = false;
+        }
+        moving =
+          Math.abs(dent.amount - goal) > 0.004 ||
+          (target !== null &&
+            Math.hypot(dent.x - target.x, dent.y - target.y) > 0.5);
+      }
+
+      const boxes = quietBoxes(scrollY);
+      const key = [
+        band.top,
+        band.height,
+        width,
+        boxes
+          .map((b) => [b.left, b.top, b.right, b.bottom].map(Math.round))
+          .join(),
+        dent.amount ? [dent.x, dent.y].map(Math.round).join() : "",
+        dent.amount.toFixed(3),
+      ].join("|");
+      if (key !== drawn) {
+        drawn = key;
+        paint(boxes);
+      }
+      if (moving) schedule();
+      else last = 0;
+    };
+
+    function schedule() {
+      if (!frame && !hidden) frame = requestAnimationFrame(run);
+    }
+
+    const onResize = () => {
+      measure();
+      schedule();
+    };
+    const onVisibility = () => {
+      hidden = document.hidden;
+      if (hidden) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      } else {
+        last = 0;
+        drawn = "";
+        schedule();
+      }
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+      pointer = { x: event.clientX, y: event.clientY };
+      schedule();
+    };
+    const onPointerOut = (event: PointerEvent) => {
+      if (event.relatedTarget) return;
+      pointer = null;
+      schedule();
+    };
+    const onBlur = () => {
+      pointer = null;
+      schedule();
+    };
+
+    const pageObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(() => {
+            if (
+              Math.floor(page.getBoundingClientRect().height) !== pageHeight
+            ) {
+              measure();
+            }
+            drawn = "";
+            schedule();
+          });
+
+    // A drawing can move or grow with no scroll at all: the Wayfinder figure
+    // grows as it comes apart (a transform its own frames write), a lazy
+    // drawing lands, the count's font arrives. Each one found is watched for
+    // that, so the quiet round it follows.
+    const watched = new WeakSet<Element>();
+    const quietObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(() => schedule());
+    const styleObserver =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver(() => schedule());
+    function watch(element: Element) {
+      if (watched.has(element)) return;
+      watched.add(element);
+      quietObserver?.observe(element);
+      styleObserver?.observe(element, {
+        attributes: true,
+        attributeFilter: ["style", "transform"],
+      });
+    }
+
+    measure();
+    schedule();
+    pageObserver?.observe(page);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", onResize);
+    document.addEventListener("visibilitychange", onVisibility);
+    if (pointerMode) {
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("pointerout", onPointerOut, { passive: true });
+      window.addEventListener("blur", onBlur);
+    }
+    return () => {
+      cancelAnimationFrame(frame);
+      pageObserver?.disconnect();
+      quietObserver?.disconnect();
+      styleObserver?.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerout", onPointerOut);
+      window.removeEventListener("blur", onBlur);
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    };
+  }, [layerRef, canvasRef, pointerMode, lines]);
+}

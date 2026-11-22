@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { CVDrawer, CVRequestButton } from "@/features/cv-request";
 import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
+import { Surface } from "@/features/surface";
 import { AboutSection } from "@/sections/about/AboutSection";
 import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
 import { Contact } from "@/sections/contact/Contact";
@@ -96,6 +97,7 @@ export function App() {
           © {new Date().getFullYear()} Chris Tregaskis
         </p>
       </Container>
+      <Surface />
       <EnquiryDrawer />
       <CVDrawer />
     </>

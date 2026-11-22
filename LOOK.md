@@ -6,6 +6,213 @@ Method: the unslop passes (spacing, colour, icons, type, layout, details, visual
 
 Run it: `pnpm dev --host --port 5182 --strictPort` in this worktree, then open `http://localhost:5182/`.
 
+## Background experiments
+
+Branch `look/drawing-office-surface`, from `look/drawing-office` at `2f836d2`. Run it with `pnpm dev --host --port 5185 --strictPort`, then open `http://localhost:5185/`.
+
+Chris asked for two things, verbatim where it matters:
+
+- **Chapter tones.** "At the moment the background doesn't change between each section, right? I wonder if it's possible to find a shade that can move between the sections."
+- **A triangulated mesh in the background.** "Rather large ones, not massive, or maybe medium", subtle texture "as we read and scroll down", optionally following the mouse so it "indents the triangle or polygonal mesh slightly … a sense of surface area or depth". It must not be heavy, and it should be "very muted around where the diagrams are, not have a hard border around them".
+
+Both are built as switchable experiments with a dev-only panel. Nothing else on the page changed: no copy, no layout, no diagram code.
+
+### How to try it
+
+- **The panel.** "Surface (dev)" sits at the bottom right under `pnpm dev`. It has Chapter tones (on or off), Mesh (Off, Static or Pointer) and Pencil lines (an extra I added, see below). The "–" collapses it. When Pointer can't run (no mouse, or reduced motion is on), the panel says so, and the mesh holds still.
+- **URL parameters.** For example `?tones=1&mesh=pointer&lines=0`. Every change in the panel is written back to the URL with `replaceState`, so a state can be reloaded, bookmarked or sent. `tones` and `lines` take `1`/`0` (or `on`/`off`); `mesh` takes `off`, `static` or `pointer`. Unreadable values fall back to the defaults.
+- **Production.** The panel and the URL parameters exist only under `pnpm dev`. They're gated on `import.meta.env.DEV`, so a build uses `SURFACE_DEFAULTS` and nothing else (proof under Verified, below).
+
+### Where it lives
+
+Everything is in `src/features/surface/`, a self-contained slice that's easy to delete. Two shared files changed, both additively, so the branch should rebase cleanly onto the five fixes being made on `look/drawing-office`:
+
+- `src/app/App.tsx`: one import, and `<Surface />` after the footer.
+- `src/ui/tokens/tokens.css`: a new `:root` block appended at the end, holding the four `--color-paper-*` tones and `--color-paper-line-hover`. No existing token changed.
+
+What's in the folder:
+
+| File                                       | What it is                                                                                                                             |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `settings.ts`                              | The modes, `SURFACE_DEFAULTS`, URL parsing and writing, and `effectiveMesh` (pointer falls back to static).                            |
+| `surfaceStore.ts`, `useSurfaceSettings.ts` | A tiny external store (`useSyncExternalStore`). It reads and writes the URL only in dev.                                               |
+| `Surface.tsx`                              | Sets `data-tones` on the root (in a layout effect, so before the first paint). Lazy-loads the mesh. In dev only, lazy-loads the panel. |
+| `surface.css`                              | The tone mapping and plate fade, the firmer `line-hover` on the tones, and the mesh's stacking.                                        |
+| `MeshCanvas.tsx`, `useMeshCanvas.ts`       | The mesh's layer and its drawing loop, which runs on events only.                                                                      |
+| `mesh.ts`                                  | The triangulation: a seeded, jittered lattice. Pure and unbounded.                                                                     |
+| `shading.ts`                               | The light, facet normals, Lambert shade, the dent profile, the fill maths and easing.                                                  |
+| `falloff.ts`                               | The quiet round the drawings.                                                                                                          |
+| `meshFacets.ts`, `meshLook.ts`             | The facets for a patch of page, and every parameter, set per width.                                                                    |
+| `canvasWindow.ts`                          | The canvas's band of the page and its pixel ratio.                                                                                     |
+| `SurfacePanel.tsx`                         | The dev panel.                                                                                                                         |
+| `*.test.ts(x)`                             | 49 tests: 42 over the pure parts, 7 over the component.                                                                                |
+
+### A. Chapter tones
+
+**How.** The machinery was already there: the `--color-tone-*` tokens, the `.chapter-tone` plate behind each chapter, and `useNavTone`, which keeps the solid top bar in the colour of the page under it. With `data-tones` on the root:
+
+- Each chapter's tone token points at its `--color-paper-*` token.
+- The plate fades in from the chapter before, as the dark look's did. The fade runs 360px, 70vh into Burpees, and Contact fades back to the paper over its whole height.
+
+The top bar, and every pinned stage's `bg-surface` backing, follow the tone automatically. The hairline that starts each chapter stays.
+
+**The tones.** They are one paper family that steps a little deeper into the work and comes back out:
+
+- The hero is the plain paper.
+- Wayfinder is a touch bluer, the cyanotype's cast.
+- Physio is a step deeper, leaning towards the practice's teal.
+- Burpees is the deepest, a graphite grey.
+- About comes back towards the paper.
+- Contact fades back to the hero's paper, so the page ends where it began.
+
+Every tone sits within OKLCH lightness 93.8–96.6%, chroma at most 0.007 and hue 209–236°. The plain paper is hue 197° at chroma 0.002, so all of them read as the same cool grey. Neighbouring steps are ΔE 0.7–2.0 (OKLab × 100). That's enough to feel the room change as you cross into a chapter, without ever seeing a colour.
+
+| Chapter       | Token                     | Value     | OKLCH             | ink   | muted | dim-muted | red pen (accent) | accent-strong | danger | line-field | line-strong | line-hover (firmed) | teal |
+| ------------- | ------------------------- | --------- | ----------------- | ----- | ----- | --------- | ---------------- | ------------- | ------ | ---------- | ----------- | ------------------- | ---- |
+| Hero, Contact | surface (unchanged)       | `#F2F4F4` | 96.6% 0.002 197°  | 14.92 | 7.13  | 5.40      | 4.95             | 6.81          | 5.92   | 3.51       | 5.50        | 3.03 (not firmed)   | 4.56 |
+| Wayfinder     | `--color-paper-wayfinder` | `#EBF0F3` | 95.2% 0.0067 234° | 14.35 | 6.86  | 5.19      | 4.76             | 6.54          | 5.69   | 3.37       | 5.29        | 3.15                | 4.38 |
+| Physio        | `--color-paper-physio`    | `#E8EEEF` | 94.5% 0.0066 209° | 14.05 | 6.72  | 5.08      | 4.66             | 6.41          | 5.57   | 3.30       | 5.18        | 3.09                | 4.29 |
+| Burpees       | `--color-paper-burpees`   | `#E8EBED` | 93.8% 0.0042 236° | 13.76 | 6.58  | 4.98      | 4.57             | 6.27          | 5.46   | 3.23       | 5.07        | 3.02                | 4.20 |
+| About         | `--color-paper-about`     | `#EEF2F3` | 95.8% 0.0045 214° | 14.61 | 6.99  | 5.29      | 4.85             | 6.67          | 5.80   | 3.43       | 5.39        | 3.21                | 4.47 |
+
+All values are WCAG ratios. dim-ink equals muted, so it isn't listed separately.
+
+- **The red pen sets the floor.** As text it needs a paper luminance of at least 0.815 for 4.5:1. Burpees sits at 0.827 (4.57:1), so there's no room to go any deeper.
+- **The fainter pencil, firmed.** On the deeper tones, `line-hover` (the figures' stepped-back edges, and a text link's underline) would have dropped below 3:1, to 2.79 on Burpees. Inside a toned chapter it becomes `--color-paper-line-hover` (`#7F888C`), which keeps 3:1 on every paper. The hero keeps the original.
+- **Tests.** `tones.test.ts` pins every text role at 4.5:1 and `line-field` at 3:1 on each paper, the drawings' line-strong, firmed line-hover and teal at 3:1, and the family itself (within 12 levels of the paper on every channel, cool, a spread of no more than 10).
+
+**Cost.** CSS only: one attribute and about 1.0 kB of stylesheet (0.26 kB gzipped), shared with the mesh rules. There's no script work per frame beyond what `useNavTone` already did.
+
+### B. The mesh
+
+**What it is.** A surveyor's triangulation in the paper's own surface. Picture a sheet of drafting film that isn't quite flat, lit from the upper left the way a drafting table is lit (from the left, so a right hand never shadows the line it's drawing).
+
+- **The net.** Near-equilateral triangles on a lattice, each vertex nudged off it by a seeded jitter, so it reads as measured rather than ruled.
+- **Its relief.** Each vertex sits a little above or below the sheet: mostly a slow swell across three or four cells, plus a little of each vertex's own.
+- **Its shading.** Each facet is lighter or darker than flat paper by how much more or less it faces the light (Lambert's cosine, less the flat sheet's). Flat paper is exactly the paper colour, so the mesh breaks the page into facets without shifting its overall tone. The quiet zones round the diagrams therefore have the same average tone as open paper, and show no halo.
+
+**Parameters** (`meshLook.ts`, at 1440 wide):
+
+| Parameter                | Value                                                                                                                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cell (a triangle's side) | width ÷ 8, between 128 and 196px. 180px at 1440, 128px at 390.                                                                                                                                                  |
+| Jitter                   | 0.2 of a cell on each axis. A test pins that no triangle folds below 0.25.                                                                                                                                      |
+| Relief                   | ±0.11 of a cell. A swell 3.5 cells long, roughness 0.35.                                                                                                                                                        |
+| Light                    | From 225° (upper left), 38° above the sheet.                                                                                                                                                                    |
+| Gain                     | 24 sRGB levels per unit of shade.                                                                                                                                                                               |
+| What that gives          | Facets within −1.4 to +1.6 levels of the paper. 80% within ±0.95. Neighbouring facets differ by 0.5 levels on average.                                                                                          |
+| Shadow ceiling           | No facet darkens the paper by more than 1.5 levels. That keeps the red pen at 4.50:1 on the deepest paper, Burpees (`tones.test.ts` pins it). The lit side has no ceiling, since lightening only adds contrast. |
+| Dent (pointer)           | Radius 1.6 cells. Depth 0.28 of a cell, on a (1 − t²)² profile with no crease at the centre or rim. Under it, facets range from −1.5 (capped) to +2.5 levels.                                                   |
+| Dent timing              | Follows the pointer with a 90ms time constant. Presses in over 160ms. Lets go over 420ms when the pointer leaves the window or the window loses focus.                                                          |
+| Quiet round the diagrams | The mesh holds 6% of its strength on and within 12px of a diagram, then smoothsteps back to full over 18% of the width (140–280px; 259px at 1440).                                                              |
+| Phones (below 621px)     | 0.6 of the strength. Facets stay within ±0.8 levels: in practice, next to invisible.                                                                                                                            |
+| Pencil lines (extra)     | Ink at 1.4% along each facet edge, about 2.8% where two facets share one.                                                                                                                                       |
+| Canvas                   | 1.6 screens tall (0.3 of a screen of overscan each side). Pixel ratio is the device's capped at 1.5, and lower if the canvas would pass 4 megapixels.                                                           |
+
+**Fixed or scrolling: it scrolls with the page.** It's the paper's surface, so it should travel with what's written on it. A fixed texture would slide under the text as a second plane, which is a parallax, the move unslop flags. Chris also described texture you pass "as we read and scroll down". How it works:
+
+- **No lag.** The canvas is anchored to the page, not the window: a band a little taller than the screen, moved along in steps of half the overscan. The compositor scrolls it with the content, frame for frame. A window-fixed canvas redrawn on scroll would lag the content by a frame under threaded scrolling.
+- **When it redraws.** Only when its band moves on, when a pinned diagram moves against the page, on a resize or a change in page height, or (in Pointer mode) when the mouse moves. The dent's easing runs frames only until it settles. Nothing redraws while the tab is hidden, and the canvas redraws from scratch when the tab comes back.
+
+**Behind the content, in front of the tones.** Each chapter's tone plate sits at `z-index: -1` inside the chapter, which isolates it. With the mesh on, `.chapter-tone` switches to `isolation: auto`, so the plates join the page's own stacking context. The mesh's layer is `z-index: -1` too, but later in the page, so it paints over the plates and under every line of content. Checked by screenshot:
+
+- The highlighter (`mix-blend-mode: multiply`) still blends.
+- A physio journey and the Wayfinder demo run as before.
+- The chat widget, the menus and the drawers sit over the mesh.
+
+The layer is `aria-hidden`, has `pointer-events: none`, and is floored to the page's height so it can never lengthen it.
+
+**Quiet round the diagrams, from their real positions.** These elements are measured every frame the mesh draws:
+
+- the Wayfinder figure's SVG (`#work [data-bar-flush] svg[role="img"]`)
+- the physio rings' room (`[data-testid="rings-room"]`, which has its exact size before the drawing loads)
+- the Burpees count (`[data-testid="burpees-count"]`)
+
+Their `getBoundingClientRect()` plus the scroll position gives their page position. So a pinned or sticky diagram is followed as it moves against the page, and the Wayfinder figure's apart zoom is included, since the rect reflects transforms. Each one is also watched:
+
+- by a `ResizeObserver`, for a lazy drawing landing or a font arriving
+- by a `MutationObserver` on `style` and `transform`, for the figure growing as it comes apart with no scroll
+
+So the quiet keeps up even when nothing scrolls. Strength is set per facet (at its centroid), so the fade is in whole facets, and no facet steps by more than a fraction of a level.
+
+**Pointer mode (B2).**
+
+- **The dent.** Vertices near the mouse press in, and every facet's shade is recomputed from the light. The side nearer the light falls into soft shadow and the far side catches the light, which is how a dent in a sheet lit from the upper left looks.
+- **Mouse and pen only.** No touch.
+- **Fallbacks.** Without a fine, hovering pointer (`(hover: hover) and (pointer: fine)`), or with `prefers-reduced-motion: reduce`, it falls back to the static mesh.
+- **Near a diagram** the dent is quiet too, so pointing at the Wayfinder figure barely stirs the paper.
+
+**Pencil lines (my addition, off by default).** The facets alone read as a surface. A faint pencil line along every edge makes them read as a drawn survey net instead, the most literal drawing-office reading of the idea. I put it in the panel so Chris can compare (`final/desktop-4-pencil-lines-*.png`), but I wouldn't ship it, for three reasons:
+
+- It's exactly the "faint grid on the paper" this look left out, because it competes with the hairlines that carry the structure.
+- It crosses body text.
+- Its 1px lines darken the paper by about 6 levels, beyond the shadow ceiling the facets keep.
+
+**Performance.** The method: headless Chrome at 1440×900, scrolling the whole page (19,000px) at 24px a frame for 764 frames, after one pass to load the lazy chunks. Measured with CDP `Performance.getMetrics` and `requestAnimationFrame` deltas. Headless rasterises canvas in software, so treat these as a relative worst case.
+
+| Mode                               | Frames over 20ms  | p99 frame | Main-thread script | All main-thread tasks | Extra per frame vs tones only  |
+| ---------------------------------- | ----------------- | --------- | ------------------ | --------------------- | ------------------------------ |
+| Tones off, mesh off                | 0                 | 16.8ms    | 555ms              | 1,878ms               | baseline                       |
+| Tones on, mesh off                 | 1 (33ms, one-off) | 16.8ms    | 528ms              | 1,849ms               | (tones cost nothing per frame) |
+| Static                             | 0                 | 16.8ms    | 781ms              | 2,112ms               | +0.3ms script, +0.3ms tasks    |
+| Static with pencil lines           | 0                 | 16.8ms    | 902ms              | 2,217ms               | +0.5ms                         |
+| Mesh off, mouse moving (control)   | 0                 | 16.8ms    | 684ms              | 2,195ms               | baseline for the next row      |
+| Pointer, mouse moving throughout   | 0                 | 16.8ms    | 1,250ms            | 3,005ms               | +0.7ms script, +1.1ms tasks    |
+| Phone 390×844: tones only / static | 1 (one-off) / 0   | 16.8ms    | 515 / 619ms        | 1,628 / 1,550ms       | +0.1ms script                  |
+
+No mode dropped a frame that the control didn't, and the existing scroll-driven work (the rail, the build lane, the Burpees count, the figure, the rings) ran at 60fps throughout. Layout time didn't rise in any mode, so the per-frame `getBoundingClientRect` reads aren't forcing extra layouts.
+
+Memory and bundle:
+
+- **Canvas memory.** About 1440 × 1440 × 1.5² ≈ 4.7 MP ≈ 18 MB on a retina laptop, held at 4 MP, about 16 MB, on bigger screens. On a phone it's about 1.2 MP.
+- **Bundle.** The mesh is its own lazy chunk (`MeshCanvas-*.js`, 8.3 kB, 3.9 kB gzipped). It isn't preloaded and isn't fetched while the mesh is off. The main bundle grew by 0.9 kB (0.35 kB gzipped), for the store, settings and `Surface`.
+
+### Honest verdict
+
+**Tones: yes.** They answer Chris's question directly: the background now moves between sections. They do it with machinery the site already had, at no cost per frame, and with every contrast pair still at AA. In the screenshots you feel the change of room as each chapter starts without being able to name a colour. That's the right level for this look. If they ship, bake the values into the `--color-tone-*` tokens and drop the attribute.
+
+**The mesh: it doesn't earn its place, and I'd ship it off.** I've tried to make it belong (a survey net in a lit drafting sheet, quiet round every drawing, held to the paper's tone), and I think it's the most defensible version of the idea, but:
+
+- **There's no meaning in it.** Every other mark on this page means something: the dimension lines measure, the red pen picks out, the highlighter traces. The mesh is texture. unslop's test is whether decoration replaces decoration, and this look's own record left out a drafting grid for exactly that reason. A triangulation is a grid with better manners.
+- **Subtle enough means nearly invisible.** At a level that leaves text and diagrams undisturbed (±1.5 sRGB levels), it's a faint sheen on a good screen, invisible on many, and gone on phones. Strong enough to read clearly, it starts to look like the low-poly backgrounds of about 2015: swapping one trend for another, which is what unslop warns about.
+- **It competes with the work.** The Pointer mode is the nicest moment of the two, a soft press that follows the mouse. But the page's interactive moments are its three case studies, and a background that reacts to the mouse competes with them for "this is the bit you play with". That's why it's quiet near the diagrams, and it's also why it doesn't need to be there at all.
+- **It costs.** About 16–18 MB of canvas, 0.3–1.1ms of main thread per scrolled frame, and a stacking change on every chapter, for a texture.
+
+**If Chris loves it anyway:** ship Static only, desktop only, without pencil lines.
+
+- **Static only.** The mesh scrolls with the page and holds still.
+- **Desktop only.** Add a `min-width` gate at `wide` and draw nothing on phones, where it's invisible anyway.
+- **No pencil lines.**
+- **Treat Pointer as a delight only, not a default.** I'd still leave it out.
+
+### Recommended shipping defaults
+
+`SURFACE_DEFAULTS` in `settings.ts` is what a production build uses, and it's set to the recommendation:
+
+| Setting | Default | Why                                                                      |
+| ------- | ------- | ------------------------------------------------------------------------ |
+| `tones` | `true`  | Quiet, structural, free per frame, AA everywhere.                        |
+| `mesh`  | `"off"` | See the verdict. With it off, none of the mesh's code is fetched.        |
+| `lines` | `false` | Competes with the hairlines, crosses text and passes the shadow ceiling. |
+
+To ship as recommended, move the four paper values into the `--color-tone-*` tokens. Then delete `src/features/surface/` and its two lines in `App.tsx`, which drops the panel, the store and the attribute.
+
+### Verified
+
+- **Gates.** `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` all exit 0 on the final tree: 80 test files and 415 tests, up from 72 and 366. The 49 new tests cover the pure parts (42) and the component (7): the mesh's determinism, no folded triangles, full coverage with no gaps, the smooth swell, the light's direction, a facet's shade sign and symmetry, the dent profile, the fill maths, easing, the falloff's floor, its continuity and its minimum over two diagrams, a moving diagram, the dent's shadow and light sides and its release, the shadow ceiling, phones being fainter, the canvas band's coverage, stepping and ends, the pixel-ratio cap, URL parsing and writing, the pointer fallbacks, the tones' contrast and family, and the component's attributes and panel.
+- **The panel is absent from production.** After `pnpm build`, `grep -rlF` over `dist/` finds 0 files for each of `Surface (dev)`, `data-surface-panel`, `Chapter tones`, `Pencil lines`, `SurfacePanel`, `holds still here`, `replaceState`, `tones=` and `mesh=pointer`. The panel's dynamic import is dead code once `import.meta.env.DEV` is `false`, so no panel chunk is emitted, and the URL parsing is dropped with it. The mesh chunk is emitted (it's reachable if the default changes) but `dist/index.html` doesn't preload it.
+- **No sideways overflow.** At 320 and 390, in tones-only, static and pointer-with-lines, `scrollWidth − clientWidth` stays at 0 while scrolling the whole page. The page height is the same with the mesh on as off.
+- **Screenshots** at 1440×900 and 390×844 of every mode over the hero, Wayfinder and physio (baseline, tones, static, pointer, pencil lines, and the panel), plus chapter boundaries, Burpees mid-count, About, a physio journey and the Wayfinder demo with the mesh on, and the reduced-motion fallback. They're in the session scratchpad (`looks/drawing-office-surface/final/`), not the repo.
+
+### Unsure, or left undone
+
+- **Not seen on a real screen.** The mesh is tuned at ±1.5 levels in headless screenshots, and how it reads depends heavily on the display. On a wide-gamut laptop at full brightness it should show as a faint sheen; on a dim or low-contrast screen, nothing. Chris should judge it on his own screens, phone included.
+- **A gutter stripe in headless only.** With classic scrollbars, `scrollbar-gutter: stable` reserves 15px that the chapter plates don't reach, and headless screenshots show it as a pale stripe at the right with tones on. The dark look's plates had the same stripe. A real browser paints its scrollbar there, and macOS's overlay scrollbars reserve nothing.
+- **The quiet is per facet, not per pixel.** It fades in whole facets, which can't step by more than a fraction of a level, but a facet that straddles a diagram's edge takes the strength at its centre. WebGL could fade per pixel. I judged Canvas 2D enough at this strength.
+- **Which diagrams are quiet** is a list of selectors in `useMeshCanvas.ts` (`QUIET_SELECTORS`), not attributes on the diagrams. That's deliberate, to stay out of files being changed on `look/drawing-office`, but it's fragile if those elements change. The chat widget and the build lane aren't in the list: the widget is an opaque white sheet that hides the mesh, and the lane is a line, not a drawing.
+- **A pre-existing dot.** On a phone, in the physio chapter, there's a small dot at the left edge just above the picker (about x 16, y 463 at 390×844). It's in the baseline with both experiments off, so it isn't from this branch. It may be the physio fade bug being fixed on the other branch.
+- **The charter and the showcase** don't mention the surface experiments. It's a draft branch.
+
 ## Revision 2: Editorial's type and hero, merged in
 
 Chris picked Drawing office as the front-runner and asked for parts of the Editorial look (branch `look/editorial`) to be brought in. In his words: he likes the diagrams on all the work projects, finds the page quite bright (but maybe refreshingly so), and asked for the font to be more like Editorial's and for Editorial's hero set-up, leaving the project diagrams and illustrations as they are.
