@@ -11,7 +11,7 @@ interface SetCountProps {
 }
 
 /**
- * The set's count, huge in the chapter numeral's mono and ink, with the figure
+ * The set's count, huge in the chapter numeral's face and the red pen, with the figure
  * doing Navy SEALs in front of it. Its strokes thicken through the last
  * reps (`.set-strain`, on the run's `--set-p`).
  */

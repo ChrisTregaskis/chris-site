@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SCRIPTED_REPLY, SUGGESTIONS } from "./demo";
 import { ROUTE_KEYS } from "./iso";
-import { useWayfinderDemo } from "./useWayfinderDemo";
+import { LIT_HOLD_MS, useWayfinderDemo } from "./useWayfinderDemo";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -93,7 +93,7 @@ describe("useWayfinderDemo", () => {
     });
   });
 
-  it("draws each pipe on behind the pulse, then leaves it lit, and hides the pulse while it waits", async () => {
+  it("draws each pipe on behind the pulse, leaves it lit as the reply lands, and hides the pulse while it waits", async () => {
     vi.useFakeTimers();
     // A stand-in figure: the pulse and a lit line per pipe in one SVG.
     const ns = "http://www.w3.org/2000/svg";
@@ -129,10 +129,19 @@ describe("useWayfinderDemo", () => {
     expect(offset).toBeLessThan(1);
     expect(pulse.getAttribute("visibility")).toBe("visible");
 
+    // Until the reply lands, a little at a time so its route's clear (a
+    // moment later) hasn't come due.
+    for (let waited = 0; result.current.typing && waited < 20000; ) {
+      // eslint-disable-next-line no-await-in-loop
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+      waited += 50;
+    }
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(20000);
       await sent;
     });
+    expect(result.current.typing).toBe(false);
     for (const key of result.current.lit) {
       expect(line(key)?.style.strokeDasharray).toBe("");
       expect(line(key)?.style.strokeDashoffset).toBe("");
@@ -143,5 +152,86 @@ describe("useWayfinderDemo", () => {
     act(() => {
       vi.runOnlyPendingTimers();
     });
+  });
+
+  it("clears the highlighted route a moment after the reply lands", async () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useWayfinderDemo(false));
+
+    let sent: Promise<void> = Promise.resolve();
+    act(() => {
+      sent = result.current.send("Do you do vans?");
+    });
+    // Out and back on two short pipes: well under a second and a half.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+      await sent;
+    });
+    expect(result.current.typing).toBe(false);
+    expect(result.current.lit.size).toBeGreaterThan(0);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LIT_HOLD_MS);
+    });
+    expect(result.current.lit.size).toBe(0);
+  });
+
+  it("clears it under reduced motion too, once the flashed parts have gone", async () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useWayfinderDemo(true));
+
+    await act(async () => {
+      await result.current.send("Do you do vans?");
+    });
+    expect([...result.current.lit]).toEqual(["chat-bff", "bff-sup"]);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3900);
+    });
+    expect(result.current.lit.size).toBe(2);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(result.current.lit.size).toBe(0);
+    expect(result.current.hot.size).toBe(0);
+  });
+
+  it("never lets one message's clear wipe the next message's route", async () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useWayfinderDemo(false));
+    const hybrid = SUGGESTIONS.find(
+      (suggestion) => suggestion.key === "explain",
+    );
+    if (!hybrid) throw new Error("no explain pill");
+
+    let first: Promise<void> = Promise.resolve();
+    act(() => {
+      first = result.current.send("Do you do vans?");
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+      await first;
+    });
+    expect(result.current.typing).toBe(false);
+
+    // Sent again before the first route has cleared.
+    let second: Promise<void> = Promise.resolve();
+    act(() => {
+      second = result.current.send(hybrid.question, hybrid);
+    });
+    // Past when the first route would have cleared, mid-way round the second.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LIT_HOLD_MS + 100);
+    });
+    expect(result.current.typing).toBe(true);
+    expect(result.current.lit.size).toBeGreaterThan(0);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20000);
+      await second;
+    });
+    expect(lastReply(result.current.messages)).toEqual(
+      expect.objectContaining({ from: "bot", kind: "explain" }),
+    );
+    expect(result.current.lit.size).toBe(0);
   });
 });

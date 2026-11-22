@@ -1,5 +1,5 @@
 import { type RefObject, useEffect, useRef } from "react";
-import { DRAW_PLANS, drawnAt, ease, shownAt } from "./draw";
+import { DRAW_PLANS, drawGoals, drawnAt, ease, shownAt } from "./draw";
 import { STEP_ORDER } from "./story";
 
 /** How long a step takes to draw, and to undraw (a touch quicker, going back). */
@@ -39,9 +39,7 @@ export function useDrawOn(
   }, [svgRef]);
 
   useEffect(() => {
-    const goals = STEP_ORDER.map((_, index) =>
-      still || index + 1 <= current ? 1 : 0,
-    );
+    const goals = drawGoals(current, still);
 
     const paint = (index: number) => {
       const plan = DRAW_PLANS[STEP_ORDER[index]];

@@ -89,17 +89,15 @@
 
 @layer components {
   /*
-   * A case study's progress (ChapterRail), drawn as a dimension line: how far
-   * through the chapter the visitor is, measured off at the window's left
-   * edge like a book's thumb index. Its number out of the total sits over a
-   * thin pencil line between two oblique ticks, the three centred on the
-   * window's height. The red pen draws down the line as the chapter is read
-   * (from nothing as it reaches the top bar, to the whole line once its end
-   * is a third of the way up the window, by when the next chapter has taken
-   * over and anything still playing out at its end, the build lane, has
-   * finished), and once it's measured the top tick is inked in red too.
-   * The dimension line is the look's one signature: the build lane is drawn
-   * the same way, and nothing else is.
+   * A case study's progress (ChapterRail): how far through the chapter the
+   * visitor is, at the window's left edge like a book's thumb index. Its
+   * number out of the total sits over a hollow circle and a hairline rail,
+   * the three centred on the window's height, in the build lane's terms: the
+   * red pen fills the rail as the chapter is read (from nothing as it
+   * reaches the top bar, to the whole rail once its end is a third of the way
+   * up the window, by when the next chapter has taken over and anything
+   * still playing out at its end, the build lane, has finished), and once
+   * it's full the circle fills to a ringed bullet, as a lane stage does.
    *
    * Only from xl (1280px), where the page has a margin for it; any closer
    * and it crowds the content. The Wayfinder figure grows into that margin
@@ -130,9 +128,8 @@
         /* Its parts' heights, so the whole is known and can sit centred. */
         --rail-label: 16px;
         --rail-label-gap: 12px;
-        /* The top tick's box, half of it overlapping the line's top end. */
-        --rail-dot: 12px;
-        --rail-dot-gap: -6px;
+        --rail-dot: 9px;
+        --rail-dot-gap: 6px;
         --rail-track: min(40svh, 360px);
         --rail-height: calc(
           var(--rail-label) + var(--rail-label-gap) + var(--rail-dot) +
@@ -189,29 +186,26 @@
     font-weight: 400;
     color: rgb(var(--color-muted));
   }
-  /* The top tick: an oblique stroke across the line's end, inked red once the chapter is measured. */
+  /* The circle at the rail's head: hollow, then a ringed bullet once the chapter is finished. */
   .chapter-rail__dot {
     position: relative;
-    z-index: 1;
     flex: none;
     width: var(--rail-dot);
     height: var(--rail-dot);
     margin-bottom: var(--rail-dot-gap);
+    border-radius: 999px;
+    background: rgb(var(--color-surface));
+    box-shadow: inset 0 0 0 1.5px rgb(var(--color-line-field));
   }
-  .chapter-rail__dot::before,
   .chapter-rail__dot::after {
     content: "";
     position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 1.5px;
-    margin-top: -0.75px;
-    background: rgb(var(--color-line-strong));
-    transform: rotate(-45deg);
-  }
-  .chapter-rail__dot::after {
+    inset: 0;
+    border-radius: inherit;
     background: rgb(var(--color-accent));
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--color-accent)),
+      inset 0 0 0 2.5px rgb(var(--color-surface));
     opacity: 0;
     animation: chapter-rail-done linear both;
     animation-timeline: --chapter-rail;
@@ -220,26 +214,16 @@
   .chapter-rail__track {
     position: relative;
     flex: none;
-    width: 1px;
+    width: 2px;
     height: var(--rail-track);
-    background: rgb(var(--color-line-strong));
-  }
-  /* The bottom tick, matching the top. */
-  .chapter-rail__track::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: var(--rail-dot);
-    height: 1.5px;
-    margin: 0 0 -0.75px calc(var(--rail-dot) / -2);
-    background: rgb(var(--color-line-strong));
-    transform: rotate(-45deg);
+    border-radius: 2px;
+    background: rgb(var(--color-line));
+    overflow: hidden;
   }
   .chapter-rail__fill,
   .chapter-rail__done {
     position: absolute;
-    inset: 0 -0.5px;
+    inset: 0;
   }
   .chapter-rail__fill {
     transform-origin: top;
@@ -269,7 +253,7 @@
       transform: scaleY(1);
     }
   }
-  /* The last stretch of the read: the chapter settles as the line fills. */
+  /* The last stretch of the read: the chapter settles as the rail fills. */
   @keyframes chapter-rail-done {
     from {
       opacity: 0;
@@ -303,10 +287,11 @@
    * and 390x844), each in its own chapter's terms, at every width. None of
    * them is drawn under reduced motion.
    *
-   * How it was built: while the lane is pinned, only its red line grew. The
-   * lane is a dimension line, so the red pen now draws it with an arrowhead
-   * at its tip, riding the progress the lane already writes (--p). It fades
-   * in off Spec and out onto Ship. No glow and no trail: a nib, not a spark.
+   * How it was built: while the lane is pinned, only its 3px line grew. A
+   * spark now rides the head of the line, the build running through the
+   * stages, on the progress the lane already writes (--p). It fades in off
+   * Spec and out onto Ship. (The Editorial look's lane, in the red pen: its
+   * trail is left out, as a red trail on the red line would not show.)
    */
   .build-head {
     position: absolute;
@@ -315,37 +300,35 @@
     transform: translate3d(0, calc(var(--p, 0) * 100%), 0);
     opacity: clamp(0, min(var(--p, 0), 1 - var(--p, 0)) * 25, 1);
   }
-  /* The arrowhead, its tip on the line's centre (see BuildStory): 10.5px in, stacked, pointing down. */
+  /* The spark, on the line's centre (see BuildStory): 10.5px in, stacked. */
   .build-head::before {
     content: "";
     position: absolute;
     left: 10.5px;
     top: 0;
-    width: 9px;
-    height: 12px;
-    margin: -12px 0 0 -4.5px;
-    background: rgb(var(--color-accent));
-    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    width: 11px;
+    height: 11px;
+    margin: -5.5px;
+    border-radius: 999px;
+    background: rgb(var(--color-signal));
+    /* A ring of paper round it, so it reads as a mark on the line, not a glow. */
+    box-shadow: 0 0 0 3px rgb(var(--color-surface));
   }
   @screen wide {
     /*
      * Side by side, the head's box is the lane's width laid out to its left,
-     * the arrowhead on its right edge: carried right, it never runs past the
+     * the spark on its right edge: carried right, it never runs past the
      * window, which would let the page scroll sideways.
      */
     .build-head {
       inset: 0 100% 0 -100%;
       transform: translate3d(calc(var(--p, 0) * 100%), 0, 0);
     }
-    /* 12.5px down, side by side, pointing right. */
+    /* 12.5px down, side by side. */
     .build-head::before {
       left: auto;
       right: 0;
       top: 12.5px;
-      width: 12px;
-      height: 9px;
-      margin: -4.5px 0 0;
-      clip-path: polygon(0 0, 100% 50%, 0 100%);
     }
   }
 

@@ -36,6 +36,22 @@ export function stepAtFocus(
   return index + 1;
 }
 
+/**
+ * The selection once step `left` (1-based) has left the focus band, its top
+ * now at `top`. Scrolled back above the first step (its top gone below the
+ * line), nothing is selected again (0), so a story can undo its first step
+ * the way it undoes the others; anything else leaves the selection as it is
+ * until another step crosses the band.
+ */
+export function selectionAfterLeaving(
+  current: number,
+  left: number,
+  top: number,
+  focusY: number,
+): number {
+  return left === 1 && current === 1 && top > focusY ? 0 : current;
+}
+
 /** Where a click lines its card up: its middle on the focus line, or its bottom near the viewport's bottom. */
 export type FocusAlign = "focus" | "end";
 

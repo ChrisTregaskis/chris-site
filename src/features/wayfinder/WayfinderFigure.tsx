@@ -136,10 +136,23 @@ function Faces({
 
 const LABEL = "font-body text-[13px] font-medium fill-muted";
 
-function PartBadge({ badge, on }: { badge: Badge; on: boolean }) {
+/**
+ * A drawing's item balloon: a thin leader up to a circled number. The balloon
+ * is always solid paper with a firm edge, so its number reads over any line
+ * work behind it; another part in focus steps it back by colour (a muted
+ * number), never by opacity, which let the drawing show through.
+ */
+function PartBadge({
+  badge,
+  on,
+  dim,
+}: {
+  badge: Badge;
+  on: boolean;
+  dim: boolean;
+}) {
   return (
     <>
-      {/* A drawing's item balloon: a thin leader up to a circled number. */}
       <line {...badge.lead} className="stroke-line-strong stroke-[0.9]" />
       <g>
         <circle
@@ -149,8 +162,8 @@ function PartBadge({ badge, on }: { badge: Badge; on: boolean }) {
           className={cn(
             "fill-figure-top transition-[stroke,stroke-width] duration-state motion-reduce:transition-none max-wide:[r:24px]",
             on
-              ? "stroke-accent stroke-[1.8]"
-              : "stroke-line-strong stroke-[1.1]",
+              ? "stroke-accent stroke-[1.9]"
+              : "stroke-line-strong stroke-[1.5]",
           )}
         />
         <text
@@ -159,8 +172,8 @@ function PartBadge({ badge, on }: { badge: Badge; on: boolean }) {
           textAnchor="middle"
           dominantBaseline="central"
           className={cn(
-            "font-code text-[16px] font-medium max-wide:text-[26px]",
-            on ? "fill-accent" : "fill-ink",
+            "font-code text-[16px] font-medium transition-[fill] duration-state motion-reduce:transition-none max-wide:text-[26px]",
+            on ? "fill-accent" : dim ? "fill-muted" : "fill-ink",
           )}
         >
           {badge.n}
@@ -638,13 +651,7 @@ export function WayfinderFigure({
               key={part}
               ref={register(`badge:${part}`)}
               onClick={() => onPart(part)}
-              className={cn(
-                "cursor-pointer transition-opacity duration-state motion-reduce:transition-none",
-                selected !== null &&
-                  selected !== part &&
-                  !hot.has(part) &&
-                  "opacity-60",
-              )}
+              className="cursor-pointer"
             >
               <g ref={register(`badge-face:${part}`)}>
                 <PartBadge
@@ -654,6 +661,7 @@ export function WayfinderFigure({
                       ? selected === "cloud" || hot.has("cloud")
                       : selected === part
                   }
+                  dim={selected !== null && selected !== part && !hot.has(part)}
                 />
               </g>
             </g>

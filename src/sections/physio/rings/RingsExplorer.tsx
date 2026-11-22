@@ -104,6 +104,9 @@ export function RingsExplorer() {
     measure,
     reducedMotion: still,
     enabled: !still,
+    // Scrolled back above the edge, it undraws and its words fade, as every
+    // other step does going back.
+    noneAbove: true,
   });
   const journey = useJourney(still);
   const { cancel, run } = journey;

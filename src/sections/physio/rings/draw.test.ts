@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DRAW_PLANS,
+  drawGoals,
   drawnAt,
   type DrawPlan,
   ease,
@@ -161,6 +162,26 @@ describe("drawing the rings", () => {
           }
         }
       }
+    }
+  });
+
+  it("undraws the first step too, once nothing is selected (scrolled back above it)", () => {
+    // Every step up to the current one is drawn...
+    expect(drawGoals(2, false)).toEqual([1, 1, 0, 0, 0, 0]);
+    expect(drawGoals(1, false)).toEqual([1, 0, 0, 0, 0, 0]);
+    // ...and with none selected, the edge's goal is undrawn like the rest.
+    expect(drawGoals(0, false)).toEqual([0, 0, 0, 0, 0, 0]);
+    // Static, everything is drawn whatever the selection.
+    expect(drawGoals(0, true)).toEqual([1, 1, 1, 1, 1, 1]);
+
+    // Walked back to nothing, the edge leaves no line and no icon behind.
+    const edge = DRAW_PLANS.edge;
+    const p = ease(0);
+    for (const stroke of edge.strokes) {
+      expect(drawnAt(stroke, p), stroke.key).toBe(0);
+    }
+    for (const fade of edge.fades) {
+      expect(shownAt(fade, p), fade.key).toBe(0);
     }
   });
 

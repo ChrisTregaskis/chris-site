@@ -6,7 +6,7 @@ import {
   type RouteKey,
   ROUTES,
 } from "./geometry";
-import { type StepId } from "./story";
+import { STEP_ORDER, type StepId } from "./story";
 import { polylineLength, type XY } from "@/lib/polyline";
 
 /*
@@ -251,6 +251,21 @@ export const DRAW_PLANS: Record<StepId, DrawPlan> = {
   queue: planFor("queue"),
   direct: planFor("direct"),
 };
+
+/**
+ * Which steps are drawn (1) or undrawn (0) at a selection: every step up to
+ * and including the current one (1-based; 0 is none, scrolled back above
+ * the first, which undraws them all). Static, everything is drawn.
+ */
+export function drawGoals(
+  current: number,
+  still: boolean,
+  steps = STEP_ORDER.length,
+): number[] {
+  return Array.from({ length: steps }, (_, index) =>
+    still || index + 1 <= current ? 1 : 0,
+  );
+}
 
 /** How much of a line is drawn at a step's progress, 0 to 1. */
 export function drawnAt(stroke: StrokeTiming, progress: number): number {
