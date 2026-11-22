@@ -48,8 +48,9 @@ export function LayoutSection() {
         its numeral hidden until hovered. Below the wide breakpoint the nav
         links hide and a PhoneMenu takes their place. From 1280px, its
         ChapterRail is at the window&apos;s left edge while it&apos;s in view:
-        its number out of the total, over a ring and a rail that fills as you
-        scroll past, the ring filling once it&apos;s read.
+        its number out of the total, over a hollow circle and a hairline rail
+        that the red pen fills as you scroll past, the circle filling to a
+        ringed bullet once it&apos;s read.
       </p>
       <div className="relative">
         <ChapterRail numeral="1" total="2" />

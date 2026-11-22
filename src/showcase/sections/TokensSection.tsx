@@ -19,11 +19,24 @@ const COLOURS = [
     use: "Chapter 3's ground",
   },
   { name: "tone-about", swatch: "bg-tone-about", use: "About's ground" },
-  { name: "panel", swatch: "bg-panel", use: "Dropdown lists, popovers" },
-  { name: "raised", swatch: "bg-raised", use: "Raised surfaces" },
+  { name: "panel", swatch: "bg-panel", use: "A step down from the paper" },
+  { name: "raised", swatch: "bg-raised", use: "Two steps down" },
+  {
+    name: "sheet",
+    swatch: "bg-sheet",
+    use: "What floats over the paper: menus, drawers",
+  },
   { name: "line", swatch: "bg-line", use: "Borders and rules" },
-  { name: "line-strong", swatch: "bg-line-strong", use: "Figure strokes" },
-  { name: "line-hover", swatch: "bg-line-hover", use: "Hover border" },
+  {
+    name: "line-strong",
+    swatch: "bg-line-strong",
+    use: "Pencil: drawn edges, secondary link underline",
+  },
+  {
+    name: "line-hover",
+    swatch: "bg-line-hover",
+    use: "Fainter pencil: edges stepped back, text link underline",
+  },
   {
     name: "line-field",
     swatch: "bg-line-field",
@@ -39,18 +52,27 @@ const COLOURS = [
   {
     name: "accent",
     swatch: "bg-accent",
-    use: "Primary button, link underline, active",
+    use: "The red pen: primary button, step numerals, the part in focus",
   },
   {
     name: "accent-strong",
     swatch: "bg-accent-strong",
-    use: "Chapter numerals",
+    use: "Primary button on hover",
   },
   { name: "on-accent", swatch: "bg-on-accent", use: "Text on accent" },
-  { name: "signal", swatch: "bg-signal", use: "Focus ring, pressed" },
+  {
+    name: "signal",
+    swatch: "bg-signal",
+    use: "The red pen again: focus ring, a pulse, a wall that holds",
+  },
+  {
+    name: "marker",
+    swatch: "bg-marker",
+    use: "The highlighter: what a journey or message passed through",
+  },
   { name: "danger", swatch: "bg-danger", use: "Invalid border" },
   { name: "danger-ink", swatch: "bg-danger-ink", use: "Error text" },
-  { name: "scrim", swatch: "bg-scrim/[0.66]", use: "Drawer backdrop (66%)" },
+  { name: "scrim", swatch: "bg-scrim/40", use: "Drawer backdrop (40%)" },
 ];
 
 const TYPE_SCALE = [

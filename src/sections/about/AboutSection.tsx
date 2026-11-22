@@ -3,9 +3,7 @@ import { Section } from "@/ui/molecules/Section";
 
 /**
  * About: two paragraphs and a photo of Chris with his son, set square on
- * the sheet like a print pinned to a drawing: no mask, no drift. (The
- * splash-shaped mask that morphed on scroll, `blob.ts`, is left in place
- * but unused in this look.)
+ * the sheet like a print pinned to a drawing: no mask, no drift.
  */
 export function AboutSection() {
   return (

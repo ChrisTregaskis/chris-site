@@ -391,3 +391,54 @@
     --color-muted: var(--color-dim-muted);
   }
 }
+
+/* The select's open list, drawn in the site's look where the browser allows
+   it (customisable select, Chromium 135+), on a mouse only: phones keep their
+   own native picker, and other browsers keep the system menu in light mode. */
+@supports (appearance: base-select) {
+  @media (hover: hover) and (pointer: fine) {
+    .field-select,
+    .field-select::picker(select) {
+      appearance: base-select;
+    }
+
+    .field-select::picker-icon {
+      display: none;
+    }
+
+    .field-select::picker(select) {
+      margin-top: 4px;
+      padding: 4px 0;
+      border: 1px solid rgb(var(--color-line-strong));
+      border-radius: 0;
+      background: rgb(var(--color-sheet));
+      color: rgb(var(--color-ink));
+    }
+
+    .field-select option {
+      padding: 8px 14px;
+      font: inherit;
+      font-size: 16px;
+      color: rgb(var(--color-ink));
+    }
+
+    .field-select option::checkmark {
+      display: none;
+    }
+
+    .field-select option:hover,
+    .field-select option:focus-visible {
+      outline: none;
+      background: rgb(var(--color-panel));
+    }
+
+    .field-select option:checked {
+      color: rgb(var(--color-accent-strong));
+      box-shadow: inset 2px 0 0 rgb(var(--color-accent));
+    }
+
+    .field-select option[value=""] {
+      color: rgb(var(--color-muted));
+    }
+  }
+}
