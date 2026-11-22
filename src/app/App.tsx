@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import { CVDrawer, CVRequestButton } from "@/features/cv-request";
 import { EnquiryButton, EnquiryDrawer } from "@/features/enquiry";
-import { Surface } from "@/features/surface";
+import { DevPanelSlot } from "@/features/dev-panel";
+import { DrawerSurface, Surface } from "@/features/surface";
 import { AboutSection } from "@/sections/about/AboutSection";
 import { BurpeesSection } from "@/sections/burpees/BurpeesSection";
 import { Contact } from "@/sections/contact/Contact";
@@ -98,8 +99,9 @@ export function App() {
         </p>
       </Container>
       <Surface />
-      <EnquiryDrawer />
-      <CVDrawer />
+      <EnquiryDrawer surface={<DrawerSurface />} />
+      <CVDrawer surface={<DrawerSurface />} />
+      <DevPanelSlot />
     </>
   );
 }

@@ -181,6 +181,9 @@ export default {
         "fade-up": "fade-up var(--duration-enter) var(--ease-enter)",
         "stage-reached": "stage-reached var(--duration-slow) var(--ease-enter)",
         "typing-dot": "typing-dot 1s infinite",
+        // The paper's mesh as it first arrives, after the page has loaded:
+        // eased in, so it never pops (none under reduced motion).
+        "surface-in": "menu-in var(--duration-slow) var(--ease-enter)",
       },
     },
   },

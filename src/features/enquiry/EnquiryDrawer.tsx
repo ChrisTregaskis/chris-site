@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { useEnquiry } from "./EnquiryContext";
 import {
   ENQUIRY_DONE_TITLE_ID,
@@ -8,11 +9,17 @@ import { DrawerHeader } from "@/ui/molecules/DrawerHeader";
 import { Drawer } from "@/ui/organisms/Drawer";
 
 /** The enquiry in a drawer (bottom sheet on phones), opened by any EnquiryButton. */
-export function EnquiryDrawer() {
+export interface EnquiryDrawerProps {
+  /** What lies under the form (see Drawer's surface). */
+  surface?: ReactNode;
+}
+
+export function EnquiryDrawer({ surface }: EnquiryDrawerProps) {
   const { drawerOpen, closeDrawer, status } = useEnquiry();
 
   return (
     <Drawer
+      surface={surface}
       open={drawerOpen}
       onClose={closeDrawer}
       labelledBy={

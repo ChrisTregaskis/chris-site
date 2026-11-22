@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { MAX_SHADOW } from "./meshLook";
+import { MAX_SHADOW, PENCIL, meshLookFor } from "./meshLook";
+import { endsReach, reachAt } from "./reach";
+import { LAYOUTS, type SampleLayout } from "./sampleLayouts";
 import { shadeFill } from "./shading";
 
 const tokens = readFileSync(
@@ -101,27 +103,95 @@ describe("chapter tones", () => {
   });
 });
 
+/** The colour under the mesh at page y, as the tone plates paint it. */
+function paperAt(y: number, layout: SampleLayout): number[] {
+  const tone = (name: string) =>
+    name === "base" ? colours.surface : colours[`paper-${name}`];
+  const fade = (from: string, to: string, top: number, feather: number) => {
+    const t = Math.min(1, Math.max(0, (y - top) / feather));
+    return tone(from).map((c, i) => c + (tone(to)[i] - c) * t);
+  };
+  if (y < layout.workTop) return tone("base");
+  if (y < layout.physioTop) {
+    return fade("base", "wayfinder", layout.workTop, 360);
+  }
+  if (y < layout.burpeesTop) {
+    return fade("wayfinder", "physio", layout.physioTop, 360);
+  }
+  if (y < layout.aboutTop) {
+    return fade(
+      "physio",
+      "burpees",
+      layout.burpeesTop,
+      0.7 * layout.viewHeight,
+    );
+  }
+  if (y < layout.contactTop) {
+    return fade("burpees", "about", layout.aboutTop, 360);
+  }
+  return fade(
+    "about",
+    "base",
+    layout.contactTop,
+    layout.pageBottom - layout.contactTop,
+  );
+}
+
+function contrastWith(text: string, rgb: number[]): number {
+  colours["under-mesh"] = rgb;
+  return contrast(text, "under-mesh");
+}
+
 describe("the mesh over the tones", () => {
-  it("never takes text below AA: the darkest facet on the deepest paper still holds 4.5:1", () => {
-    // As useMeshCanvas paints: the paper level between the plain paper and
-    // the deepest chapter paper, ink as the shadow colour.
-    const mean = (rgb: number[]) => (rgb[0] + rgb[1] + rgb[2]) / 3;
-    const paperLevel =
-      (mean(colours.surface) + mean(colours["paper-burpees"])) / 2;
-    const { alpha } = shadeFill(-MAX_SHADOW, paperLevel, mean(colours.ink));
-    for (const paper of ["surface", ...PAPERS]) {
-      colours[`${paper}-shadowed`] = colours[paper].map(
-        (c, i) => c * (1 - alpha) + colours.ink[i] * alpha,
-      );
-      for (const text of ["accent", "dim-muted", "danger"]) {
-        expect(
-          contrast(text, `${paper}-shadowed`),
-          `${text} on ${paper} under the darkest facet`,
-        ).toBeGreaterThanOrEqual(4.5);
+  const mean = (rgb: number[]) => (rgb[0] + rgb[1] + rgb[2]) / 3;
+  // As paintMesh draws it: the paper level between the plain paper and the
+  // deepest chapter paper, ink for the shadows and the pencil.
+  const paperLevel =
+    (mean(colours.surface) + mean(colours["paper-burpees"])) / 2;
+  const shadow = shadeFill(-MAX_SHADOW, paperLevel, mean(colours.ink)).alpha;
+  const over = (rgb: number[], alpha: number) =>
+    rgb.map((c, i) => c * (1 - alpha) + colours.ink[i] * alpha);
+  // The canvas keeps alpha in 8 bits and dithers its gradients: allow a
+  // level and a half of alpha more than asked for (as measured in Chrome).
+  const PENCIL_AS_DRAWN = PENCIL + 1.5 / 255;
+
+  for (const [name, layout] of Object.entries(LAYOUTS)) {
+    it(`${name}: keeps every text role at AA wherever a pencil line crosses the darkest facet, all down the page`, () => {
+      const reach = endsReach(layout);
+      const strength = meshLookFor(
+        name === "desktop" || name === "wide" ? 1440 : 390,
+        0,
+      ).strength;
+      let tightest = Infinity;
+      for (let y = 0; y <= layout.pageBottom; y += 4) {
+        // The reach scales the facets and the lines alike (a gradient in both).
+        const r = reachAt(y, reach) * strength;
+        const under = over(
+          over(paperAt(y, layout), shadow * r),
+          PENCIL_AS_DRAWN * r,
+        );
+        for (const text of ["ink", "muted", "dim-muted", "accent", "danger"]) {
+          const ratio = contrastWith(text, under);
+          tightest = Math.min(tightest, ratio);
+          expect(ratio, `${text} at y ${y}`).toBeGreaterThanOrEqual(4.5);
+        }
       }
-      expect(
-        contrast("line-field", `${paper}-shadowed`),
-      ).toBeGreaterThanOrEqual(3);
+      expect(tightest).toBeLessThan(4.6); // The pencil is as strong as AA allows.
+    });
+  }
+
+  it("holds the same on the drawer's paper, where the mesh is weaker still", () => {
+    const under = over(over(colours.surface, shadow), PENCIL_AS_DRAWN);
+    for (const text of ["ink", "muted", "accent", "danger-ink"]) {
+      expect(contrastWith(text, under), text).toBeGreaterThanOrEqual(4.5);
     }
+  });
+
+  it("under a line on the About paper with the darkest facet, the red pen is the tightest, at 4.5:1", () => {
+    const under = over(over(colours["paper-about"], shadow), PENCIL_AS_DRAWN);
+    expect(contrastWith("accent", under)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastWith("accent", under)).toBeLessThan(4.6);
+    expect(contrastWith("muted", under)).toBeGreaterThan(6);
+    expect(contrastWith("ink", under)).toBeGreaterThan(13);
   });
 });

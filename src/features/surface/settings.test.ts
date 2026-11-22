@@ -1,33 +1,15 @@
 import { describe, expect, it } from "vitest";
-import {
-  SURFACE_DEFAULTS,
-  effectiveMesh,
-  parseSurfaceParams,
-  withSurfaceParams,
-} from "./settings";
+import { SURFACE_DEFAULTS, effectiveMesh } from "./settings";
 
-describe("surface settings from the URL", () => {
-  it("reads tones, mesh and lines", () => {
-    expect(
-      parseSurfaceParams("?tones=0&mesh=pointer&lines=1", SURFACE_DEFAULTS),
-    ).toEqual({ tones: false, mesh: "pointer", lines: true });
-    expect(
-      parseSurfaceParams("?tones=on&mesh=static", SURFACE_DEFAULTS),
-    ).toEqual({ ...SURFACE_DEFAULTS, tones: true, mesh: "static" });
-  });
-
-  it("keeps the fallback for anything missing or unreadable", () => {
-    expect(parseSurfaceParams("", SURFACE_DEFAULTS)).toEqual(SURFACE_DEFAULTS);
-    expect(
-      parseSurfaceParams("?tones=maybe&mesh=wobbly", SURFACE_DEFAULTS),
-    ).toEqual(SURFACE_DEFAULTS);
-  });
-
-  it("writes them back, keeping the other parameters, and reads back the same", () => {
-    const settings = { tones: false, mesh: "static", lines: true } as const;
-    const search = withSurfaceParams("?utm=x", settings);
-    expect(search).toContain("utm=x");
-    expect(parseSurfaceParams(search, SURFACE_DEFAULTS)).toEqual(settings);
+describe("the surface's production defaults", () => {
+  it("are the chapter tones, and the pencil mesh with the pointer at the page's ends; the drawers plain", () => {
+    expect(SURFACE_DEFAULTS).toEqual({
+      tones: true,
+      mesh: "pointer",
+      lines: true,
+      reach: "ends",
+      drawer: "plain",
+    });
   });
 });
 

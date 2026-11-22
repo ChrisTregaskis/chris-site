@@ -1,14 +1,21 @@
+import { type ReactNode } from "react";
 import { useCVRequest } from "./CVRequestContext";
 import { CV_DONE_TITLE_ID, CV_TITLE_ID, CVRequestForm } from "./CVRequestForm";
 import { DrawerHeader } from "@/ui/molecules/DrawerHeader";
 import { Drawer } from "@/ui/organisms/Drawer";
 
 /** The CV request in a drawer (bottom sheet on phones), opened by any CVRequestButton. */
-export function CVDrawer() {
+export interface CVDrawerProps {
+  /** What lies under the form (see Drawer's surface). */
+  surface?: ReactNode;
+}
+
+export function CVDrawer({ surface }: CVDrawerProps) {
   const { drawerOpen, closeDrawer, status } = useCVRequest();
 
   return (
     <Drawer
+      surface={surface}
       open={drawerOpen}
       onClose={closeDrawer}
       labelledBy={status === "success" ? CV_DONE_TITLE_ID : CV_TITLE_ID}
