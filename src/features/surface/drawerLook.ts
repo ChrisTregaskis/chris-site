@@ -6,27 +6,30 @@ import { type Reach } from "./reach";
 export const DRAWER_QUIET =
   'input, textarea, select, button, [role="alert"], [id$="-error"]';
 
-/** The drawer's mesh: the page's pencil mesh, still and three quarters as strong. */
-export const DRAWER_STRENGTH = 0.75;
-
 /**
- * The drawer's mesh for a sheet `width` px wide: the page's look with its
- * pencil lines, three quarters as strong, and quiet right up to each field (nothing
- * under a field or within 6px, back over 40px), so the form stays calm.
+ * The drawer's mesh for a sheet `width` px wide at `level` (see
+ * DRAWER_LEVELS): the page's look with its pencil lines, and quiet right
+ * up to each field (no facet under a field or within 6px, back over 40px),
+ * so the form stays calm.
  */
-export function drawerLookFor(width: number): MeshLook {
-  const look = meshLookFor(width, width / 2, true);
+export function drawerLookFor(width: number, level: number): MeshLook {
   return {
-    ...look,
-    strength: look.strength * DRAWER_STRENGTH,
+    ...meshLookFor(width, width / 2, true, level),
     falloff: { margin: 6, width: 40, floor: 0 },
   };
 }
 
 /**
- * Where in the drawer the mesh lies: nothing over its top third, rising to
- * full at its foot, so it gathers under the form, not behind it.
+ * Where in the drawer the mesh lies: in the empty paper under the form.
+ * Full from just below the form's last field, button or line of text
+ * (`contentBottom`) to the drawer's foot, fading out going up over a third
+ * of the drawer (at least 240px), so it's strongest in the dead space and
+ * gone by the time it reaches the form. On a phone, where the form fills
+ * the sheet, that leaves it in the bottom padding and faint between the
+ * last fields.
  */
-export function drawerReach(height: number): Reach {
-  return { outFrom: -2, outTo: -1, inFrom: height * 0.3, inTo: height };
+export function drawerReach(height: number, contentBottom: number): Reach {
+  const full = Math.min(height, contentBottom + 16);
+  const fade = Math.max(240, height / 3);
+  return { outFrom: -2, outTo: -1, inFrom: full - fade, inTo: full };
 }

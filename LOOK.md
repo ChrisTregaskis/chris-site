@@ -6,6 +6,123 @@ Method: the unslop passes (spacing, colour, icons, type, layout, details, visual
 
 Run it: `pnpm dev --host --port 5182 --strictPort` in this worktree, then open `http://localhost:5182/`.
 
+## Round 5: a stronger pencil, with the text protected
+
+Chris, on round 4: "I feel like the lines and triangles etc are maybe a bit too subtle. As it's now on static content that's mostly just text, I think we can get away with making it a bit more obvious whilst still being subtle. On the drawer, can make it a lot more prominent (but still soft lol) particularly on the bottom, as it's 'dead space'." This round builds on the coordinator's `1a2ed98`, which already made the drawers default to the mesh.
+
+### The problem, and the way round it
+
+At round 4's strength (pencil alpha 0.024), the red pen as text on About's paper was already at 4.53:1 under the darkest line, so the whole surface couldn't simply get stronger. The answer is to protect the text, not the surface.
+
+- **Open paper is drawn stronger.** The three levels are below.
+- **Text is shielded line by line.** Each line of text is measured where the mesh lies, and behind those lines the pencil thins back down. The words then sit on no more than round 4's mesh, in fact a margin less.
+- **The edge is soft.** It's not a cut-out, so the lines read as fading as they pass behind the words. The gaps between lines and the ragged line ends keep the stronger mesh.
+
+### Strength levels (dev panel: "Mesh strength")
+
+A level multiplies everything the mesh draws: the pencil, the facets' shading, and the facets' shadow ceiling.
+
+| Level                    | ×    | Pencil alpha (open paper) | Darkest facet | What it reads as                                               |
+| ------------------------ | ---- | ------------------------- | ------------- | -------------------------------------------------------------- |
+| Subtle (round 4)         | 1    | 0.024, about 5 levels     | 1.5 levels    | a faint sheen with a net in it                                 |
+| **Medium (the default)** | 1.75 | 0.042, about 9 levels     | 2.6 levels    | a pencil survey net, clearly there at arm's length, still soft |
+| Strong                   | 2.5  | 0.060, about 13 levels    | 3.75 levels   | a drawn net; the facets start to read as light and shade       |
+
+**Why Medium is the default.** Judged by eye at 1440 and 390, Medium is "noticeably more obvious than now, still soft". Strong is clearly drawn, but its facets begin to read as a lit, folded surface rather than paper. It's one click away in the panel (`?strength=strong`).
+
+### How text is protected (dev panel: "Protect text", on by default)
+
+- **Which text.** Every text node in the page (`#main` and the footer), but only where the mesh reaches: the hero, the top of Wayfinder, About, Contact and the footer.
+- **One box per line, not per paragraph.** The boxes come from `Range.getClientRects()`, one per line fragment of each text node. So the gaps between lines and the ragged ends of each paragraph aren't covered.
+- **The top bar needs nothing.** It's opaque, so the mesh never shows under it.
+- **When the boxes are measured.** On resize, on any change in the page's height or section positions, and when a font finishes loading. Never per frame: none of this text moves.
+- **The mask.** Each box is grown by a 12px pad and blurred (a Gaussian, σ 6px), so there's no edge anywhere. It's drawn at half scale with a canvas shadow, which blurs in every browser; a canvas `filter` doesn't yet. It's redrawn only when the canvas's band of the page moves or the text is re-measured, never for a pointer move.
+- **Only the pencil thins.** The lines are drawn first, the mask rubs them out to `keep` (`destination-out`), then the facets are slid in behind (`destination-over`). The facets are left whole: rubbing them out too left soft light and dark patches round the words, because their shading is broad.
+- **How thin.** `keep` is worked out per level (`strength.ts`): as much pencil as fits, over the darkest facet at that level, in 85% of what Subtle lays down at its darkest, allowing for the mask's least coverage at a line's corners (0.955). Subtle keeps 80% of its line behind text, Medium 30% and Strong 10%. So every level leaves the same worst case under text, a little lighter than round 4's.
+- **The dent.** It's held to the same shadow ceiling, so it presses in under text without darkening it past that.
+
+**What it looks like.** Behind the 100px headline the line boxes nearly touch, so the pencil all but vanishes behind the headline block and reappears above and below it. Behind body copy it thins line by line. In the panel, Protect text off against on shows the difference.
+
+### Contrast at real text positions
+
+Measured in Chrome at device pixel ratio 2 from the mesh canvas's own pixels. For each text line, I found the darkest pixel the mesh puts anywhere inside that line's box, composited over the actual tone plate there (with the dent pressed nearby), then took the worst line. The pointer was in the hero during the measurement.
+
+Only ink and muted text actually sit in these zones. The red pen and dim-muted columns are what those colours would get on the same worst pixel, so they're the hypothetical tightest case.
+
+| Width | Level  | Protect | Darkest under text | Red pen | dim-muted | muted | ink   |
+| ----- | ------ | ------- | ------------------ | ------- | --------- | ----- | ----- |
+| 1440  | Subtle | on      | 6.6 levels         | 4.57    | 4.98      | 6.58  | 13.77 |
+| 1440  | Medium | on      | 6.6                | 4.57    | 4.98      | 6.58  | 13.77 |
+| 1440  | Strong | on      | 6.6                | 4.57    | 4.98      | 6.58  | 13.77 |
+| 1440  | Subtle | off     | 7.6                | 4.53    | 4.94      | 6.53  | 13.65 |
+| 1440  | Medium | off     | 12.3               | 4.34 ✗  | 4.73      | 6.25  | 13.07 |
+| 1440  | Strong | off     | 18.0               | 4.12 ✗  | 4.49 ✗    | 5.93  | 12.41 |
+| 390   | Subtle | on      | 4.6                | 4.58    | 4.99      | 6.60  | 13.79 |
+| 390   | Medium | on      | 4.8                | 4.58    | 4.99      | 6.60  | 13.79 |
+| 390   | Strong | on      | 2.8                | 4.58    | 4.99      | 6.60  | 13.79 |
+| 390   | Subtle | off     | 6.5                | 4.58    | 4.99      | 6.59  | 13.78 |
+| 390   | Medium | off     | 10.4               | 4.43 ✗  | 4.83      | 6.38  | 13.34 |
+| 390   | Strong | off     | 14.2               | 4.27 ✗  | 4.65      | 6.15  | 12.86 |
+
+- **With protection, every level holds AA.** The worst under-text darkness is the same at every level, because `keep` is solved to the same budget.
+- **Without protection, Medium and Strong fail.** The red pen (and, at Strong, dim-muted) would drop below 4.5:1. That's why Protect text is on by default and shouldn't ship off.
+- **What the tests pin.** `tones.test.ts` checks every measured text line at 1440 and 390, at each level with protection on, against all five text roles. It uses the tone plate at that point, the reach there, the darkest facet, the pencil as the mask leaves it at the line's corner, and the canvas's quantisation margin. It also pins that Strong unprotected would fail. `strength.test.ts` pins the levels' order, the mask's coverage and softness, and that `keep` never lets any level exceed the budget.
+
+### The drawers: prominent at the foot (dev panel: "Drawer mesh strength")
+
+| Level               | ×    | At the foot                                                |
+| ------------------- | ---- | ---------------------------------------------------------- |
+| Faint (round 4)     | 0.75 | barely there                                               |
+| **Clear (default)** | 2.5  | a clearly drawn pencil net in the empty paper, soft facets |
+| Bold                | 3.5  | stronger lines and shading; still behind everything        |
+
+- **Anchored to the real empty space.** The mesh is full strength from 16px below the form's last field, button or line of text down to the drawer's foot. It fades out going up over a third of the drawer (at least 240px), so on a laptop it's strongest in the empty paper under Send and gone by the fields.
+- **Phones.** At 390 the form fills the sheet, so the strong part sits in the bottom padding below Send. At 320×640 the drawer scrolls, and the strong part is at the foot of the scrolled content, below Send, never under the last field.
+- **Clear of the form.** Fields, buttons, errors and the alert get their own mask with `keep` 0, so the pencil fades to nothing round them (12px pad, soft edge), and no facet lies under or within 6px of them. Labels and messages are protected like the page's text.
+- **Loading.** The drawer's mesh code also waits for the page's load (it's on by default now), so it costs the first paint nothing.
+
+Drawer contrast, measured the same way, with the error state showing. The red pen column is hypothetical (none of the drawer's text is red on paper); danger-ink is the field errors.
+
+| Width | Level | Red pen | danger-ink | muted | ink   | Field edges |
+| ----- | ----- | ------- | ---------- | ----- | ----- | ----------- |
+| 1440  | Faint | 4.83    | 6.55       | 7.13  | 14.92 | 3.51        |
+| 1440  | Clear | 4.74    | 6.43       | 7.13  | 14.92 | 3.51        |
+| 1440  | Bold  | 4.67    | 6.34       | 7.13  | 14.92 | 3.51        |
+| 390   | Faint | 4.95    | 6.72       | 7.13  | 14.92 | 3.51        |
+| 390   | Clear | 4.95    | 6.72       | 7.13  | 14.92 | 3.51        |
+| 390   | Bold  | 4.91    | 6.66       | 7.13  | 14.92 | 3.51        |
+| 320   | Clear | 4.95    | 6.72       | 7.13  | 14.92 | 3.51        |
+
+The field edges sit on bare paper at every level: 3.51:1, the paper's own figure.
+
+### Production defaults now
+
+`?tones=1&mesh=pointer&lines=1&reach=ends&strength=medium&protect=1&drawer=mesh&drawerStrength=clear`:
+
+- tones on
+- pencil mesh with the pointer at the page's ends, Medium, text protected
+- drawers on paper with the mesh, Clear at their foot
+
+### Cost
+
+- **Frame time.** Pointer circling the hero for 6s, headless at 1440×900: 2.25ms of main-thread tasks per frame with the defaults, 2.17 at Strong, 2.23 with protection off, against 0.81ms with the mesh off. That's +1.4ms per frame. 0 of 360 frames over 20ms in every case. The mask isn't redrawn for pointer moves, so protection costs nothing measurable per frame.
+- **Bundle.**
+  - Main JS: unchanged from round 4 (+0.05 kB gzipped). The levels resolve inside the lazy chunks.
+  - After load: `MeshCanvas` (2.4 kB gzipped), the shared mesh and mask code (3.8 kB gzipped) and `DrawerMesh` (1.2 kB gzipped). All are fetched about half a second after the load event; checked on the dev server, where the first of them was requested 490ms after `load`.
+
+### Verified (round 5)
+
+- **Gates.** `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (86 files, 479 tests) and `pnpm build` all exit 0.
+- **Dev panel absent from `dist/`.** 0 files for each of `Dev panel`, `data-dev-panel`, `DevPanel`, `Chapter tones`, `Pencil lines`, `Mesh reach`, `Mesh strength`, `Protect text`, `Drawer sheet`, `Drawer mesh strength`, `Hero and About to Contact`, `holds still here`, `replaceState`, `tones=`, `drawerStrength=` and `strength=medium`.
+- **No sideways overflow** at 320 with the defaults, mesh off, Strong and whole-page reach. The drawer at 320×640 scrolls to 696px with the mesh layer the full 696px, and no sideways scroll.
+- **Screenshots** are in the session scratchpad's `looks/drawing-office-surface/final3/`: at 1440×900 and 390×844, the hero and About/Contact at each of Subtle, Medium and Strong with Protect text on and off; the drawer at Faint, Clear and Bold; and the dev panel.
+
+### Unsure, or left undone
+
+- **Large type protects as a block.** A 100px headline's line boxes nearly touch, so the pencil all but disappears behind the whole headline rather than between its words. That's what keeps the tightest glyph pixels at AA. Per-glyph protection is possible (each word's box), but it would leave lines threading between letters at full strength, which reads busier.
+- **The whole-page reach (a comparison mode)** protects all the case studies' text too, measured on layout changes. Their step text fades and slides as it scrolls, so its boxes can be a little stale there. It's dev-only.
+- **The facets are not thinned behind text.** At Strong, the darkest facet under a word is 3.75 levels, which is inside the budget the pencil's `keep` is solved against.
+
 ## Round 4: the surface, as Chris chose it
 
 Chris reviewed the background experiments (below) and chose a direction. This branch, `look/drawing-office-surface`, is now the main line for the Drawing office look: round 3's five fixes are under it. Run it with `pnpm dev --host --port 5185 --strictPort`.
@@ -142,7 +259,7 @@ How it fits together:
 - **Keeping labels out of production.** Pass the group inside an `import.meta.env.DEV` branch, as above, so the labels never reach the build.
 - **Production.** The panel itself is mounted by `<DevPanelSlot />` in `App.tsx`, which is null outside dev, and a production build reads no URL parameters, so it only ever uses the defaults.
 
-### Production defaults now
+### Production defaults now (superseded in round 5: see above)
 
 | Setting  | Default     | What the visitor gets                                                                |
 | -------- | ----------- | ------------------------------------------------------------------------------------ |

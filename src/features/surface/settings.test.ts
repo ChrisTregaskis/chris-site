@@ -2,13 +2,16 @@ import { describe, expect, it } from "vitest";
 import { SURFACE_DEFAULTS, effectiveMesh } from "./settings";
 
 describe("the surface's production defaults", () => {
-  it("are the chapter tones, and the pencil mesh with the pointer at the page's ends; the drawers on a still mesh", () => {
+  it("are the chapter tones; the pencil mesh with the pointer at the page's ends, Medium, stepping back behind text; the drawers on paper with the mesh, Clear", () => {
     expect(SURFACE_DEFAULTS).toEqual({
       tones: true,
       mesh: "pointer",
       lines: true,
       reach: "ends",
+      strength: "medium",
+      protect: true,
       drawer: "mesh",
+      drawerStrength: "clear",
     });
   });
 });

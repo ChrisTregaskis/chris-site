@@ -53,12 +53,14 @@ describe("facets out of reach", () => {
   });
 });
 
-/** A context that records what's drawn. */
+/** A context that records what's drawn, in order. */
 function recorder() {
   const strokes: number[] = [];
   const fills: number[] = [];
+  const order: string[] = [];
   const context = {
     globalAlpha: 1,
+    globalCompositeOperation: "source-over",
     fillStyle: "" as unknown,
     strokeStyle: "" as unknown,
     lineWidth: 1,
@@ -71,15 +73,21 @@ function recorder() {
     closePath: () => {},
     fill() {
       fills.push(this.globalAlpha);
+      order.push(`fill:${this.globalCompositeOperation}`);
     },
     stroke() {
       strokes.push(this.globalAlpha);
+      order.push(`stroke:${this.globalCompositeOperation}`);
+    },
+    drawImage() {
+      order.push(`mask:${this.globalCompositeOperation}:${this.globalAlpha}`);
     },
   };
   return {
     context: context as unknown as CanvasRenderingContext2D,
     strokes,
     fills,
+    order,
   };
 }
 
@@ -121,5 +129,40 @@ describe("painting the mesh", () => {
     });
     expect(strokes).toEqual([]);
     expect(fills).toEqual([]);
+  });
+
+  it("thins only the pencil behind text: lines, then the mask rubbing them out, then the facets slid in behind", () => {
+    const facets = meshFacets(
+      { left: 0, top: 0, right: 1440, bottom: 900 },
+      look,
+      [],
+      null,
+    );
+    const { context, order } = recorder();
+    paintMesh(context, facets, {
+      ...ink,
+      top: 0,
+      bottom: 900,
+      reach: null,
+      protect: [
+        {
+          mask: {} as CanvasImageSource,
+          left: 0,
+          top: 0,
+          width: 1440,
+          height: 900,
+          keep: 0.25,
+        },
+      ],
+    });
+    expect(order[0]).toBe("stroke:source-over");
+    const mask = order.indexOf("mask:destination-out:0.75");
+    expect(mask).toBeGreaterThan(0);
+    expect(
+      order
+        .slice(mask + 1)
+        .every((step: string) => step === "fill:destination-over"),
+    ).toBe(true);
+    expect(context.globalCompositeOperation).toBe("source-over");
   });
 });

@@ -44,6 +44,8 @@ export function Surface() {
         pointer={mesh === "pointer"}
         lines={settings.lines}
         reach={settings.reach}
+        strength={settings.strength}
+        protect={settings.protect}
       />
     </Suspense>
   );
