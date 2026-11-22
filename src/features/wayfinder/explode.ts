@@ -414,6 +414,13 @@ const mcp: SubComponent[] = [
   },
 ];
 
+/**
+ * Where part 8's three tools stand in plan: 16 units in from the plate's
+ * right-hand (front-right) edge, like the other parts' margins. They stood
+ * at 520, so their 44-unit blocks ran 4 past the plate's edge at 560.
+ */
+export const TOOLS_X = 500;
+
 const TOOL_NAMES = [
   "Vehicle search",
   "Retailer lookup (prototype)",
@@ -423,16 +430,22 @@ const tools: SubComponent[] = [85, 125, 165].map((y, i) => ({
   id: `8.${i + 1}`,
   part: "tools",
   name: TOOL_NAMES[i],
-  boxes: [b3(520, y, 0, 44, 30, 24)],
+  boxes: [b3(TOOLS_X, y, 0, 44, 30, 24)],
   // A typed schema: two fields on its top.
   details: [
-    { kind: "line", points: seg([527, y + 10, 24], [552, y + 10, 24]) },
-    { kind: "line", points: seg([527, y + 19, 24], [545, y + 19, 24]) },
+    {
+      kind: "line",
+      points: seg([TOOLS_X + 7, y + 10, 24], [TOOLS_X + 32, y + 10, 24]),
+    },
+    {
+      kind: "line",
+      points: seg([TOOLS_X + 7, y + 19, 24], [TOOLS_X + 25, y + 19, 24]),
+    },
   ],
   apart: [0, (i - 1) * 16, 0],
   focus: [0, (i - 1) * 12, 16 + i * 8],
-  seat: [542, y + 15, 0],
-  tip: [542, y + 15, 0],
+  seat: [TOOLS_X + 22, y + 15, 0],
+  tip: [TOOLS_X + 22, y + 15, 0],
   prototype: i > 0,
 }));
 
@@ -484,7 +497,8 @@ export const PLAN: Record<PartId, PartPlan> = {
     // On a phone the plate runs to the screen's edge: no room in front.
     liteTags: "below",
   },
-  tools: { lift: [24, 0, 30], delay: 0.06, badgeOn: "8.1", tags: "below" },
+  // Lifted only a little towards the front, so they still hover over the plate.
+  tools: { lift: [8, 0, 30], delay: 0.06, badgeOn: "8.1", tags: "below" },
   spec: { lift: [0, 26, 36], delay: 0.11, badgeOn: "4.1", tags: "below" },
   mcp: { lift: [10, 16, 54], delay: 0.16, badgeOn: "7.1", tags: "right" },
   chat: { lift: [-6, 14, 30], delay: 0.21, badgeOn: "1.2", tags: "above" },
