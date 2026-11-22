@@ -74,16 +74,21 @@ describe("Surface", () => {
 });
 
 describe("DrawerSurface", () => {
-  it("leaves the drawer plain by default", () => {
+  it("lays a paper sheet with the mesh under the form by default, decorative and out of the way", async () => {
     render(<DrawerSurface />);
-    expect(screen.queryByTestId("drawer-mesh")).toBeNull();
-  });
-
-  it("lays a paper sheet with the mesh under the form when asked, decorative and out of the way", async () => {
-    render(<DrawerSurface />);
-    act(() => surfaceSettings.set({ drawer: "mesh" }));
-    const layer = await screen.findByTestId("drawer-mesh");
+    const layer = await screen.findByTestId(
+      "drawer-mesh",
+      {},
+      { timeout: 3000 },
+    );
     expect(layer).toHaveAttribute("aria-hidden", "true");
     expect(layer).toHaveClass("pointer-events-none", "bg-surface");
+  });
+
+  it("leaves the drawer plain when asked", async () => {
+    render(<DrawerSurface />);
+    await screen.findByTestId("drawer-mesh", {}, { timeout: 3000 });
+    act(() => surfaceSettings.set({ drawer: "plain" }));
+    expect(screen.queryByTestId("drawer-mesh")).toBeNull();
   });
 });

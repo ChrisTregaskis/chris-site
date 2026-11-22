@@ -11,9 +11,14 @@
  * - `reach`: where the mesh lies: `ends` (the hero, and About through
  *   Contact, fading out into the work and back in after it) or the whole
  *   `page` (stepping back round the drawings).
- * - `drawer`: the enquiry and CV drawers' sheet, `plain` or with a very
- *   faint, still `mesh` gathered at its foot.
+ * - `strength`: how strongly the mesh is drawn in open paper (see
+ *   strength.ts); `protect`: whether it steps back behind text, which is
+ *   what lets it be stronger than Subtle and keep text at AA.
+ * - `drawer`: the enquiry and CV drawers' sheet, `plain` or with a still
+ *   pencil `mesh` gathered at its foot; `drawerStrength`: how strongly.
  */
+import { type DrawerLevel, type LineLevel } from "./strength";
+
 export const MESH_MODES = ["off", "static", "pointer"] as const;
 export type MeshMode = (typeof MESH_MODES)[number];
 
@@ -26,20 +31,27 @@ export type SurfaceSettings = {
   mesh: MeshMode;
   lines: boolean;
   reach: MeshReach;
+  strength: LineLevel;
+  protect: boolean;
   drawer: DrawerSheet;
+  drawerStrength: DrawerLevel;
 };
 
 /**
- * What the production build uses: chapter tones on, the pencil mesh with
- * the pointer at the two ends of the page, the drawers on paper with a still mesh. The dev panel
- * and the URL parameters only exist under `pnpm dev`.
+ * What the production build uses: chapter tones on; the pencil mesh with
+ * the pointer at the two ends of the page, at Medium, stepping back behind
+ * text; the drawers on paper with a still mesh, Clear at their foot. The
+ * dev panel and the URL parameters only exist under `pnpm dev`.
  */
 export const SURFACE_DEFAULTS: SurfaceSettings = {
   tones: true,
   mesh: "pointer",
   lines: true,
   reach: "ends",
+  strength: "medium",
+  protect: true,
   drawer: "mesh",
+  drawerStrength: "clear",
 };
 
 /** The mesh the visitor gets: `pointer` only with a fine, hovering pointer and motion allowed. */

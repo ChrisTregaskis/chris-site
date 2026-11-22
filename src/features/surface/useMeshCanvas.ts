@@ -8,6 +8,8 @@ import { paintMesh } from "./paintMesh";
 import { type Reach, bandReach, endsReach } from "./reach";
 import { type MeshReach } from "./settings";
 import { approach } from "./shading";
+import { lineKeepUnderText } from "./strength";
+import { drawTextMask, textLineBoxes } from "./textMask";
 
 /**
  * The drawings the mesh steps back from, found fresh each frame (the
@@ -26,6 +28,12 @@ const HERO = "top";
 const WORK = "work";
 const ABOUT = "about";
 
+/** The text the mesh steps back from: everything read on the page. */
+const TEXT_ROOTS = "#main, footer";
+
+/** The text mask is drawn at half the page's scale: it's all soft edges. */
+const MASK_SCALE = 0.5;
+
 /** How fast the dent follows the pointer, presses in and lets go (time constants, ms). */
 const FOLLOW_MS = 90;
 const PRESS_MS = 160;
@@ -38,6 +46,10 @@ export interface MeshCanvasOptions {
   lines: boolean;
   /** Where on the page the mesh lies. */
   reach: MeshReach;
+  /** How strongly it's drawn in open paper (see strength.ts; 1 is Subtle). */
+  level: number;
+  /** Whether it steps back behind text. */
+  protect: boolean;
 }
 
 /**
@@ -53,7 +65,13 @@ export interface MeshCanvasOptions {
 export function useMeshCanvas(
   layerRef: RefObject<HTMLDivElement | null>,
   canvasRef: RefObject<HTMLCanvasElement | null>,
-  { pointer: pointerMode, lines, reach: reachMode }: MeshCanvasOptions,
+  {
+    pointer: pointerMode,
+    lines,
+    reach: reachMode,
+    level,
+    protect,
+  }: MeshCanvasOptions,
 ): void {
   useEffect(() => {
     const layer = layerRef.current;
@@ -77,6 +95,11 @@ export function useMeshCanvas(
     let pointer: { x: number; y: number } | null = null;
     const dent: Dent = { x: 0, y: 0, amount: 0 };
     let dentPlaced = false;
+    // The text the mesh steps back from, and its mask for the current band.
+    let textBoxes: Box[] = [];
+    let textVersion = 0;
+    const mask = document.createElement("canvas");
+    let maskKey = "";
 
     const pageBox = (id: string) => {
       const rect = document.getElementById(id)?.getBoundingClientRect();
@@ -86,6 +109,22 @@ export function useMeshCanvas(
             bottom: rect.bottom + window.scrollY,
           }
         : null;
+    };
+
+    // Every line of text where the mesh lies, re-measured whenever the
+    // layout or the fonts change (never per frame: none of it moves).
+    const measureText = () => {
+      if (!protect || lineKeepUnderText(level) >= 1) {
+        textBoxes = [];
+      } else {
+        const pad = 64;
+        textBoxes = textLineBoxes(
+          [...document.querySelectorAll(TEXT_ROOTS)],
+          { x: 0, y: -window.scrollY },
+          (box) => bandReach(box.top - pad, box.bottom + pad, reach) > 0,
+        );
+      }
+      textVersion += 1;
     };
 
     // Where the mesh lies: from the sections' real positions, measured on
@@ -108,6 +147,7 @@ export function useMeshCanvas(
               aboutBottom: about.bottom,
             })
           : null;
+      measureText();
     };
 
     const measure = () => {
@@ -116,7 +156,7 @@ export function useMeshCanvas(
       // Floored, so the layer never makes the page a pixel taller.
       pageHeight = Math.floor(page.getBoundingClientRect().height);
       layer.style.height = `${pageHeight}px`;
-      look = meshLookFor(width, width / 2, lines);
+      look = meshLookFor(width, width / 2, lines, level);
       const height = canvasWindow(0, viewHeight, pageHeight).height;
       ratio = canvasPixelRatio(window.devicePixelRatio, width, height);
       canvas.width = Math.round(width * ratio);
@@ -166,6 +206,18 @@ export function useMeshCanvas(
         right: width,
         bottom: band.top + band.height,
       };
+      const keep = lineKeepUnderText(level);
+      const guard = protect && keep < 1 && textBoxes.length > 0;
+      const key = `${band.top}|${band.height}|${width}|${textVersion}`;
+      if (guard && key !== maskKey) {
+        drawTextMask(
+          mask,
+          textBoxes,
+          { left: 0, top: band.top, width, height: band.height },
+          MASK_SCALE,
+        );
+        maskKey = key;
+      }
       clear();
       context.setTransform(ratio, 0, 0, ratio, 0, -band.top * ratio);
       paintMesh(
@@ -177,6 +229,18 @@ export function useMeshCanvas(
           top: rect.top,
           bottom: rect.bottom,
           reach,
+          protect: guard
+            ? [
+                {
+                  mask,
+                  left: 0,
+                  top: band.top,
+                  width,
+                  height: band.height,
+                  keep,
+                },
+              ]
+            : [],
         },
       );
     };
@@ -327,9 +391,17 @@ export function useMeshCanvas(
       });
     }
 
+    // A font arriving reflows the text: measure it again.
+    const onFonts = () => {
+      measureText();
+      drawn = "";
+      schedule();
+    };
+
     measure();
     schedule();
     pageObserver?.observe(page);
+    document.fonts.addEventListener("loadingdone", onFonts);
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVisibility);
@@ -346,10 +418,11 @@ export function useMeshCanvas(
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
+      document.fonts.removeEventListener("loadingdone", onFonts);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
       window.removeEventListener("blur", onBlur);
       clear();
     };
-  }, [layerRef, canvasRef, pointerMode, lines, reachMode]);
+  }, [layerRef, canvasRef, pointerMode, lines, reachMode, level, protect]);
 }

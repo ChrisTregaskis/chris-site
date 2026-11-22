@@ -44,14 +44,16 @@ const clamp = (n: number, lo: number, hi: number) =>
  * each vertex's own, so neighbouring facets differ by a level or so; 24
  * sRGB levels per unit of shade, which keeps every facet within about two
  * levels of the paper; a dent 1.6 cells in radius and over a quarter of a cell
- * deep; quiet round the drawings over a band up to 280px wide. `originX`
- * anchors the net to the page's centre line, so it sits the same way round
- * the content at any width.
+ * deep; quiet round the drawings over a band up to 280px wide. `level`
+ * (see strength.ts) multiplies the shading, its shadow ceiling and the
+ * pencil: 1 is Subtle. `originX` anchors the net to the page's centre line,
+ * so it sits the same way round the content at any width.
  */
 export function meshLookFor(
   width: number,
   originX: number,
   lines = false,
+  level = 1,
 ): MeshLook {
   const cell = clamp(Math.round(width * 0.125), 128, 196);
   const phone = width < PHONE_WIDTH;
@@ -66,8 +68,8 @@ export function meshLookFor(
     },
     relief: cell * 0.11,
     light: MESH_LIGHT,
-    gain: 24,
-    maxShadow: MAX_SHADOW,
+    gain: 24 * level,
+    maxShadow: MAX_SHADOW * level,
     dentRadius: cell * 1.6,
     dentDepth: cell * 0.28,
     falloff: {
@@ -76,6 +78,6 @@ export function meshLookFor(
       floor: 0.06,
     },
     strength: phone ? 0.85 : 1,
-    edge: lines ? PENCIL : 0,
+    edge: lines ? PENCIL * level : 0,
   };
 }

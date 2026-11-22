@@ -18,6 +18,22 @@ export interface MeshInk {
   bottom: number;
   /** Where on the page the mesh lies (null: everywhere). */
   reach: Reach | null;
+  /**
+   * What the pencil steps back from (see textMask): each mask, where it
+   * lies (in the same px as the facets), and what's kept of the lines fully
+   * behind it.
+   */
+  protect?: readonly MeshMask[];
+}
+
+/** A mask the pencil thins behind (text, or a drawer's fields). */
+export interface MeshMask {
+  mask: CanvasImageSource;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  keep: number;
 }
 
 /** Pencil lines are stroked in this many strengths, each as one path. */
@@ -88,7 +104,7 @@ export function paintMesh(
   facets: readonly Facet[],
   inkSpec: MeshInk,
 ): void {
-  const { paper, ink, light, edge, top, bottom, reach } = inkSpec;
+  const { paper, ink, light, edge, top, bottom, reach, protect } = inkSpec;
   const inkLevel = (ink[0] + ink[1] + ink[2]) / 3;
   const stops = reachStops(top, bottom, reach);
   const gradient = (rgb: Rgb) => {
@@ -112,17 +128,8 @@ export function paintMesh(
     context.closePath();
   };
 
-  for (const { points, levels } of shown) {
-    if (levels === 0) continue;
-    const { towards, alpha } = shadeFill(levels, paper, inkLevel);
-    if (alpha <= 0) continue;
-    context.globalAlpha = alpha;
-    context.fillStyle = towards === "light" ? lightStyle : inkStyle;
-    context.beginPath();
-    trace(points);
-    context.fill();
-  }
-
+  // The pencil first, on the empty canvas, so the text mask can thin it
+  // without touching the facets.
   if (edge > 0) {
     context.lineWidth = 1;
     context.lineCap = "round";
@@ -138,5 +145,32 @@ export function paintMesh(
       context.stroke();
     }
   }
+
+  // Behind text, the lines thin to what text can sit on at AA: the mask,
+  // opaque over each line of text and soft at its edge, rubs them out to
+  // `keep`. The facets are left whole (their shading is broad and soft, and
+  // rubbed out it left soft patches round the words); the lines' keep
+  // allows for them (see strength.ts).
+  for (const { mask, left, top: maskTop, width, height, keep } of protect ??
+    []) {
+    if (keep >= 1) continue;
+    context.globalCompositeOperation = "destination-out";
+    context.globalAlpha = 1 - keep;
+    context.drawImage(mask, left, maskTop, width, height);
+  }
+
+  // Then the facets, slid in behind the lines.
+  context.globalCompositeOperation = "destination-over";
+  for (const { points, levels } of shown) {
+    if (levels === 0) continue;
+    const { towards, alpha } = shadeFill(levels, paper, inkLevel);
+    if (alpha <= 0) continue;
+    context.globalAlpha = alpha;
+    context.fillStyle = towards === "light" ? lightStyle : inkStyle;
+    context.beginPath();
+    trace(points);
+    context.fill();
+  }
+  context.globalCompositeOperation = "source-over";
   context.globalAlpha = 1;
 }

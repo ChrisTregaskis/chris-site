@@ -25,7 +25,7 @@ function useSurfaceNote(values: SurfaceSettings): string | null {
 
 /**
  * The surface settings: SURFACE_DEFAULTS in production; under `pnpm dev`,
- * the dev panel's Surface group and `?tones=1&mesh=pointer&lines=1&reach=ends&drawer=mesh`.
+ * the dev panel's Surface group and `?tones=1&mesh=pointer&lines=1&reach=ends&strength=medium&protect=1&drawer=mesh&drawerStrength=clear`.
  */
 export const surfaceSettings = defineDevSettings<SurfaceSettings>(
   SURFACE_DEFAULTS,
@@ -56,6 +56,17 @@ export const surfaceSettings = defineDevSettings<SurfaceSettings>(
           },
           {
             kind: "choice",
+            key: "strength",
+            label: "Mesh strength",
+            options: [
+              { value: "subtle", label: "Subtle" },
+              { value: "medium", label: "Medium" },
+              { value: "strong", label: "Strong" },
+            ],
+          },
+          { kind: "flag", key: "protect", label: "Protect text" },
+          {
+            kind: "choice",
             key: "drawer",
             label: "Drawer sheet",
             options: [
@@ -63,9 +74,21 @@ export const surfaceSettings = defineDevSettings<SurfaceSettings>(
               { value: "mesh", label: "Pencil mesh" },
             ],
           },
+          {
+            kind: "choice",
+            key: "drawerStrength",
+            label: "Drawer mesh strength",
+            options: [
+              { value: "faint", label: "Faint" },
+              { value: "clear", label: "Clear" },
+              { value: "bold", label: "Bold" },
+            ],
+          },
         ],
         inactive: (key, values) =>
-          (key === "lines" || key === "reach") && values.mesh === "off",
+          (values.mesh === "off" &&
+            ["lines", "reach", "strength", "protect"].includes(key)) ||
+          (key === "drawerStrength" && values.drawer === "plain"),
         useNote: useSurfaceNote,
       }
     : null,

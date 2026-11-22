@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { MAX_SHADOW, PENCIL, meshLookFor } from "./meshLook";
 import { endsReach, reachAt } from "./reach";
-import { LAYOUTS, type SampleLayout } from "./sampleLayouts";
+import { LAYOUTS, TEXT_BOXES, type SampleLayout } from "./sampleLayouts";
 import { shadeFill } from "./shading";
+import { LINE_LEVELS, darkestUnderText } from "./strength";
 
 const tokens = readFileSync(
   new URL("../../ui/tokens/tokens.css", import.meta.url),
@@ -193,5 +194,64 @@ describe("the mesh over the tones", () => {
     expect(contrastWith("accent", under)).toBeLessThan(4.6);
     expect(contrastWith("muted", under)).toBeGreaterThan(6);
     expect(contrastWith("ink", under)).toBeGreaterThan(13);
+  });
+});
+
+describe("text over the mesh, at every level, where the text really is", () => {
+  const mean = (rgb: number[]) => (rgb[0] + rgb[1] + rgb[2]) / 3;
+  const roles = ["ink", "muted", "dim-muted", "accent", "danger"];
+  // The canvas's 8-bit alpha and gradient dithering, as measured in Chrome.
+  const QUANTISATION = 1.5 / 255;
+  const darken = (rgb: number[], alpha: number) =>
+    rgb.map((c, i) => c * (1 - alpha) + colours.ink[i] * alpha);
+
+  for (const name of ["desktop", "phone"] as const) {
+    const layout = LAYOUTS[name];
+    const reach = endsReach(layout);
+    const strength = meshLookFor(name === "desktop" ? 1440 : 390, 0).strength;
+
+    for (const [level, value] of Object.entries(LINE_LEVELS)) {
+      it(`${name}, ${level}, text protected: every line of text keeps every text role at AA`, () => {
+        let tightest = Infinity;
+        for (const [left, top, right, bottom] of TEXT_BOXES[name]) {
+          const box = { left, top, right, bottom };
+          // The worst point of the line: where the reach is strongest.
+          const r =
+            Math.max(reachAt(top, reach), reachAt(bottom, reach)) * strength;
+          if (r === 0) continue;
+          const alpha =
+            r * (darkestUnderText(value * 1, true, box) + QUANTISATION);
+          for (const y of [top, bottom]) {
+            const under = darken(paperAt(y, layout), alpha);
+            for (const role of roles) {
+              const ratio = contrastWith(role, under);
+              tightest = Math.min(tightest, ratio);
+              expect(ratio, `${role} at ${left},${top}`).toBeGreaterThanOrEqual(
+                4.5,
+              );
+            }
+          }
+        }
+        expect(tightest).toBeLessThan(Infinity);
+      });
+    }
+
+    it(`${name}: Strong with text unprotected would take the red pen under AA (why it's protected)`, () => {
+      const [left, top, right, bottom] = TEXT_BOXES[name][0];
+      const alpha = darkestUnderText(LINE_LEVELS.strong, false, {
+        left,
+        top,
+        right,
+        bottom,
+      });
+      const under = darken(paperAt(top, layout), alpha);
+      expect(contrastWith("accent", under)).toBeLessThan(4.5);
+    });
+  }
+
+  it("keeps a paper level for the fills between the plain paper and the deepest", () => {
+    const level = (mean(colours.surface) + mean(colours["paper-burpees"])) / 2;
+    expect(level).toBeGreaterThan(mean(colours["paper-burpees"]));
+    expect(level).toBeLessThan(mean(colours.surface));
   });
 });
