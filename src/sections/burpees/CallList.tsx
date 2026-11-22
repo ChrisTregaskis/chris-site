@@ -54,7 +54,7 @@ export function CallList({ called, beside, push, done }: CallListProps) {
           >
             <ol
               className={cn(
-                "m-0 list-none p-0 font-display font-medium tracking-[-0.02em] text-muted",
+                "m-0 list-none p-0 font-display font-normal tracking-[-0.01em] text-muted",
                 beside
                   ? "text-[20px] leading-[1.05]"
                   : "mb-2 flex min-h-[1.5em] flex-wrap gap-x-4 text-body-sm",

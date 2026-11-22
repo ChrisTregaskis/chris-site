@@ -59,7 +59,7 @@ export function StepPicker({
             className="h-8 min-w-0 flex-1 wide:h-[34px]"
             renderItem={(n) => (
               <>
-                <span className="inline-grid h-8 flex-none place-items-center font-code text-[17px] font-medium tabular-nums text-ink wide:h-[34px] [&>svg]:size-[22px]">
+                <span className="inline-grid h-8 flex-none place-items-center font-display text-[23px] font-normal tabular-nums tracking-[-0.01em] text-ink [font-feature-settings:'lnum'] wide:h-[34px] [&>svg]:size-[22px]">
                   {marker(n)}
                 </span>
                 <span className="overflow-hidden text-ellipsis">{name(n)}</span>

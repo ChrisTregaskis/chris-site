@@ -98,7 +98,7 @@ export function PhoneMenu({
             <nav aria-label="Primary">
               <p
                 id={itemsLabelId}
-                className="m-0 mb-2 pl-[44px] font-code text-eyebrow text-muted"
+                className="m-0 mb-2 pl-[44px] text-eyebrow text-muted"
               >
                 {itemsLabel}
               </p>

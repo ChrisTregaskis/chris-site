@@ -7,13 +7,13 @@ export interface ChipProps {
   size?: "md" | "sm";
 }
 
-/** One tag in a ChipList: a quiet word in the mono, muted, no pill; renders an `<li>`. */
+/** One tag in a ChipList: a quiet word in muted text, no pill; renders an `<li>`. */
 export function Chip({ children, size = "md" }: ChipProps) {
   return (
     <li
       className={cn(
-        "font-code leading-[1.4] text-muted",
-        size === "md" ? "text-[13px]" : "text-[12px]",
+        "leading-[1.4] text-muted",
+        size === "md" ? "text-[14px]" : "text-[13px]",
       )}
     >
       {children}

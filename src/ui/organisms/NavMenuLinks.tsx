@@ -22,7 +22,7 @@ export interface NavMenuLinksProps {
 
 /**
  * The numbered in-page links behind the top bar's Work menu (and the phone
- * menu): each case study's number set in the mono beside its name, a
+ * menu): each case study's number set large and light in the serif beside its name, a
  * sub-entry smaller and indented under its parent. No rules or boxes.
  */
 export function NavMenuLinks({
@@ -57,7 +57,7 @@ export function NavMenuLinks({
             {item.sub ? null : (
               <span
                 aria-hidden="true"
-                className="w-7 flex-none font-code text-[20px] font-normal leading-none text-muted transition-colors duration-base group-hover:text-accent group-focus-visible:text-accent motion-reduce:transition-none"
+                className="w-7 flex-none font-display text-[30px] font-light leading-none tracking-[-0.01em] text-muted [font-feature-settings:'lnum'] transition-colors duration-base group-hover:text-accent group-focus-visible:text-accent motion-reduce:transition-none"
               >
                 {item.numeral}
               </span>
@@ -65,8 +65,7 @@ export function NavMenuLinks({
             <span
               className={cn(
                 "underline decoration-transparent decoration-[1.5px] underline-offset-[6px] transition-[text-decoration-color] duration-base group-hover:decoration-accent group-focus-visible:decoration-accent motion-reduce:transition-none",
-                !item.sub &&
-                  "font-display text-[19px] font-medium leading-[1.3] tracking-[-0.01em]",
+                !item.sub && "font-body text-[17px] font-medium leading-[1.3]",
               )}
             >
               {item.label}

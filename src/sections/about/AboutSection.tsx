@@ -19,7 +19,7 @@ export function AboutSection() {
         <div>
           <h2
             id="about-title"
-            className="m-0 font-display text-display-md font-medium"
+            className="m-0 font-display text-display-md font-normal"
           >
             About
           </h2>

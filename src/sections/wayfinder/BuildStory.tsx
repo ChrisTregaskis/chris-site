@@ -69,7 +69,7 @@ function BenchNote({ shown, stacked }: { shown: boolean; stacked: boolean }) {
         <div className="text-[15px] leading-[1.6] text-muted">
           <h4
             id="bench-title"
-            className="m-0 mb-1 font-display text-[22px] font-medium leading-[normal] text-ink"
+            className="m-0 mb-1 font-display text-[24px] font-normal leading-[1.15] text-ink"
           >
             {BENCH.name}
           </h4>
@@ -118,7 +118,7 @@ export function BuildStory() {
         >
           <h3
             id="build-title"
-            className="m-0 mb-2 font-display text-title-lg font-medium leading-[normal]"
+            className="m-0 mb-2 font-display text-title-lg font-normal"
           >
             How it was built
           </h3>
@@ -158,7 +158,7 @@ export function BuildStory() {
                         : "text-line-strong",
                     )}
                   />
-                  <b className="mb-1 block font-display text-[18px] font-medium leading-[normal] text-ink">
+                  <b className="mb-1 block font-body text-[17px] font-semibold leading-[normal] text-ink">
                     {step.name}
                   </b>
                   {step.text}

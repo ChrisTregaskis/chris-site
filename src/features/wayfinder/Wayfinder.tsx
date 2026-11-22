@@ -278,7 +278,7 @@ export function Wayfinder() {
                           // The live platform: ink on a solid underline, as its
                           // cartridge is inked in the figure; the others on a
                           // dotted one, so they still read as choices.
-                          "cursor-pointer border-0 bg-transparent px-[2px] py-[5px] font-code text-[13px] font-medium leading-[normal] underline decoration-[1.5px] underline-offset-[6px] transition-colors duration-base hover:text-ink motion-reduce:transition-none",
+                          "cursor-pointer border-0 bg-transparent px-[2px] py-[5px] text-[13px] font-medium leading-[normal] underline decoration-[1.5px] underline-offset-[6px] transition-colors duration-base hover:text-ink motion-reduce:transition-none",
                           live
                             ? "text-ink decoration-ink decoration-solid"
                             : "text-muted decoration-line-field decoration-dotted",

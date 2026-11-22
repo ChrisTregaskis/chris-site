@@ -1,6 +1,6 @@
 # Link-preview card
 
-`og-card.html` is the source of `public/og-image.png`, the 1200×630 image that Open Graph and Twitter cards show when the site's URL is pasted into LinkedIn, Slack, WhatsApp, iMessage and the like (the tags are in `index.html`). It loads the site's two variable fonts straight from `node_modules`, so run `pnpm install` first.
+`og-card.html` is the source of `public/og-image.png`, the 1200×630 image that Open Graph and Twitter cards show when the site's URL is pasted into LinkedIn, Slack, WhatsApp, iMessage and the like (the tags are in `index.html`). It loads the site's display and body fonts (Newsreader, Instrument Sans) straight from `node_modules`, so run `pnpm install` first.
 
 To regenerate it, from the repo root (macOS Chrome path; adjust for your platform):
 
