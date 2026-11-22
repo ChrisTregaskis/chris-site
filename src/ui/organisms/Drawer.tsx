@@ -13,6 +13,11 @@ export interface DrawerProps {
   /** Id of the heading that names the drawer. */
   labelledBy: string;
   children: ReactNode;
+  /**
+   * What lies under the content, if anything: a layer behind it inside the
+   * sheet (positioned, at z-index -1 in the dialog's own stacking context).
+   */
+  surface?: ReactNode;
 }
 
 /**
@@ -21,7 +26,13 @@ export interface DrawerProps {
  * it is open; focus goes back to whatever opened it. On open, focus goes to an
  * element inside marked `data-drawer-focus` if there is one.
  */
-export function Drawer({ open, onClose, labelledBy, children }: DrawerProps) {
+export function Drawer({
+  open,
+  onClose,
+  labelledBy,
+  children,
+  surface,
+}: DrawerProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
 
@@ -71,6 +82,7 @@ export function Drawer({ open, onClose, labelledBy, children }: DrawerProps) {
       onClick={handleClick}
       className="inset-x-0 bottom-0 top-auto m-0 h-auto max-h-[92dvh] w-full max-w-none animate-sheet-up overflow-auto overscroll-contain rounded-t-sheet border-0 bg-sheet p-0 text-ink shadow-drawer backdrop:bg-scrim/40 motion-reduce:animate-none sheet:inset-y-0 sheet:left-auto sheet:right-0 sheet:h-dvh sheet:max-h-none sheet:w-[min(520px,100vw)] sheet:animate-drawer-in sheet:rounded-none"
     >
+      {surface}
       {children}
     </dialog>
   );

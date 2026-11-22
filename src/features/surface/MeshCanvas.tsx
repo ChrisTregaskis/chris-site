@@ -1,12 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
-import { useMeshCanvas } from "./useMeshCanvas";
+import { type MeshCanvasOptions, useMeshCanvas } from "./useMeshCanvas";
 
-export interface MeshCanvasProps {
-  /** Whether the facets press in under the mouse (B2), or hold still (B1). */
-  pointer: boolean;
-  /** Whether the net's edges are drawn in faint pencil over its facets. */
-  lines: boolean;
-}
+export type MeshCanvasProps = MeshCanvasOptions;
 
 /**
  * The mesh's layer: the page's full height, behind everything (over the
@@ -15,7 +10,7 @@ export interface MeshCanvasProps {
  * plates share its stacking context, so the canvas can lie on top of them
  * (see surface.css).
  */
-export function MeshCanvas({ pointer, lines }: MeshCanvasProps) {
+export function MeshCanvas({ pointer, lines, reach }: MeshCanvasProps) {
   const layerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -25,7 +20,7 @@ export function MeshCanvas({ pointer, lines }: MeshCanvasProps) {
     return () => root.removeAttribute("data-mesh");
   }, [pointer]);
 
-  useMeshCanvas(layerRef, canvasRef, pointer, lines);
+  useMeshCanvas(layerRef, canvasRef, { pointer, lines, reach });
 
   return (
     <div
@@ -34,7 +29,10 @@ export function MeshCanvas({ pointer, lines }: MeshCanvasProps) {
       data-testid="surface-mesh"
       className="surface-mesh pointer-events-none absolute left-0 top-0 w-full overflow-hidden"
     >
-      <canvas ref={canvasRef} className="absolute left-0 top-0 block" />
+      <canvas
+        ref={canvasRef}
+        className="absolute left-0 top-0 block animate-surface-in motion-reduce:animate-none"
+      />
     </div>
   );
 }

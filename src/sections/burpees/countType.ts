@@ -1,13 +1,13 @@
 /**
  * The count's type: the chapter numeral's face (Newsreader light, lining and
  * tabular figures, so every digit is one width and nothing moves as the
- * count changes), in the red pen, set huge and
- * sized by the screen (a share of its width, capped by its height), never
+ * count changes), in ink (the red pen stays with the call being made), set
+ * huge and sized by the screen (a share of its width, capped by its height), never
  * by its column. Plain strings, never joined through `cn`: tailwind-merge
  * would drop the tight line height when a font size follows it.
  */
 export const COUNT_TYPE =
-  "whitespace-nowrap font-display font-light tabular-nums leading-[0.8] tracking-[-0.03em] text-accent [font-feature-settings:'lnum','tnum']";
+  "whitespace-nowrap font-display font-light tabular-nums leading-[0.8] tracking-[-0.03em] text-ink [font-feature-settings:'lnum','tnum']";
 
 /** The count's size as the screen sets it: what the ruler measures. */
 export const COUNT_SIZE =

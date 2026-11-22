@@ -79,4 +79,19 @@ describe("Drawer", () => {
     expect(dialog()).not.toHaveAttribute("open");
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it("lays its surface, when given one, inside the sheet before the content", () => {
+    render(
+      <Drawer
+        open={false}
+        onClose={() => {}}
+        labelledBy="t"
+        surface={<div data-testid="under" />}
+      >
+        <h2 id="t">Get in touch</h2>
+      </Drawer>,
+    );
+    const sheet = dialog();
+    expect(sheet.firstElementChild).toBe(screen.getByTestId("under"));
+  });
 });

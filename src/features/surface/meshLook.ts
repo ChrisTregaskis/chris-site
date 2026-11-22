@@ -11,8 +11,17 @@ export const MESH_SEED = 0x5eed;
  */
 export const MESH_LIGHT = lightFrom(225, 38);
 
-/** The pencil net's ink alpha, when it's drawn (each inner edge twice, so about double on the page). */
-export const PENCIL = 0.014;
+/**
+ * The pencil net's ink alpha, when it's drawn. Each edge is drawn once and
+ * lines never darken each other where they meet (see paintMesh), so this is
+ * the most any line darkens the paper: about 5 sRGB levels. Over the
+ * darkest facet (MAX_SHADOW) on the deepest paper the mesh reaches at full
+ * strength (About's), and allowing for the canvas's 8-bit alpha and its
+ * gradient dithering (a level or so), the red pen as text still holds
+ * 4.5:1, and every other text role more (tones.test pins it; measured in
+ * Chrome from the canvas's own pixels, 4.5 at worst).
+ */
+export const PENCIL = 0.024;
 
 /**
  * The most the mesh darkens the paper, in sRGB levels. The red pen as text
@@ -22,7 +31,7 @@ export const PENCIL = 0.014;
  */
 export const MAX_SHADOW = 1.5;
 
-/** Below this width (the `sheet` breakpoint) the mesh is a phone's: fainter still. */
+/** Below this width (the `sheet` breakpoint) the mesh is a phone's: a touch fainter. */
 export const PHONE_WIDTH = 621;
 
 const clamp = (n: number, lo: number, hi: number) =>
@@ -66,7 +75,7 @@ export function meshLookFor(
       width: clamp(width * 0.18, 140, 280),
       floor: 0.06,
     },
-    strength: phone ? 0.6 : 1,
+    strength: phone ? 0.85 : 1,
     edge: lines ? PENCIL : 0,
   };
 }

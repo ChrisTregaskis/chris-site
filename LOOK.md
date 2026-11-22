@@ -6,6 +6,189 @@ Method: the unslop passes (spacing, colour, icons, type, layout, details, visual
 
 Run it: `pnpm dev --host --port 5182 --strictPort` in this worktree, then open `http://localhost:5182/`.
 
+## Round 4: the surface, as Chris chose it
+
+Chris reviewed the background experiments (below) and chose a direction. This branch, `look/drawing-office-surface`, is now the main line for the Drawing office look: round 3's five fixes are under it. Run it with `pnpm dev --host --port 5185 --strictPort`.
+
+What he asked for, and what changed:
+
+1. **Keep the dev panel.** It's now a general dev-only tool that any experiment can add switches to (see The dev panel, below). It's still compiled out of the production build.
+2. **The mesh at the two ends of the page, in pencil, following the pointer.** In his words: "keep it on the header and then the About/Contacts bit at the bottom … As you scroll down, away from the header, it sort of fades out … At the bottom as you get to the About, it sort of fades back in … I like the pencilled version. Pencil lines along with the pointer."
+3. **The Burpees count back in ink.** It keeps Newsreader light (round 3), now in ink instead of the red pen.
+4. **The drawers' sheet as a dev-panel option**, default off: plain, or a very faint, still pencil mesh.
+
+### The mesh at the ends of the page
+
+**Where it lies.** The fade is spatial, not animated: it's where the mesh is on the page, not when it appears. It's measured from the sections' real positions (`reach.ts`, re-measured whenever the page's layout changes), so it holds at every width. The hero's own height, about a screen, is the unit:
+
+- **Hero:** full strength from the top of the page to three fifths of the way down the hero (the headline).
+- **Fading out:** it then falls off on a smoothstep, under the rule, the standfirst and the actions, and is gone a sixth of a hero into Wayfinder, before the chapter's numeral. At Wayfinder's top hairline it's already under a quarter strength.
+- **The case studies:** absent all the way through Wayfinder, physio and Burpees. The canvas is cleared once and does no work at all there: no drawing, no measuring.
+- **Fading in:** it starts at About's top edge, so the Burpees chapter never carries any. It rises to full three fifths of a hero further down, or by Contact if About is shorter.
+- **About to the end:** full strength through Contact and the footer.
+
+| Width    | Full in the hero to | Gone by                       | Starts again at       | Full from |
+| -------- | ------------------- | ----------------------------- | --------------------- | --------- |
+| 1440×900 | 567px               | 1033px (Wayfinder starts 900) | 18065px (About's top) | 18564px   |
+| 390×844  | 534px               | 968px (Wayfinder starts 844)  | 17892px               | 18358px   |
+
+The fade runs pixel by pixel, not facet by facet: the reach is a vertical gradient in every fill and every stroke (`paintMesh.ts`). Tests pin that it never steps by more than a smoothstep's steepest slope per pixel, that each fade runs over at least two fifths of a screen, and that it's absent from Wayfinder's numeral to About's top, at 1440, 390, 320 and 2560 wide (`reach.test.ts`).
+
+**Pencil lines and the pointer.** These are the defaults now:
+
+- **Lines.** A pencil line runs along every facet edge.
+- **The dent.** The facets press in under the mouse, as before.
+- **Fallbacks.** On touch screens and under reduced motion, the mesh holds still.
+- **Phones.** Phones get 0.85 of the strength (it was 0.6), so the net is just visible there.
+- **The dev panel's options.** Off, Static, no lines and Whole page are still there for comparing.
+
+**Line strength and contrast.** Lines are allowed to cross the hero and About and Contact text, but every text role must still read at 4.5:1 where a line passes under it. The result: **pencil alpha 0.024**, ink over the paper, about 5 sRGB levels darker than the paper on its own.
+
+- **Lines never darken each other.** Every edge of the net is drawn once, and all the lines at one strength are stroked as a single path. So where lines meet at a vertex, or two facets share an edge, they don't stack up. Before this change they did: a vertex could be six times as dark as a line.
+- **The worst case is a line over the darkest facet.** A facet darkens the paper by at most 1.5 levels (the round 1 ceiling). Add a line, and the canvas's 8-bit alpha and gradient dithering (measured at up to a level and a half of alpha more than asked for), and the darkest the paper gets under the mesh is about 7.6 levels below the plain paper.
+- **The tightest pair is the red pen, on About's paper.** About's paper is the deepest the mesh reaches at full strength, and the red pen as text on it was already 4.85:1 before any mesh.
+
+Measured in Chrome from the canvas's own pixels, composited over each zone's paper, at device pixel ratio 2, worst pixel in view:
+
+| Where                        | Red pen (accent) | dim-muted | muted | ink   |
+| ---------------------------- | ---------------- | --------- | ----- | ----- |
+| Hero, 1440 (static and dent) | 4.63             | 5.04      | 6.66  | 13.94 |
+| About, 1440, dent pressed    | 4.53             | 4.94      | 6.53  | 13.65 |
+| Hero, 390                    | 4.67             | 5.08      | 6.72  | 14.06 |
+| About, 390                   | 4.57             | 4.98      | 6.58  | 13.77 |
+
+What the tests pin:
+
+- **The model, all the way down.** `tones.test.ts` sweeps the real page every 4px at four widths. At each point it takes the tone plate's colour, the reach, the strength, the darkest facet and a line with the quantisation margin, and requires ink, muted, dim-muted, the red pen and danger to stay at 4.5:1 or above.
+- **The pencil is as strong as AA allows.** It also checks the tightest point is under 4.6:1. Stronger lines push the red pen on About's paper below 4.5 (0.028 measured 4.49 in Chrome), so this is the most faithful strength that keeps AA. No glyph-box thinning was needed.
+- **Little or no red text in these zones anyway.** The hero and Contact's red buttons are opaque, and the mesh doesn't show through them.
+- **One graphic that drops.** The text links' underlines (line-hover, 3.0:1) lose a little where a line crosses them: they're a link's decoration, not its text.
+
+By eye, at 1440 and 390, the net reads as a faint pencil survey over the hero and the close. It's clearly there but never in the way, and the fade into Wayfinder and back at About shows no edge (`final2/desktop-1-hero.png`, `desktop-2-fade-into-wayfinder.png`, `desktop-3-fade-back-in-at-about.png`, `desktop-4-contact.png` and the `phone-*` equivalents).
+
+**Over the tones.** The hero and the close sit on the plain paper; About sits on its own paper, a touch bluer and deeper. The mesh is the same ink on both, so it reads as the same drawing. Its fills use one paper level (between the plain paper and Burpees's, as before), so a facet's step is within a fraction of a level on either.
+
+### The Burpees count in ink
+
+`countType.ts`: `text-accent` becomes `text-ink`. Same face, size, figures and strain, so nothing moves.
+
+- **Contrast:** ink on the Burpees paper is 13.76:1, against 4.57:1 for the red pen.
+- **The red pen stays with the call being made** ("Halfway"), which now stands alone in red.
+- **Layout:** stable, as before (only the colour changed).
+
+### The drawers' sheet (dev panel only, default plain)
+
+The panel's "Drawer sheet" option, or `?drawer=mesh`, sets both the Get in touch and the Request my CV drawers on paper instead of white, with a very faint, still pencil mesh behind the form:
+
+- **Still.** No pointer: people are typing there.
+- **Strength.** Three quarters of the page's: lines at about 0.018 alpha, about 4 levels.
+- **Gathered at the foot.** Nothing over the drawer's top third, rising to full at its bottom, where the sheet is empty below the form on a laptop.
+- **Quiet round the form.** Nothing under or within 6px of a field, the submit button, the close button, the error messages or the failure alert, coming back over 40px. Fields, errors and the alert sit on bare paper.
+
+Contrast and checks:
+
+- **Field edges:** `line-field` on the paper is 3.51:1 (3.9 on the white sheet), above 3:1. The mesh never runs under a field.
+- **The error state:** error text (danger-ink) is 6.72:1 on the paper. Errors and the alert are kept clear of the mesh, and the screenshot with all three field errors showing reads cleanly.
+- **How it's drawn:** in the drawer's own stacking context, at `z-index: -1` behind the form, as tall as the drawer's content even when it scrolls (checked at 320×640). It redraws only when the drawer's content changes size: it opens, errors appear, the window resizes.
+- **Wiring:** a new `surface` slot on the `Drawer` organism. `App.tsx` passes `<DrawerSurface />` to both drawers, and it renders nothing when the sheet is plain.
+
+### The dev panel
+
+The panel is now its own feature, `src/features/dev-panel/`, and it's general. "Dev panel" sits at the bottom right under `pnpm dev`, with a group per experiment. Today that's Surface: Chapter tones, Mesh, Pencil lines, Mesh reach, Drawer sheet.
+
+**URL parameters.** Every control is a URL parameter, written back on each change: `?tones=1&mesh=pointer&lines=1&reach=ends&drawer=plain`.
+
+- `reach` takes `ends` or `page`.
+- `drawer` takes `plain` or `mesh`.
+- Flags take `1`/`0` (or `on`/`off`).
+- Anything missing or unreadable falls back to the default.
+
+**Adding a toggle for a future experiment.** Define its settings once, next to the experiment:
+
+```ts
+import { defineDevSettings, useDevSettings } from "@/features/dev-panel";
+
+type Trial = { shade: boolean; size: "small" | "large" };
+
+export const trialSettings = defineDevSettings<Trial>(
+  { shade: false, size: "small" }, // what production uses
+  import.meta.env.DEV
+    ? {
+        title: "Trial",
+        controls: [
+          { kind: "flag", key: "shade", label: "Shade" },
+          {
+            kind: "choice",
+            key: "size",
+            label: "Size",
+            options: [
+              { value: "small", label: "Small" },
+              { value: "large", label: "Large" },
+            ],
+          },
+        ],
+      }
+    : null,
+);
+
+// In a component: const { shade, size } = useDevSettings(trialSettings);
+```
+
+How it fits together:
+
+- **Types.** A boolean gets a checkbox; a string union gets radio buttons. The control list is type-checked against the settings' keys.
+- **Optional extras.** `inactive(key, values)` greys a control out. `useNote(values)` adds a live line under the group, which is how Surface says "Pointer holds still here".
+- **Keys.** The parameter names are the keys, so keep them unique across experiments.
+- **Keeping labels out of production.** Pass the group inside an `import.meta.env.DEV` branch, as above, so the labels never reach the build.
+- **Production.** The panel itself is mounted by `<DevPanelSlot />` in `App.tsx`, which is null outside dev, and a production build reads no URL parameters, so it only ever uses the defaults.
+
+### Production defaults now
+
+| Setting  | Default     | What the visitor gets                                                                |
+| -------- | ----------- | ------------------------------------------------------------------------------------ |
+| `tones`  | `true`      | Each chapter on its own paper.                                                       |
+| `mesh`   | `"pointer"` | Faceted pencil mesh that presses in under a mouse; still on touch or reduced motion. |
+| `lines`  | `true`      | The pencil net.                                                                      |
+| `reach`  | `"ends"`    | The hero, and About through Contact; nothing over the case studies.                  |
+| `drawer` | `"plain"`   | The drawers as they were.                                                            |
+
+**Loading.** The mesh's code is a lazy chunk, fetched 400ms after the page's load event once the browser is idle, the way the Burpees set is (that's what holds Lighthouse mobile at 100). The canvas then eases in over 550ms the first time, so it never pops; under reduced motion it just appears.
+
+**Bundle,** against round 3 (`0aeef39`):
+
+- Main JS: +2.0 kB (+0.83 kB gzipped).
+- CSS: +1.4 kB (+0.32 kB gzipped).
+- After load: `MeshCanvas` (2.1 kB gzipped) plus the shared `paintMesh` chunk (2.8 kB gzipped).
+- `DrawerMesh` (1.0 kB gzipped) only with the drawer option on.
+
+**Performance.** Headless Chrome, 1440×900, software raster, so a worst case. No mode had a frame over 20ms.
+
+| Check                                                                    | Main-thread tasks per frame | Frames over 20ms |
+| ------------------------------------------------------------------------ | --------------------------- | ---------------- |
+| Pointer circling the hero for 6s, mesh off                               | 0.79ms                      | 0 of 360         |
+| Pointer circling the hero for 6s, defaults (pencil and dent)             | 1.94ms (+1.15)              | 0 of 360         |
+| Pointer circling the hero for 6s, static pencil (nothing redraws)        | 0.67ms                      | 0 of 359         |
+| Whole page scrolled (764 frames), mesh off / defaults / whole-page reach | 2.11 / 2.05 / 2.56ms        | 0 / 0 / 0        |
+
+At its ends, the mesh costs nothing measurable while you scroll the page. The middle of the page draws nothing.
+
+### My verdict now
+
+In round 1 I said the mesh didn't earn its place. Chris's version answers most of that:
+
+- **Text and diagrams.** Confined to the hero and the close, it never sits under a diagram or competes with the case studies' interactions.
+- **Room to read.** It's held at the strength AA allows, so it can be clearly visible rather than a sheen.
+- **Meaning.** In pencil it reads as a survey net: the drawing office's own mark, framing the work at either end.
+
+It's still texture with no meaning of its own, and the dent is a delight rather than information. But it's now quiet where the work is and present where the page is just words, which is the right way round. I'd ship it as configured.
+
+### Verified (round 4)
+
+- **Gates.** `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (85 files, 462 tests) and `pnpm build` all exit 0.
+- **Dev panel absent from `dist/`.** `grep -rlF` finds 0 files for each of `Dev panel`, `data-dev-panel`, `DevPanel`, `Chapter tones`, `Pencil lines`, `Mesh reach`, `Drawer sheet`, `Hero and About to Contact`, `holds still here`, `replaceState`, `tones=` and `drawer=mesh`.
+- **No sideways overflow.** At 320 and 390, with the defaults, mesh off, whole-page reach and the drawer mesh, `scrollWidth − clientWidth` is 0 down the whole page, and the page is no taller with the mesh. The drawer mesh at 320×640 is as tall as the drawer's scrolling content, with no sideways scroll.
+- **Screenshots** at 1440×900 and 390×844 are in the session scratchpad's `looks/drawing-office-surface/final2/`: the hero, the fade into Wayfinder, the fade back in at About, Contact, the Burpees count in ink, the drawer plain and with the mesh (desktop also with its three field errors), and the dev panel.
+
 ## Background experiments
 
 Branch `look/drawing-office-surface`, from `look/drawing-office` at `2f836d2`. Run it with `pnpm dev --host --port 5185 --strictPort`, then open `http://localhost:5185/`.
@@ -16,6 +199,8 @@ Chris asked for two things, verbatim where it matters:
 - **A triangulated mesh in the background.** "Rather large ones, not massive, or maybe medium", subtle texture "as we read and scroll down", optionally following the mouse so it "indents the triangle or polygonal mesh slightly … a sense of surface area or depth". It must not be heavy, and it should be "very muted around where the diagrams are, not have a hard border around them".
 
 Both are built as switchable experiments with a dev-only panel. Nothing else on the page changed: no copy, no layout, no diagram code.
+
+> **Superseded in places by Round 4 (above).** The panel is now the general "Dev panel" (`src/features/dev-panel/`), the defaults are Chris's (pencil mesh with the pointer at the page's ends), the pencil alpha is 0.024 with each edge drawn once, phones get 0.85 strength, and `surfaceStore.ts`, `useSurfaceSettings.ts` and `SurfacePanel.tsx` have gone (`surfaceSettings.ts` replaces them). The round 1 record below is kept as it was written.
 
 ### How to try it
 
@@ -249,7 +434,7 @@ What this revision leaves alone:
    - **Fix:** `useStepSync` takes an opt-in `noneAbove` option, which the rings explorer turns on. When the first step leaves the focus band downwards, the selection goes back to none (0). The pure rule is `selectionAfterLeaving` in `lib/stepSync.ts`. The rings' draw goals moved into `draw.ts` as `drawGoals`. Wayfinder's behaviour is unchanged (it doesn't opt in).
    - **Tests:** the pure rule (`stepSync.test.ts`), the hook (`useStepSync.test.tsx`, with the option and without), and the reverse case in `draw.test.ts` (with nothing selected, every step's goal is undrawn, the edge included, and walked back to zero the edge leaves no line or icon).
    - **Checked in the browser** at 1440 and 390: scrolled back above the edge, its lines and icons undraw and its words fade, and it draws on again on the way down.
-5. **The Burpees count is in Newsreader light, in the red pen**, like the other numerals, with lining and tabular figures.
+5. **The Burpees count is in Newsreader light, in the red pen**, like the other numerals, with lining and tabular figures. (Round 4 puts it back in ink, same face.)
    - **Contrast:** 4.95:1 on the paper, well over the 3:1 large-text minimum.
    - **No layout shift:** measured across every value as the set counts up, every one-, two- and three-digit value is exactly the same width (197 / 394 / 591px at 1440; 112 / 224 / 336px at 390), and the calls' left edge never moves.
    - The count is measured at runtime (`CountRuler`), so the figure still stands on the new face's baseline.

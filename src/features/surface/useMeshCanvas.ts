@@ -1,14 +1,19 @@
 import { type RefObject, useEffect } from "react";
 import { canvasPixelRatio, canvasWindow } from "./canvasWindow";
 import { type Box } from "./mesh";
+import { meshColours } from "./meshColours";
 import { type Dent, meshFacets } from "./meshFacets";
 import { meshLookFor } from "./meshLook";
-import { approach, shadeFill } from "./shading";
+import { paintMesh } from "./paintMesh";
+import { type Reach, bandReach, endsReach } from "./reach";
+import { type MeshReach } from "./settings";
+import { approach } from "./shading";
 
 /**
  * The drawings the mesh steps back from, found fresh each frame (the
  * physio drawing and the Burpees set load late): the Wayfinder figure, the
  * physio rings' room (its exact size, drawn or not) and the Burpees count.
+ * At its ends the mesh never reaches them; over the whole page it does.
  */
 export const QUIET_SELECTORS = [
   '#work [data-bar-flush] svg[role="img"]',
@@ -16,16 +21,23 @@ export const QUIET_SELECTORS = [
   '[data-testid="burpees-count"]',
 ] as const;
 
+/** The sections that set where the mesh lies at its ends (see reach.ts). */
+const HERO = "top";
+const WORK = "work";
+const ABOUT = "about";
+
 /** How fast the dent follows the pointer, presses in and lets go (time constants, ms). */
 const FOLLOW_MS = 90;
 const PRESS_MS = 160;
 const RELEASE_MS = 420;
 
-function channels(raw: string, fallback: [number, number, number]) {
-  const parts = raw.trim().split(/\s+/).map(Number);
-  return parts.length === 3 && parts.every(Number.isFinite)
-    ? (parts as [number, number, number])
-    : fallback;
+export interface MeshCanvasOptions {
+  /** Whether the facets press in under the mouse. */
+  pointer: boolean;
+  /** Whether the net's edges are drawn in pencil. */
+  lines: boolean;
+  /** Where on the page the mesh lies. */
+  reach: MeshReach;
 }
 
 /**
@@ -33,14 +45,15 @@ function channels(raw: string, fallback: [number, number, number]) {
  * page behind everything). It draws only when something changed: a scroll
  * (the canvas's band moving on, or a pinned drawing moving against the
  * page), a resize, the page's height changing, or, with `pointer`, the
- * mouse moving; the dent's easing runs frames only until it settles.
- * Nothing draws while the tab is hidden.
+ * mouse moving; the dent's easing runs frames only until it settles. Where
+ * the mesh doesn't reach (the case studies, at its ends), the canvas is
+ * cleared once and nothing more is drawn or measured. Nothing draws while
+ * the tab is hidden.
  */
 export function useMeshCanvas(
   layerRef: RefObject<HTMLDivElement | null>,
   canvasRef: RefObject<HTMLCanvasElement | null>,
-  pointerMode: boolean,
-  lines: boolean,
+  { pointer: pointerMode, lines, reach: reachMode }: MeshCanvasOptions,
 ): void {
   useEffect(() => {
     const layer = layerRef.current;
@@ -55,9 +68,8 @@ export function useMeshCanvas(
     let pageHeight = 0;
     let ratio = 1;
     let band = { top: 0, height: 0 };
-    let paper = 242;
-    let ink: [number, number, number] = [26, 32, 35];
-    let white: [number, number, number] = [255, 255, 255];
+    let reach: Reach | null = null;
+    let colours = meshColours(document.documentElement);
     let drawn = "";
     let frame = 0;
     let last = 0;
@@ -66,11 +78,43 @@ export function useMeshCanvas(
     const dent: Dent = { x: 0, y: 0, amount: 0 };
     let dentPlaced = false;
 
+    const pageBox = (id: string) => {
+      const rect = document.getElementById(id)?.getBoundingClientRect();
+      return rect
+        ? {
+            top: rect.top + window.scrollY,
+            bottom: rect.bottom + window.scrollY,
+          }
+        : null;
+    };
+
+    // Where the mesh lies: from the sections' real positions, measured on
+    // every layout change (a lazy chapter landing moves About down).
+    const measureReach = () => {
+      if (reachMode === "page") {
+        reach = null;
+        return;
+      }
+      const hero = pageBox(HERO);
+      const work = pageBox(WORK);
+      const about = pageBox(ABOUT);
+      reach =
+        hero && work && about
+          ? endsReach({
+              heroTop: hero.top,
+              heroBottom: hero.bottom,
+              workTop: work.top,
+              aboutTop: about.top,
+              aboutBottom: about.bottom,
+            })
+          : null;
+    };
+
     const measure = () => {
       width = layer.clientWidth;
       viewHeight = window.innerHeight;
-      pageHeight = Math.floor(page.getBoundingClientRect().height);
       // Floored, so the layer never makes the page a pixel taller.
+      pageHeight = Math.floor(page.getBoundingClientRect().height);
       layer.style.height = `${pageHeight}px`;
       look = meshLookFor(width, width / 2, lines);
       const height = canvasWindow(0, viewHeight, pageHeight).height;
@@ -79,26 +123,13 @@ export function useMeshCanvas(
       canvas.height = Math.round(height * ratio);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
-      const root = getComputedStyle(document.documentElement);
-      // The paper's level, for the fills: between the plain paper and the
-      // deepest chapter paper, so a facet reads alike on all of them.
-      const surface = channels(
-        root.getPropertyValue("--color-surface"),
-        [242, 244, 244],
-      );
-      const deepest = channels(
-        root.getPropertyValue("--color-paper-burpees"),
-        surface,
-      );
-      paper =
-        [0, 1, 2].reduce((sum, i) => sum + surface[i] + deepest[i], 0) / 6;
-      ink = channels(root.getPropertyValue("--color-ink"), ink);
-      white = channels(root.getPropertyValue("--color-sheet"), white);
+      colours = meshColours(document.documentElement);
+      measureReach();
       drawn = "";
     };
 
     const quietBoxes = (scrollY: number): Box[] => {
-      const reach = look.falloff.margin + look.falloff.width;
+      const reachPx = look.falloff.margin + look.falloff.width;
       const boxes: Box[] = [];
       for (const selector of QUIET_SELECTORS) {
         for (const element of document.querySelectorAll(selector)) {
@@ -112,8 +143,8 @@ export function useMeshCanvas(
             bottom: r.bottom + scrollY,
           };
           if (
-            box.bottom + reach < band.top ||
-            box.top - reach > band.top + band.height
+            box.bottom + reachPx < band.top ||
+            box.top - reachPx > band.top + band.height
           ) {
             continue;
           }
@@ -123,12 +154,9 @@ export function useMeshCanvas(
       return boxes;
     };
 
-    const trace = (points: readonly number[]) => {
-      context.beginPath();
-      context.moveTo(points[0], points[1]);
-      context.lineTo(points[2], points[3]);
-      context.lineTo(points[4], points[5]);
-      context.closePath();
+    const clear = () => {
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.clearRect(0, 0, canvas.width, canvas.height);
     };
 
     const paint = (boxes: Box[]) => {
@@ -138,35 +166,49 @@ export function useMeshCanvas(
         right: width,
         bottom: band.top + band.height,
       };
+      clear();
       context.setTransform(ratio, 0, 0, ratio, 0, -band.top * ratio);
-      context.clearRect(0, band.top, width, band.height);
-      const facets = meshFacets(
-        rect,
-        look,
-        boxes,
-        dent.amount > 0 ? dent : null,
+      paintMesh(
+        context,
+        meshFacets(rect, look, boxes, dent.amount > 0 ? dent : null),
+        {
+          ...colours,
+          edge: look.edge,
+          top: rect.top,
+          bottom: rect.bottom,
+          reach,
+        },
       );
-      const inkLevel = (ink[0] + ink[1] + ink[2]) / 3;
-      for (const { points, levels } of facets) {
-        if (levels === 0) continue;
-        const fill = shadeFill(levels, paper, inkLevel);
-        if (fill.alpha <= 0) continue;
-        const [r, g, b] = fill.towards === "light" ? white : ink;
-        context.fillStyle = `rgba(${r},${g},${b},${fill.alpha.toFixed(4)})`;
-        trace(points);
-        context.fill();
+    };
+
+    // Eases the dent towards the pointer (pressing in) or away (letting go);
+    // true while it's still on its way.
+    const easeDent = (scrollY: number, dt: number): boolean => {
+      const target = pointer ? { x: pointer.x, y: pointer.y + scrollY } : null;
+      if (target && !dentPlaced) {
+        dent.x = target.x;
+        dent.y = target.y;
+        dentPlaced = true;
+      } else if (target) {
+        dent.x = approach(dent.x, target.x, dt, FOLLOW_MS);
+        dent.y = approach(dent.y, target.y, dt, FOLLOW_MS);
       }
-      if (look.edge > 0) {
-        context.lineWidth = 1;
-        context.lineJoin = "round";
-        for (const { points, strength } of facets) {
-          const alpha = look.edge * strength;
-          if (alpha < 0.002) continue;
-          context.strokeStyle = `rgba(${ink[0]},${ink[1]},${ink[2]},${alpha.toFixed(4)})`;
-          trace(points);
-          context.stroke();
-        }
+      const goal = target ? 1 : 0;
+      dent.amount = approach(
+        dent.amount,
+        goal,
+        dt,
+        target ? PRESS_MS : RELEASE_MS,
+      );
+      if (!target && dent.amount < 0.004) {
+        dent.amount = 0;
+        dentPlaced = false;
       }
+      return (
+        Math.abs(dent.amount - goal) > 0.004 ||
+        (target !== null &&
+          Math.hypot(dent.x - target.x, dent.y - target.y) > 0.5)
+      );
     };
 
     const run = (now: number) => {
@@ -182,35 +224,19 @@ export function useMeshCanvas(
         canvas.style.transform = `translate3d(0, ${band.top}px, 0)`;
       }
 
-      let moving = false;
-      if (pointerMode) {
-        const target = pointer
-          ? { x: pointer.x, y: pointer.y + scrollY }
-          : null;
-        if (target && !dentPlaced) {
-          dent.x = target.x;
-          dent.y = target.y;
-          dentPlaced = true;
-        } else if (target) {
-          dent.x = approach(dent.x, target.x, dt, FOLLOW_MS);
-          dent.y = approach(dent.y, target.y, dt, FOLLOW_MS);
+      // Nowhere in this band to draw: clear once, then nothing.
+      if (bandReach(band.top, band.top + band.height, reach) === 0) {
+        if (drawn !== "empty") {
+          drawn = "empty";
+          clear();
         }
-        const goal = target ? 1 : 0;
-        dent.amount = approach(
-          dent.amount,
-          goal,
-          dt,
-          target ? PRESS_MS : RELEASE_MS,
-        );
-        if (!target && dent.amount < 0.004) {
-          dent.amount = 0;
-          dentPlaced = false;
-        }
-        moving =
-          Math.abs(dent.amount - goal) > 0.004 ||
-          (target !== null &&
-            Math.hypot(dent.x - target.x, dent.y - target.y) > 0.5);
+        dent.amount = 0;
+        dentPlaced = false;
+        last = 0;
+        return;
       }
+
+      const moving = pointerMode && easeDent(scrollY, dt);
 
       const boxes = quietBoxes(scrollY);
       const key = [
@@ -270,10 +296,10 @@ export function useMeshCanvas(
         ? null
         : new ResizeObserver(() => {
             if (
-              Math.floor(page.getBoundingClientRect().height) !== pageHeight
+              Math.floor(page.getBoundingClientRect().height) === pageHeight
             ) {
-              measure();
-            }
+              measureReach();
+            } else measure();
             drawn = "";
             schedule();
           });
@@ -323,8 +349,7 @@ export function useMeshCanvas(
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerout", onPointerOut);
       window.removeEventListener("blur", onBlur);
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      clear();
     };
-  }, [layerRef, canvasRef, pointerMode, lines]);
+  }, [layerRef, canvasRef, pointerMode, lines, reachMode]);
 }
