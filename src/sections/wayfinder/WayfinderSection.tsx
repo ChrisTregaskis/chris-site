@@ -17,7 +17,7 @@ export function WayfinderSection() {
         id="wayfinder-title"
         numeral="1"
         title="Wayfinder, an AI guide for a global automotive brand"
-        lede="A chat assistant live in production, guiding buyers on electric and hybrid options across the range. Test-drive booking and finance were proven in the prototype and demoed live. I built all of it on my own, from a reusable white-label foundation."
+        lede="A chat assistant live in production, guiding buyers on electric and hybrid options across the range. Test-drive booking and finance were proven in the prototype and demoed live. Having architected and built it end to end on my own, I kept it white-label, so it could be rebuilt for any business."
         chips={["React", "Node", "Multi-agent", "MCP", "Terraform"]}
       />
       <Wayfinder />
