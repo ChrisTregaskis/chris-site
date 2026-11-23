@@ -39,7 +39,7 @@ describe("ChatMock", () => {
       />,
     );
     const sketch = screen.getByRole("img", {
-      name: "Sketch of a lilac family SUV on a city street",
+      name: "Sketch of a red family SUV on a city street",
     });
     expect(sketch).toHaveAttribute("loading", "lazy");
     expect(sketch).toHaveAttribute("width", "400");

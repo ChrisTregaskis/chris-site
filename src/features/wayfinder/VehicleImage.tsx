@@ -14,7 +14,7 @@ export const VEHICLE = {
   sizes: "min(384px, calc(100vw - 106px))",
   width: 400,
   height: 200,
-  alt: "Sketch of a lilac family SUV on a city street",
+  alt: "Sketch of a red family SUV on a city street",
 } as const;
 
 export function VehicleImage() {
