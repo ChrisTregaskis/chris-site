@@ -15,6 +15,7 @@ import { JourneyTrace } from "./JourneyTrace";
 import { type Highlight, NO_HIGHLIGHT } from "./highlight";
 import { NODE_STEP, type StepId, STEP_ORDER, stepNumber, STEPS } from "./story";
 import { StepText } from "./StepText";
+import { DRAW_MS, UNDRAW_MS } from "./useDrawOn";
 import { useJourney } from "./useJourney";
 import { useCompactStage } from "@/features/phone-stage";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -291,9 +292,15 @@ export function RingsExplorer() {
             </div>
           )}
         </div>
-        {/* Compact, Try it on the drawing's bottom-right corner, which the rings leave empty. */}
+        {/* Compact, Try it on the drawing's bottom-right corner, which the rings
+            leave empty: it fades in with the first ring, and out with it. */}
         {compact ? (
-          <StageAction action={action} className="bottom-[6px]" />
+          <StageAction
+            action={action}
+            shown={current > 0}
+            fadeMs={{ in: DRAW_MS, out: UNDRAW_MS }}
+            className="bottom-[6px]"
+          />
         ) : null}
         <p className="sr-only" aria-live="polite">
           {current ? `${step.kicker}: ${step.heading}` : ""}
