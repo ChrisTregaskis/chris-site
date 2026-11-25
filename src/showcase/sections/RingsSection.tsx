@@ -19,6 +19,7 @@ export function RingsSection() {
   const reduced = useReducedMotion() ?? false;
   const [current, setCurrent] = useState(1);
   const [all, setAll] = useState(false);
+  const [compact, setCompact] = useState(false);
   const [pressed, setPressed] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const journey = useJourney(reduced);
@@ -48,7 +49,8 @@ export function RingsSection() {
         it, and undraws it the other way. Try it sends the step&apos;s journey
         through what it has drawn: a red-pen pulse, routes highlighted behind
         it, a wall that holds marked in red, and a trace. A step&apos;s details
-        pick their parts out.
+        pick their parts out. Compact, as the compact phone stage draws it:
+        cropped to what&apos;s drawn, its labels a touch larger.
       </p>
       <div className="grid items-start gap-10 wide:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="max-w-[520px]">
@@ -62,6 +64,7 @@ export function RingsSection() {
             token={journey.token}
             pulseRef={journey.pulseRef}
             onNode={() => {}}
+            compact={compact}
           />
         </div>
         <div className="flex flex-col gap-5">
@@ -95,6 +98,13 @@ export function RingsSection() {
               onClick={() => setAll((value) => !value)}
             >
               Every ring
+            </Button>
+            <Button
+              variant="ghost"
+              pressed={compact}
+              onClick={() => setCompact((value) => !value)}
+            >
+              Compact
             </Button>
             <Button
               variant="ghost"

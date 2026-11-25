@@ -38,6 +38,22 @@ export const LABEL_UNITS = 17.5;
 /** The narrowest phone the type is checked at, and the drawing's width there. */
 export const NARROWEST_PX = 320;
 
+/**
+ * The compact phone stage (`features/phone-stage`): the frame cropped to
+ * what's drawn (the square's empty band under the rings gone), so the
+ * drawing can be shorter for its width, and its labels a touch larger, as
+ * the drawing is smaller there: never under `minPx` wide, so the labels
+ * stay 12px or more. The ring names keep their size: any larger, the
+ * policy's would run into the health check on the orbit.
+ */
+export const COMPACT = {
+  top: -212,
+  bottom: 158,
+  labelUnits: 18.5,
+  minPx: 280,
+} as const;
+export const COMPACT_VIEW_BOX = `${-HALF} ${COMPACT.top} ${HALF * 2} ${COMPACT.bottom - COMPACT.top}`;
+
 export function polar(r: number, degrees: number): XY {
   const a = (degrees * Math.PI) / 180;
   return [r * Math.cos(a), r * Math.sin(a)];
@@ -248,8 +264,6 @@ export interface NodeLabel {
   anchor: Anchor;
 }
 
-const LINE = LABEL_UNITS * 1.1;
-
 /** The labels beside the outer nodes; the orbit's functions carry icons instead. */
 export const LABELS: readonly NodeLabel[] = [
   {
@@ -306,16 +320,20 @@ export const RING_LABELS = [
 
 /**
  * A label's rough box, for checking it stays in the frame and clear of the
- * rest: Figtree's average advance is a little over half an em.
+ * rest: Figtree's average advance is a little over half an em. Set in
+ * `units` (the compact stage's are larger), from the same anchor.
  */
-export function labelBox(label: NodeLabel): {
+export function labelBox(
+  label: NodeLabel,
+  units: number = LABEL_UNITS,
+): {
   left: number;
   right: number;
   top: number;
   bottom: number;
 } {
   const width =
-    Math.max(...label.lines.map((line) => line.length)) * LABEL_UNITS * 0.58;
+    Math.max(...label.lines.map((line) => line.length)) * units * 0.58;
   const left =
     label.anchor === "start"
       ? label.x
@@ -325,7 +343,8 @@ export function labelBox(label: NodeLabel): {
   return {
     left,
     right: left + width,
-    top: label.y - LABEL_UNITS * 0.75,
-    bottom: label.y + (label.lines.length - 1) * LINE + LABEL_UNITS * 0.25,
+    top: label.y - units * 0.75,
+    // Lines are 1.1em apart, so they spread with the type.
+    bottom: label.y + (label.lines.length - 1) * units * 1.1 + units * 0.25,
   };
 }

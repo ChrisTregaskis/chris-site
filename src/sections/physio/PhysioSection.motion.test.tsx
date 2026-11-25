@@ -1,8 +1,9 @@
-import { cleanup, screen, within } from "@testing-library/react";
+import { act, cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PHYSIO_HEADING } from "./physioHeading";
 import { PhysioSection } from "./PhysioSection";
+import { phoneStageSettings } from "@/features/phone-stage";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 /*
@@ -11,14 +12,20 @@ import { renderWithProviders } from "@/test/renderWithProviders";
  */
 /**
  * The drawing loads as the reader nears it: here it's always near. Nothing
- * else the chapter observes (its steps, the chapter itself) ever reports.
+ * else the chapter observes (its steps, the chapter itself) reports by
+ * itself; `scrollTo` has the step sync see a step's words reach the
+ * reading line, as a scroll would.
  */
+const observers = new Set<NearObserver>();
 class NearObserver {
-  private readonly report: IntersectionObserverCallback;
+  readonly report: IntersectionObserverCallback;
+  readonly targets = new Set<Element>();
   constructor(report: IntersectionObserverCallback) {
     this.report = report;
+    observers.add(this);
   }
   observe(target: Element) {
+    this.targets.add(target);
     if (target.getAttribute("data-testid") !== "rings-room") return;
     this.report(
       [{ isIntersecting: true, target } as IntersectionObserverEntry],
@@ -26,16 +33,47 @@ class NearObserver {
     );
   }
   unobserve() {}
-  disconnect() {}
+  disconnect() {
+    observers.delete(this);
+  }
   takeRecords() {
     return [];
   }
 }
 
-function media() {
+function scrollTo(step: string) {
+  // The sync tracks a step's box or, stacked, its words.
+  const targets = [
+    document.querySelector(`[data-step="${step}"]`),
+    document.querySelector(`[data-step-text="${step}"]`),
+  ];
+  // Any glide the chapter set off has settled: the sync is listening again.
+  act(() => {
+    window.dispatchEvent(new Event("scrollend"));
+  });
+  for (const observer of [...observers]) {
+    const target = targets.find((t) => t && observer.targets.has(t));
+    if (!target) continue;
+    act(() =>
+      observer.report(
+        [
+          {
+            isIntersecting: true,
+            target,
+            boundingClientRect: target.getBoundingClientRect(),
+          } as IntersectionObserverEntry,
+        ],
+        observer as unknown as IntersectionObserver,
+      ),
+    );
+  }
+}
+
+/** Side by side, or stacked (a phone). */
+function media(stacked = false) {
   vi.stubGlobal("IntersectionObserver", NearObserver);
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: false,
+    matches: stacked && query.includes("max-width"),
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
@@ -44,8 +82,8 @@ function media() {
   }));
 }
 
-async function renderChapter() {
-  media();
+async function renderChapter(stacked = false) {
+  media(stacked);
   renderWithProviders(<PhysioSection />);
   await screen.findByTestId("rings-figure");
   return screen.getByRole("region", { name: PHYSIO_HEADING.title });
@@ -146,5 +184,80 @@ describe("the rings, scrolling", () => {
       within(card).getByRole("list", { name: "Inside the queue" }),
     ).toBeInTheDocument();
     expect(litRoutes()).toEqual([]);
+  });
+});
+
+describe("the rings on a phone", () => {
+  beforeEach(() => {
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+  });
+  afterEach(() => {
+    cleanup();
+    act(() => phoneStageSettings.set({ phoneStage: "compact" }));
+  });
+
+  const stage = () => screen.getByTestId("rings-stage");
+
+  it("pins the drawing alone on the compact stage, with Try it on it and no picker", async () => {
+    await renderChapter(true);
+    expect(stage()).toHaveAttribute("data-compact");
+    expect(screen.queryByRole("button", { name: /^Physio ring/ })).toBeNull();
+    expect(
+      within(stage()).getByRole("button", { name: "Try it" }),
+    ).toBeInTheDocument();
+    // Cropped to what's drawn: shorter than the square.
+    expect(figure().getAttribute("viewBox")).toBe("-210 -212 420 370");
+  });
+
+  it("opens each step's words with its name and the picker's icon", async () => {
+    await renderChapter(true);
+    for (const [id, name] of [
+      ["edge", "The edge"],
+      ["queue", "The queue"],
+      ["direct", "Direct access"],
+    ] as const) {
+      const card = words(id);
+      if (!(card instanceof HTMLElement)) throw new Error(`no ${id} words`);
+      const heading = card.firstElementChild;
+      expect(heading).toHaveTextContent(name);
+      expect(heading?.querySelector("svg")).toHaveAttribute(
+        "aria-hidden",
+        "true",
+      );
+    }
+  });
+
+  it("plays the step's journey from Try it on the stage, starting at the first step before any", async () => {
+    await renderChapter(true);
+    const tryOnStage = within(stage()).getByRole("button", { name: "Try it" });
+    expect(tryOnStage).toHaveAttribute("aria-pressed", "false");
+    // Before any step: it brings the first step in and sends its journey.
+    await userEvent.setup().click(tryOnStage);
+    expect(words("edge")).toHaveAttribute("aria-hidden", "false");
+    expect(tryOnStage).toHaveAttribute("aria-pressed", "true");
+    expect(litRoutes().length).toBeGreaterThan(0);
+    // Scrolled on to another step: its journey cleared, Try it sends that one's.
+    scrollTo("direct");
+    expect(words("direct")).toHaveAttribute("aria-hidden", "false");
+    expect(litRoutes()).toEqual([]);
+    expect(tryOnStage).toHaveAttribute("aria-pressed", "false");
+    await userEvent.setup().click(tryOnStage);
+    expect(litRoutes()).toEqual(["engineer-host"]);
+    // And back up: the step before it, nothing left lit.
+    scrollTo("queue");
+    expect(words("queue")).toHaveAttribute("aria-hidden", "false");
+    expect(litRoutes()).toEqual([]);
+  });
+
+  it("keeps the picker on a phone when the current stage is chosen", async () => {
+    act(() => phoneStageSettings.set({ phoneStage: "current" }));
+    await renderChapter(true);
+    expect(stage()).not.toHaveAttribute("data-compact");
+    expect(
+      screen.getByRole("button", { name: /^Physio ring/ }),
+    ).toBeInTheDocument();
+    expect(figure().getAttribute("viewBox")).toBe("-210 -210 420 420");
+    expect(words("edge")?.firstElementChild?.querySelector("svg")).toBeNull();
   });
 });

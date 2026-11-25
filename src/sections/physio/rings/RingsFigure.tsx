@@ -2,6 +2,7 @@ import { type Ref, useId, useRef } from "react";
 import { type RingStroke, type StrokeKey } from "./draw";
 import {
   arcPath,
+  COMPACT_VIEW_BOX,
   HALF,
   LABELS,
   NODES,
@@ -42,6 +43,8 @@ interface RingsFigureProps {
   pulseRef: Ref<SVGGElement>;
   /** A node pressed: show its step. */
   onNode: (id: NodeId) => void;
+  /** On the compact phone stage: cropped to what's drawn, its labels larger. */
+  compact?: boolean;
 }
 
 const ICON: Partial<Record<NodeId, GlyphId>> = {
@@ -94,6 +97,12 @@ const COLOUR =
 const TYPE = "font-body text-[17.5px] sheet:text-[14px] xl:text-[12.5px]";
 /** The ring names, as a drawing's annotations: the mono, a size down. */
 const RING_TYPE = "font-code text-[16px] sheet:text-[13px] xl:text-[12px]";
+/**
+ * On the compact phone stage (only ever stacked), one size at every width:
+ * the labels at `COMPACT.labelUnits`, the ring names as on a phone.
+ */
+const COMPACT_TYPE = "font-body text-[18.5px]";
+const COMPACT_RING_TYPE = "font-code text-[16px]";
 const TONE = "fill-surface";
 
 /*
@@ -161,7 +170,10 @@ export function RingsFigure({
   token,
   pulseRef,
   onNode,
+  compact = false,
 }: RingsFigureProps) {
+  const type = compact ? COMPACT_TYPE : TYPE;
+  const ringType = compact ? COMPACT_RING_TYPE : RING_TYPE;
   const ids = useId().replace(/:/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
   useDrawOn(svgRef, current, all);
@@ -276,7 +288,7 @@ export function RingsFigure({
   return (
     <svg
       ref={svgRef}
-      viewBox={VIEW_BOX}
+      viewBox={compact ? COMPACT_VIEW_BOX : VIEW_BOX}
       role="img"
       aria-label="The platform from above, as rings round the data: the visitor and an engineer outside; the API, the CDN, sign-in and video storage at the edge; the functions on an orbit inside a private network with no way out; and Postgres at the centre, inside its row-level security policy, holding the job queue."
       data-testid="rings-figure"
@@ -446,7 +458,7 @@ export function RingsFigure({
             data-reveal={ringLabelReveal[ring.id]}
             style={unshown}
             className={cn(
-              RING_TYPE,
+              ringType,
               ring.id === "policy" ? "fill-ink" : "fill-muted",
             )}
           >
@@ -485,7 +497,7 @@ export function RingsFigure({
           x={0}
           y={-2}
           textAnchor="middle"
-          className={cn(TYPE, "fill-ink font-medium")}
+          className={cn(type, "fill-ink font-medium")}
         >
           Postgres
         </text>
@@ -561,7 +573,7 @@ export function RingsFigure({
             textAnchor={label.anchor}
             data-draw={label.node}
             style={unshown}
-            className={cn(TYPE, "pointer-events-none fill-ink font-medium")}
+            className={cn(type, "pointer-events-none fill-ink font-medium")}
           >
             {label.lines.map((line, i) => (
               <tspan key={line} x={label.x} dy={i === 0 ? 0 : "1.1em"}>

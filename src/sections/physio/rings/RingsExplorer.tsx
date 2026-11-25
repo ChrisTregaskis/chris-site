@@ -16,15 +16,17 @@ import { type Highlight, NO_HIGHLIGHT } from "./highlight";
 import { NODE_STEP, type StepId, STEP_ORDER, stepNumber, STEPS } from "./story";
 import { StepText } from "./StepText";
 import { useJourney } from "./useJourney";
+import { useCompactStage } from "@/features/phone-stage";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useNearScreen } from "@/hooks/useNearScreen";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
+import { StageAction } from "@/ui/organisms/StageAction";
 import { StepPicker } from "@/ui/organisms/StepPicker";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
-/** Each step's icon: in the picker in place of a number. */
+/** Each step's icon: in the picker in place of a number (and before its name on the compact stage). */
 const ICON: Record<StepId, GlyphId> = {
   edge: "door",
   network: "blocked",
@@ -44,6 +46,29 @@ const RingsFigure = lazy(() =>
   import("./RingsFigure").then((m) => ({ default: m.RingsFigure })),
 );
 const ROOM = <div aria-hidden="true" className="aspect-square w-full" />;
+
+/*
+ * The drawing's room, its placeholder and the pinned stage's padding.
+ * Stacked, the room is as wide as the screen (never taller than 56% of it,
+ * nor wider than 480px), so its type stays 13px or more at 320px. On the
+ * compact stage (stacked only), it's cropped to what's drawn (`COMPACT`)
+ * and sized so the words get half the screen or more: about 300px tall on
+ * an 844px screen and 255px on a 667px one (85px + 25.4svh, as a width),
+ * never under 280px wide (`COMPACT.minPx`), nor wider than the screen or
+ * 480px.
+ */
+const LOOK = {
+  current: {
+    room: "w-[min(100vw,56svh,480px)] max-w-none shrink-0 wide:w-[min(100%,66vh,580px)]",
+    placeholder: ROOM,
+    padding: "pb-[14px] pt-2",
+  },
+  compact: {
+    room: "w-[min(100vw,480px,max(280px,calc(96px+28.8svh)))] max-w-none shrink-0",
+    placeholder: <div aria-hidden="true" className="aspect-[420/370] w-full" />,
+    padding: "pb-[6px] pt-1",
+  },
+} as const;
 
 const OPTIONS = STEP_ORDER.map((id) => ({
   value: stepNumber(id),
@@ -82,10 +107,16 @@ function highlightOf(step: StepId, detailId: string | null): Highlight {
  * the one running and clears everything it lit. Static (reduced motion):
  * nothing pins or fades, every ring and every step's words are shown, and
  * the picker chooses which ring's journey Try it sends, its trace under it.
+ * Stacked on the compact phone stage (not static: there, the picker is how
+ * a journey is chosen), the picker goes, as scrolling moves through the
+ * steps: the drawing is smaller and cropped to what's drawn, Try it sits on
+ * its bottom-right corner, and each step's words open with its icon.
  */
 export function RingsExplorer() {
   const still = useReducedMotion() ?? false;
   const stacked = useMediaQuery(BELOW_WIDE);
+  const compact = useCompactStage() && !still;
+  const look = LOOK[compact ? "compact" : "current"];
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const roomRef = useRef<HTMLDivElement>(null);
@@ -159,6 +190,11 @@ export function RingsExplorer() {
     revealTrace.current = true;
     void run(step.journey);
   };
+  const action = {
+    label: "Try it",
+    pressed: journey.running !== null,
+    onClick: tryIt,
+  };
 
   // The trace takes the details' place at the foot of the step's words: once
   // it's drawn, if that's below the screen, bring it up (same step).
@@ -198,22 +234,21 @@ export function RingsExplorer() {
         ref={stageRef}
         data-testid="rings-stage"
         data-bar-flush={stacked && !still ? "" : undefined}
+        data-compact={compact ? "" : undefined}
         className={cn(
           "flex flex-col items-center",
           still
             ? "relative py-6 wide:self-start"
-            : "sticky top-nav z-[2] bg-surface pb-[14px] pt-2 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:z-[1] wide:h-[calc(100svh-var(--size-nav))] wide:justify-center wide:bg-transparent wide:p-0 wide:after:hidden",
+            : cn(
+                "sticky top-nav z-[2] bg-surface after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-gradient-to-b after:from-surface after:to-surface/0 wide:z-[1] wide:h-[calc(100svh-var(--size-nav))] wide:justify-center wide:bg-transparent wide:p-0 wide:after:hidden",
+                look.padding,
+              ),
         )}
       >
         <div className="flex w-full flex-col items-center gap-[14px]">
-          {/* Stacked, as wide as the screen (never taller than 56% of it, nor wider than 480px), so its type stays 13px or more at 320px. */}
-          <div
-            ref={roomRef}
-            data-testid="rings-room"
-            className="w-[min(100vw,56svh,480px)] max-w-none shrink-0 wide:w-[min(100%,66vh,580px)]"
-          >
+          <div ref={roomRef} data-testid="rings-room" className={look.room}>
             {near ? (
-              <Suspense fallback={ROOM}>
+              <Suspense fallback={look.placeholder}>
                 <RingsFigure
                   current={current}
                   all={still}
@@ -224,39 +259,42 @@ export function RingsExplorer() {
                   token={journey.token}
                   pulseRef={journey.pulseRef}
                   onNode={selectNode}
+                  compact={compact}
                 />
               </Suspense>
             ) : (
-              ROOM
+              look.placeholder
             )}
           </div>
-          <div className="flex w-full max-w-[480px] flex-col gap-[14px]">
-            <StepPicker
-              label="Physio ring"
-              options={OPTIONS}
-              value={current}
-              shown={shown}
-              valueText={step.kicker}
-              onSelect={(n) => goTo(n)}
-              reducedMotion={still}
-              marker={(n) => <Glyph id={ICON[stepAt(n).id]} />}
-              name={(n) => stepAt(n).kicker}
-              action={{
-                label: "Try it",
-                pressed: journey.running !== null,
-                onClick: tryIt,
-              }}
-            />
-            {still && journey.shown ? (
-              // Static, the words are a long way below: the trace sits here.
-              <JourneyTrace
-                journey={journey}
-                clearLabel="Clear the trace"
-                className="mt-2"
+          {compact ? null : (
+            <div className="flex w-full max-w-[480px] flex-col gap-[14px]">
+              <StepPicker
+                label="Physio ring"
+                options={OPTIONS}
+                value={current}
+                shown={shown}
+                valueText={step.kicker}
+                onSelect={(n) => goTo(n)}
+                reducedMotion={still}
+                marker={(n) => <Glyph id={ICON[stepAt(n).id]} />}
+                name={(n) => stepAt(n).kicker}
+                action={action}
               />
-            ) : null}
-          </div>
+              {still && journey.shown ? (
+                // Static, the words are a long way below: the trace sits here.
+                <JourneyTrace
+                  journey={journey}
+                  clearLabel="Clear the trace"
+                  className="mt-2"
+                />
+              ) : null}
+            </div>
+          )}
         </div>
+        {/* Compact, Try it on the drawing's bottom-right corner, which the rings leave empty. */}
+        {compact ? (
+          <StageAction action={action} className="bottom-[6px]" />
+        ) : null}
         <p className="sr-only" aria-live="polite">
           {current ? `${step.kicker}: ${step.heading}` : ""}
         </p>
@@ -312,6 +350,7 @@ export function RingsExplorer() {
                   onPress={(detail) => press(id, detail)}
                   journey={journey}
                   traceHere={!still}
+                  icon={compact ? <Glyph id={ICON[id]} /> : undefined}
                 />
               </div>
             </div>
