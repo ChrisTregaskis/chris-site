@@ -203,9 +203,18 @@ describe("the rings on a phone", () => {
     await renderChapter(true);
     expect(stage()).toHaveAttribute("data-compact");
     expect(screen.queryByRole("button", { name: /^Physio ring/ })).toBeNull();
+    // Before the first ring is drawn, Try it isn't on the stage yet: it
+    // arrives with the drawing (see-through, inert, out of the a11y tree).
     expect(
-      within(stage()).getByRole("button", { name: "Try it" }),
-    ).toBeInTheDocument();
+      within(stage()).queryByRole("button", { name: "Try it" }),
+    ).toBeNull();
+    const hidden = within(stage()).getByText("Try it").closest("button");
+    expect(hidden).toHaveAttribute("inert");
+    expect(hidden).toHaveClass("opacity-0");
+    scrollTo("edge");
+    const shown = within(stage()).getByRole("button", { name: "Try it" });
+    expect(shown).not.toHaveAttribute("inert");
+    expect(shown).toHaveClass("opacity-100");
     // Cropped to what's drawn: shorter than the square.
     expect(figure().getAttribute("viewBox")).toBe("-210 -212 420 370");
   });
@@ -228,11 +237,12 @@ describe("the rings on a phone", () => {
     }
   });
 
-  it("plays the step's journey from Try it on the stage, starting at the first step before any", async () => {
+  it("plays the step's journey from Try it on the stage", async () => {
     await renderChapter(true);
+    scrollTo("edge");
     const tryOnStage = within(stage()).getByRole("button", { name: "Try it" });
     expect(tryOnStage).toHaveAttribute("aria-pressed", "false");
-    // Before any step: it brings the first step in and sends its journey.
+    // On the first step: it sends that step's journey.
     await userEvent.setup().click(tryOnStage);
     expect(words("edge")).toHaveAttribute("aria-hidden", "false");
     expect(tryOnStage).toHaveAttribute("aria-pressed", "true");
