@@ -38,10 +38,10 @@ export type SurfaceSettings = {
 };
 
 /**
- * What the production build uses: chapter tones on; the pencil mesh with
- * the pointer at the two ends of the page, at Medium, stepping back behind
- * text; the drawers on paper with a still mesh, Faint at their foot. The
- * dev panel and the URL parameters only exist under `pnpm dev`.
+ * The surface as settled (22 Nov 2026), in dev and production alike:
+ * chapter tones on; the pencil mesh with the pointer at the two ends of the
+ * page, at Medium, stepping back behind text; the drawers on paper with a
+ * still mesh, Faint at their foot.
  */
 export const SURFACE_DEFAULTS: SurfaceSettings = {
   tones: true,
