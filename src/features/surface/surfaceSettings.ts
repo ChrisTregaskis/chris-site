@@ -1,97 +1,18 @@
-import {
-  type SurfaceSettings,
-  SURFACE_DEFAULTS,
-  effectiveMesh,
-} from "./settings";
+import { type SurfaceSettings, SURFACE_DEFAULTS } from "./settings";
 import { defineDevSettings, useDevSettings } from "@/features/dev-panel";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export const FINE_POINTER = "(hover: hover) and (pointer: fine)";
 export const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
-/** Under `pnpm dev`, says when the pointer mesh is holding still. */
-function useSurfaceNote(values: SurfaceSettings): string | null {
-  const finePointer = useMediaQuery(FINE_POINTER);
-  const reducedMotion = useMediaQuery(REDUCED_MOTION);
-  if (
-    effectiveMesh(values.mesh, { finePointer, reducedMotion }) === values.mesh
-  ) {
-    return null;
-  }
-  return reducedMotion
-    ? "Pointer holds still here: reduced motion is on."
-    : "Pointer holds still here: no mouse.";
-}
-
 /**
- * The surface settings: SURFACE_DEFAULTS in production; under `pnpm dev`,
- * the dev panel's Surface group and `?tones=1&mesh=pointer&lines=1&reach=ends&strength=medium&protect=1&drawer=mesh&drawerStrength=faint`.
+ * The surface settings: SURFACE_DEFAULTS, settled on 22 Nov 2026 and no
+ * longer in the dev panel. Still a settings store, so tests can switch the
+ * layers on and off with `surfaceSettings.set`; to experiment again, give it
+ * a dev panel group (see the phone stage's settings for the pattern).
  */
 export const surfaceSettings = defineDevSettings<SurfaceSettings>(
   SURFACE_DEFAULTS,
-  import.meta.env.DEV
-    ? {
-        title: "Surface",
-        controls: [
-          { kind: "flag", key: "tones", label: "Chapter tones" },
-          {
-            kind: "choice",
-            key: "mesh",
-            label: "Mesh",
-            options: [
-              { value: "off", label: "Off" },
-              { value: "static", label: "Static" },
-              { value: "pointer", label: "Pointer" },
-            ],
-          },
-          { kind: "flag", key: "lines", label: "Pencil lines" },
-          {
-            kind: "choice",
-            key: "reach",
-            label: "Mesh reach",
-            options: [
-              { value: "ends", label: "Hero and About to Contact" },
-              { value: "page", label: "Whole page" },
-            ],
-          },
-          {
-            kind: "choice",
-            key: "strength",
-            label: "Mesh strength",
-            options: [
-              { value: "subtle", label: "Subtle" },
-              { value: "medium", label: "Medium" },
-              { value: "strong", label: "Strong" },
-            ],
-          },
-          { kind: "flag", key: "protect", label: "Protect text" },
-          {
-            kind: "choice",
-            key: "drawer",
-            label: "Drawer sheet",
-            options: [
-              { value: "plain", label: "Plain" },
-              { value: "mesh", label: "Pencil mesh" },
-            ],
-          },
-          {
-            kind: "choice",
-            key: "drawerStrength",
-            label: "Drawer mesh strength",
-            options: [
-              { value: "faint", label: "Faint" },
-              { value: "clear", label: "Clear" },
-              { value: "bold", label: "Bold" },
-            ],
-          },
-        ],
-        inactive: (key, values) =>
-          (values.mesh === "off" &&
-            ["lines", "reach", "strength", "protect"].includes(key)) ||
-          (key === "drawerStrength" && values.drawer === "plain"),
-        useNote: useSurfaceNote,
-      }
-    : null,
+  null,
 );
 
 /** The surface settings, live. */
