@@ -15,10 +15,11 @@
 export type PhoneStage = "compact" | "current";
 
 /**
- * What the production build uses. The one line to change when the compact
- * stage is approved; `pnpm dev` starts from `compact` either way.
+ * What the page uses: `compact`, approved on a phone and shipped 25 Nov 2026.
+ * `current` stays as the layout's other branch (tests, and the physio
+ * chapter under reduced motion keeps its picker regardless).
  */
-export const PHONE_STAGE_LIVE: PhoneStage = "current";
+export const PHONE_STAGE_LIVE: PhoneStage = "compact";
 
 // A type, not an interface, so it fits the dev panel's DevValues.
 export type PhoneStageSettings = { phoneStage: PhoneStage };
