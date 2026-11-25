@@ -18,7 +18,7 @@ describe("the phone stage", () => {
     act(() => phoneStageSettings.set({ phoneStage: "compact" }));
   });
 
-  it("starts compact under dev, where the panel and the URL can switch it", () => {
+  it("starts compact, as the page ships it", () => {
     expect(phoneStageSettings.defaults.phoneStage).toBe("compact");
   });
 
