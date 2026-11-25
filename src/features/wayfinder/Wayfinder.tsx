@@ -21,12 +21,14 @@ import {
   partNumber,
   stepForPart,
 } from "./parts";
+import { useCompactStage } from "@/features/phone-stage";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useStepSync } from "@/hooks/useStepSync";
 import { cn } from "@/lib/cn";
 import { focusLine } from "@/lib/stepSync";
 import { topClearance } from "@/lib/topClearance";
 import { pad2 } from "@/ui/organisms/NumberedDropdown";
+import { StageAction } from "@/ui/organisms/StageAction";
 import { StepPicker } from "@/ui/organisms/StepPicker";
 import { BELOW_WIDE } from "@/ui/tokens/breakpoints";
 
@@ -74,6 +76,10 @@ interface Override {
  * all select the same step. The first step takes the figure apart; each part
  * then opens into its numbered pieces (listed on its card); the last step, a
  * live (scripted) chat, puts it back together and sends messages round it.
+ * Stacked on the compact phone stage, the picker goes (scrolling moves
+ * through the steps, and each card already opens with its number and name):
+ * Try it sits on the figure's bottom-right corner, which the board leaves
+ * empty.
  */
 export function Wayfinder() {
   const reducedMotion = useReducedMotion() ?? false;
@@ -96,6 +102,7 @@ export function Wayfinder() {
   });
   const demo = useWayfinderDemo(reducedMotion);
   const stacked = useMediaQuery(BELOW_WIDE);
+  const compact = useCompactStage();
   const selected = partForStep(current);
   const shown = current || INTRO_STEP;
 
@@ -116,6 +123,12 @@ export function Wayfinder() {
   const own = override?.step === current ? override : null;
   const apart = own ? own.apart : current >= INTRO_STEP && current < DEMO_STEP;
   const toggleApart = () => setOverride({ step: current, apart: !apart });
+
+  const tryIt = {
+    label: "Try it",
+    pressed: current === DEMO_STEP,
+    onClick: () => select(DEMO_STEP),
+  };
 
   const explode = useRef<ExplodeControls | null>(null);
   const send = (question: string, ask?: Ask) => {
@@ -159,6 +172,7 @@ export function Wayfinder() {
       <div
         ref={stageRef}
         data-bar-flush=""
+        data-compact={compact ? "" : undefined}
         className="sticky top-nav z-[3] block bg-gradient-to-b from-surface from-90% to-surface/0 pb-[18px] pt-[10px] wide:top-[6vh] wide:flex wide:h-[88vh] wide:flex-col wide:items-center wide:justify-center wide:gap-[14px] wide:bg-none wide:p-0"
       >
         {/* Wide, it sits a little low in the stage: taken apart, the figure
@@ -182,32 +196,34 @@ export function Wayfinder() {
               explode.current = controls;
             }}
           />
-          <StepPicker
-            label="Wayfinder part"
-            options={PICKER_OPTIONS}
-            value={current}
-            shown={shown}
-            valueText={optionText(shown)}
-            onSelect={select}
-            reducedMotion={reducedMotion}
-            marker={(n) => pad2(option(n).numeral)}
-            name={(n) => option(n).label}
-            action={{
-              label: "Try it",
-              pressed: current === DEMO_STEP,
-              onClick: () => select(DEMO_STEP),
-            }}
-            toggle={
-              stacked
-                ? null
-                : {
-                    label: apart ? "Put it back together" : "Take it apart",
-                    glyph: APART_GLYPH,
-                    onClick: toggleApart,
-                  }
-            }
-          />
+          {compact ? null : (
+            <StepPicker
+              label="Wayfinder part"
+              options={PICKER_OPTIONS}
+              value={current}
+              shown={shown}
+              valueText={optionText(shown)}
+              onSelect={select}
+              reducedMotion={reducedMotion}
+              marker={(n) => pad2(option(n).numeral)}
+              name={(n) => option(n).label}
+              action={tryIt}
+              toggle={
+                stacked
+                  ? null
+                  : {
+                      label: apart ? "Put it back together" : "Take it apart",
+                      glyph: APART_GLYPH,
+                      onClick: toggleApart,
+                    }
+              }
+            />
+          )}
         </div>
+        {/* Compact, Try it on the figure's bottom-right corner, below the board's edge. */}
+        {compact ? (
+          <StageAction action={tryIt} className="bottom-[18px]" />
+        ) : null}
         <p className="sr-only" aria-live="polite">
           {announcement}
         </p>

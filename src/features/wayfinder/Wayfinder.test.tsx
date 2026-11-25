@@ -1,7 +1,8 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Wayfinder } from "./Wayfinder";
+import { phoneStageSettings } from "@/features/phone-stage";
 
 // Reduced motion: the demo's messages arrive without waiting on animation.
 beforeEach(() => {
@@ -356,6 +357,9 @@ describe("Wayfinder on a phone", () => {
       removeListener: () => {},
     }));
   });
+  afterEach(() => {
+    act(() => phoneStageSettings.set({ phoneStage: "compact" }));
+  });
 
   it("opens only the selected part, in place, with no toggle", async () => {
     const user = userEvent.setup();
@@ -376,5 +380,37 @@ describe("Wayfinder on a phone", () => {
         "listitem",
       ),
     ).toHaveLength(3);
+  });
+
+  it("pins the figure alone on the compact stage, with Try it on it jumping to the demo", async () => {
+    const user = userEvent.setup();
+    render(<Wayfinder />);
+    expect(
+      screen.queryByRole("button", { name: /^Wayfinder part/ }),
+    ).toBeNull();
+    // Each card still opens with its number and name, as the picker did.
+    expect(
+      screen.getByRole("button", { name: "Show part 3, Supervisor agent" })
+        .nextElementSibling,
+    ).toHaveTextContent("Supervisor agent");
+    const stage = figure().closest("[data-compact]");
+    if (!(stage instanceof HTMLElement)) throw new Error("no compact stage");
+    const tryIt = within(stage).getByRole("button", { name: "Try it" });
+    expect(tryIt).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(tryIt);
+    expect(tryIt).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: "Show the live demo" }),
+    ).toHaveAttribute("aria-current", "step");
+    expect(screen.getByText("Live demo")).toBeInTheDocument();
+  });
+
+  it("keeps the picker on a phone when the current stage is chosen", async () => {
+    act(() => phoneStageSettings.set({ phoneStage: "current" }));
+    render(<Wayfinder />);
+    expect(picker()).toBeInTheDocument();
+    expect(figure().closest("[data-compact]")).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Try it" })).toHaveLength(1);
   });
 });

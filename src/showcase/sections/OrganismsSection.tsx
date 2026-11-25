@@ -8,6 +8,7 @@ import { NumberedDropdown, pad2 } from "@/ui/organisms/NumberedDropdown";
 import { NavMenu } from "@/ui/organisms/NavMenu";
 import { Odometer } from "@/ui/organisms/Odometer";
 import { PhoneMenu } from "@/ui/organisms/PhoneMenu";
+import { StageAction } from "@/ui/organisms/StageAction";
 import { StepPicker } from "@/ui/organisms/StepPicker";
 
 /** An icon in place of a number, as an unnumbered story's picker shows. */
@@ -51,7 +52,9 @@ export function OrganismsSection() {
         Work entries, the plain links, then the calls to action as links; Close,
         Escape or choosing anything closes it), a StepPicker (a scroll story's
         picker as the Wayfinder chapter draws it, here with icons in place of
-        numbers) and a RevealList. Placeholder copy.
+        numbers), a StageAction (its action on its own, as the compact phone
+        stage pins it to the drawing's bottom-right corner: a size down, with a
+        44px press) and a RevealList. Placeholder copy.
       </p>
       <div className="flex max-w-[460px] items-stretch gap-[10px]">
         <NumberedDropdown
@@ -107,6 +110,16 @@ export function OrganismsSection() {
             onClick: () => setWhole(!whole),
           }}
         />
+        <div className="relative h-[120px] w-full">
+          <StageAction
+            action={{
+              label: "Try it",
+              pressed: step === 5,
+              onClick: () => setStep(5),
+            }}
+            className="bottom-0"
+          />
+        </div>
       </div>
       <Drawer
         open={open}
